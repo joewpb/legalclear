@@ -1,24 +1,19 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/layout/Navbar';
-import LandingPage from './pages/LandingPage';
-import UploadFlow from './pages/UploadFlow';
-import AnalysisDashboard from './pages/AnalysisDashboard';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import LandingPage from "./pages/LandingPage";
+import UploadFlow from "./pages/UploadFlow";
+import ResultsPage from "./pages/ResultsPage";
+import ExpungementPage from "./pages/ExpungementPage";
 
-function App() {
+export default function App() {
   return (
-    <Router>
-      <div className="min-h-screen flex flex-col selection:bg-primary/30">
-        <Navbar />
-        <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/upload" element={<UploadFlow />} />
-            <Route path="/dashboard" element={<AnalysisDashboard />} />
-          </Routes>
-        </main>
-      </div>
-    </Router>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/upload" element={<UploadFlow />} />
+        <Route path="/results/:documentId" element={<ResultsPage />} />
+        <Route path="/expungement" element={<ExpungementPage />} />
+        {/* /pay/:id and /subscribe will be added in a later prompt */}
+      </Routes>
+    </BrowserRouter>
   );
 }
-
-export default App;

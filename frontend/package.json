@@ -7,19 +7,22 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "vite build",
     "preview": "vite preview",
-    "dev": "vite"
+    "dev": "vite",
+    "start": "serve -s dist -l $PORT"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@vitejs/plugin-react": "^6.0.1",
+    "serve": "^14.2.6",
     "vite": "^8.0.8"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^6.2.0",
     "@stripe/stripe-js": "^9.2.0",
     "autoprefixer": "^10.5.0",
+    "axios": "^1.15.1",
     "i18next": "^26.0.5",
     "lucide-react": "^1.8.0",
     "postcss": "^8.5.10",
