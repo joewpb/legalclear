@@ -1,14 +1,22 @@
-from src.core.config import settings
-
-
 class DatabaseManager:
 
     def __init__(self):
         from supabase import create_client
-        self.client = create_client(
-            settings.SUPABASE_URL,
-            settings.SUPABASE_SERVICE_KEY
-        )
+        from src.core.config import settings
+        import logging
+        self.logger = logging.getLogger(__name__)
+        if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_KEY:
+            self.client = None
+            self.logger.warning("Supabase not configured — running in degraded mode")
+            return
+        try:
+            self.client = create_client(
+                settings.SUPABASE_URL,
+                settings.SUPABASE_SERVICE_KEY,
+            )
+        except Exception as e:
+            self.logger.error(f"Supabase init failed: {e}")
+            self.client = None
 
     def get_or_create_user(
             self, email: str,

@@ -27,3 +27,4 @@ htmlcov/
 mobile/.expo/
 mobile/node_modules/
 mobile/dist/
+.env.example

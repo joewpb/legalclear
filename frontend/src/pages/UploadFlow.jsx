@@ -61,6 +61,7 @@ export default function UploadFlow() {
       if (uploadData.error) throw new Error(uploadData.message || "Upload failed");
       
       const sessionId = uploadData.session_id;
+      const documentId = uploadData.document_id;
       if (sessionId) {
           const processRes = await fetch(`${apiUrl}/process/${sessionId}?lang=en`, {
             method: 'POST',
@@ -68,9 +69,9 @@ export default function UploadFlow() {
           });
           if (!processRes.ok) throw new Error("Processing logic failed or hit a context limit.");
       }
-      
+
       setIsProcessing(false);
-      navigate(`/results/${sessionId}`);
+      navigate(`/results/${documentId}`);
     } catch (err) {
       console.error(err);
       alert("Error analyzing file: " + err.message);
