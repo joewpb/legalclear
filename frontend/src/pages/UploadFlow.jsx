@@ -63,11 +63,24 @@ export default function UploadFlow() {
       const sessionId = uploadData.session_id;
       const documentId = uploadData.document_id;
       if (sessionId) {
-          const processRes = await fetch(`${apiUrl}/process/${sessionId}?lang=en`, {
-            method: 'POST',
-            headers: { 'x-api-key': 'testkey123' }
-          });
-          if (!processRes.ok) throw new Error("Processing logic failed or hit a context limit.");
+        const processRes = await fetch(`${apiUrl}/process/${sessionId}?lang=en`, {
+          method: 'POST',
+          headers: { 'X-API-Key': import.meta.env.VITE_API_KEY || 'testkey123' }
+        });
+
+        if (processRes.status === 402) {
+          const paywallData = await processRes.json();
+          setIsProcessing(false);
+          navigate(`/pay/${documentId}`, { state: paywallData });
+          return;
+        }
+
+        if (!processRes.ok) {
+          const errorBody = await processRes.json().catch(() => ({}));
+          throw new Error(
+            errorBody.detail || `Processing failed (status ${processRes.status})`
+          );
+        }
       }
 
       setIsProcessing(false);
