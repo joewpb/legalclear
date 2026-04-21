@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
 import logging
+import traceback
+import uuid as _uuid
 
 from src.core.config import settings
 from src.core.escalation import EscalationRouter
@@ -18,6 +20,7 @@ from src.payments.stripe_client import StripeClient
 from src.payments import check_access
 
 app = FastAPI(title="LegalClear API", version="1.0")
+logger = logging.getLogger(__name__)
 
 app.add_middleware(
     CORSMiddleware,
@@ -62,9 +65,13 @@ async def health():
 
 @app.post("/eligibility")
 async def check_eligibility(req: EligibilityRequest):
-    return await expungement.check_eligibility(
-        req.jurisdiction, req.offense_description, req.years_since_offense, req.lang
-    )
+    try:
+        return await expungement.check_eligibility(
+            req.jurisdiction, req.offense_description, req.years_since_offense, req.lang
+        )
+    except Exception as e:
+        logger.error(f"Eligibility check failed: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Eligibility check failed: {str(e)}")
 
 @app.post("/webhook")
 async def stripe_webhook(request: Request):
@@ -121,150 +128,176 @@ async def upload_document(
     email: str = Header(),
     lang: str = Header(default="en")
 ):
-    data = await request.body()
-    doc = await ingest_document(data, filename)
-    if doc.get("error"):
-        return {"error": True, "message": doc.get("message")}
-        
-    classification = await classifier.classify(doc)
-    escalation = escalation_router.route(classification, lang)
-    tier = classifier.get_price_tier(doc)
-    
-    user = db.get_user(user_id)
-    if not user:
-        user = db.get_or_create_user(email, lang)
+    try:
+        # Normalize user_id — generate UUID if input is non-UUID string
+        try:
+            _uuid.UUID(str(user_id))
+        except (ValueError, TypeError, AttributeError):
+            user_id = str(_uuid.uuid4())
 
-    access = check_access(user, None)
-    
-    session_id = db.create_session(
-        user_id=user["id"],
-        filename=filename,
-        token_count=doc.get("token_estimate", 0),
-        price_tier=tier["tier"],
-        price_usd=float(tier["price_usd"]),
-        payment_type=access["payment_type"]
-    )
-    
-    document_id = db.create_document(session_id, doc.get("text", ""))
-    
-    response = {
-        "session_id": session_id,
-        "document_id": document_id,
-        "classification": classification,
-        "escalation": escalation,
-        "access": access,
-        "price": tier
-    }
-    
-    if not access["allowed"]:
-        intent = stripe_client.create_payment_intent(
-            price_usd=tier["price_usd"],
-            session_id=session_id,
-            user_email=email
+        data = await request.body()
+        doc = await ingest_document(data, filename)
+        if doc.get("error"):
+            return {"error": True, "message": doc.get("message")}
+
+        classification = await classifier.classify(doc)
+        escalation = escalation_router.route(classification, lang)
+        tier = classifier.get_price_tier(doc)
+
+        user = db.get_user(user_id)
+        if not user:
+            user = db.get_or_create_user(email, lang)
+
+        access = check_access(user, None)
+
+        session_id = db.create_session(
+            user_id=user["id"] if user and user.get("id") else user_id,
+            filename=filename,
+            token_count=doc.get("token_estimate", 0),
+            price_tier=tier["tier"],
+            price_usd=float(tier["price_usd"]),
+            payment_type=access["payment_type"]
         )
-        db.update_payment_status(session_id, "pending", intent["payment_intent_id"])
-        response["payment"] = intent
-        
-    return response
+
+        document_id = db.create_document(session_id, doc.get("text", ""))
+
+        response = {
+            "session_id": session_id,
+            "document_id": document_id,
+            "classification": classification,
+            "escalation": escalation,
+            "access": access,
+            "price": tier
+        }
+
+        if not access["allowed"]:
+            intent = stripe_client.create_payment_intent(
+                price_usd=tier["price_usd"],
+                session_id=session_id,
+                user_email=email
+            )
+            db.update_payment_status(session_id, "pending", intent["payment_intent_id"])
+            response["payment"] = intent
+
+        return response
+    except Exception as e:
+        logger.error(f"Upload failed: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Upload processing failed: {str(e)}")
 
 @app.post("/process/{session_id}", dependencies=[Depends(verify_api_key)])
 async def process_document(session_id: str, background_tasks: BackgroundTasks, lang: str = "en"):
-    session = db.get_session(session_id)
-    if not session:
-        raise HTTPException(status_code=404, detail="Session not found")
-        
-    user = db.get_user(session["user_id"])
-    access = check_access(user, session)
-    if not access["allowed"]:
-        raise HTTPException(status_code=402, detail="Payment required")
-        
-    docs = db.client.table("documents").select("*").eq("session_id", session_id).execute()
-    if not docs.data:
-        raise HTTPException(status_code=404, detail="Document not found")
-    
-    doc_record = docs.data[0]
-    document_id = doc_record["id"]
-    document_text = doc_record["document_text"]
-    
-    doc = {"text": document_text}
-    # For Phase 10 validation we must fetch the classification from DB or re-run
-    # Re-running here is okay to ensure state consistency for tests, but normally we'd pull from document table.
-    # To be safe and save time, since the prompt implies processing completes here:
-    classification = await classifier.classify(doc)
-    
-    explanation = await explainer.explain(doc, classification, lang)
-    risk_scan = await risk_scanner.scan(doc, classification, lang)
-    
-    form_results = {}
-    if classification.get("document_category") in FORM_CATEGORIES:
-        form_results = await form_guide.guide(doc, classification, lang)
-        
-    exp_results = {}
-    if classification.get("document_category") == "expungement_petition":
-        exp_results = await expungement.guide(doc, classification, lang)
-        
-    escalation = escalation_router.route(classification, lang)
-    
-    db.save_results(
-        document_id=document_id,
-        classification=classification,
-        explanation=explanation,
-        form_guide=form_results,
-        risk_scan=risk_scan,
-        expungement_guide=exp_results,
-        escalation=escalation,
-        language=lang
-    )
-    
-    if access["payment_type"] == "free":
-        db.mark_free_doc_used(user["id"])
-        
-    db.log_usage(
-        category=classification.get("document_category", "unknown"),
-        jurisdiction=classification.get("jurisdiction_name", "unknown"),
-        language=lang,
-        price_tier=session.get("price_tier", "small"),
-        processing_time=0.0
-    )
-    
-    # Notify
-    background_tasks.add_task(notifications.send_push, user["id"], "Analysis Complete", "Your document analysis is ready to view.")
-    
-    return {
-        "document_id": document_id,
-        "classification": classification,
-        "explanation": explanation,
-        "risk_scan": risk_scan,
-        "form_guide": form_results,
-        "expungement": exp_results,
-        "escalation": escalation
-    }
+    try:
+        session = db.get_session(session_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+
+        user = db.get_user(session["user_id"])
+        access = check_access(user, session)
+        if not access["allowed"]:
+            raise HTTPException(status_code=402, detail="Payment required")
+
+        if db.client is None:
+            raise HTTPException(status_code=503, detail="Database unavailable")
+
+        docs = db.client.table("documents").select("*").eq("session_id", session_id).execute()
+        if not docs.data:
+            raise HTTPException(status_code=404, detail="Document not found")
+
+        doc_record = docs.data[0]
+        document_id = doc_record["id"]
+        document_text = doc_record["document_text"]
+
+        doc = {"text": document_text}
+        classification = await classifier.classify(doc)
+
+        explanation = await explainer.explain(doc, classification, lang)
+        risk_scan = await risk_scanner.scan(doc, classification, lang)
+
+        form_results = {}
+        if classification.get("document_category") in FORM_CATEGORIES:
+            form_results = await form_guide.guide(doc, classification, lang)
+
+        exp_results = {}
+        if classification.get("document_category") == "expungement_petition":
+            exp_results = await expungement.guide(doc, classification, lang)
+
+        escalation = escalation_router.route(classification, lang)
+
+        db.save_results(
+            document_id=document_id,
+            classification=classification,
+            explanation=explanation,
+            form_guide=form_results,
+            risk_scan=risk_scan,
+            expungement_guide=exp_results,
+            escalation=escalation,
+            language=lang
+        )
+
+        if access["payment_type"] == "free" and user:
+            db.mark_free_doc_used(user["id"])
+
+        db.log_usage(
+            category=classification.get("document_category", "unknown"),
+            jurisdiction=classification.get("jurisdiction_name", "unknown"),
+            language=lang,
+            price_tier=session.get("price_tier", "small"),
+            processing_time=0.0
+        )
+
+        if user:
+            background_tasks.add_task(notifications.send_push, user["id"], "Analysis Complete", "Your document analysis is ready to view.")
+
+        return {
+            "document_id": document_id,
+            "classification": classification,
+            "explanation": explanation,
+            "risk_scan": risk_scan,
+            "form_guide": form_results,
+            "expungement": exp_results,
+            "escalation": escalation
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Process failed: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
 
 @app.post("/chat/{document_id}", dependencies=[Depends(verify_api_key)])
 async def chat(document_id: str, question: str, lang: str = "en"):
-    doc_record = db.get_document(document_id)
-    if not doc_record:
-        raise HTTPException(status_code=404)
-        
-    doc = {"text": doc_record.get("document_text", "")}
-    classification = doc_record.get("classification", {})
-    explanation = doc_record.get("explanation", {})
-    history = db.get_history(document_id)
-    
-    form_guide_res = doc_record.get("form_guide", {})
-    if form_guide_res and "sections" in form_guide_res:
-        qa = await form_guide.answer_form_question(doc, classification, form_guide_res, question, history, lang)
-    else:
-        qa = await explainer.answer_question(doc, classification, explanation, question, history, lang)
-        
-    db.save_message(document_id, "user", question, lang)
-    db.save_message(document_id, "assistant", qa.get("answer", ""), lang)
-    
-    return qa
+    try:
+        doc_record = db.get_document(document_id)
+        if not doc_record:
+            raise HTTPException(status_code=404)
+
+        doc = {"text": doc_record.get("document_text", "")}
+        classification = doc_record.get("classification", {})
+        explanation = doc_record.get("explanation", {})
+        history = db.get_history(document_id)
+
+        form_guide_res = doc_record.get("form_guide", {})
+        if form_guide_res and "sections" in form_guide_res:
+            qa = await form_guide.answer_form_question(doc, classification, form_guide_res, question, history, lang)
+        else:
+            qa = await explainer.answer_question(doc, classification, explanation, question, history, lang)
+
+        db.save_message(document_id, "user", question, lang)
+        db.save_message(document_id, "assistant", qa.get("answer", ""), lang)
+
+        return qa
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Chat failed: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Chat failed: {str(e)}")
 
 @app.get("/document/{document_id}", dependencies=[Depends(verify_api_key)])
 async def get_document(document_id: str):
-    return db.get_document(document_id)
+    try:
+        return db.get_document(document_id)
+    except Exception as e:
+        logger.error(f"get_document failed: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch document: {str(e)}")
 
 @app.get("/documents/{user_id}", dependencies=[Depends(verify_api_key)])
 async def get_documents(user_id: str):

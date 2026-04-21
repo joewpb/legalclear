@@ -23,7 +23,10 @@ class RiskScannerAgent:
 
     def __init__(self):
         self.client = Anthropic(
-            api_key=settings.ANTHROPIC_API_KEY)
+            api_key=settings.ANTHROPIC_API_KEY,
+            max_retries=3,
+            timeout=60.0,
+        )
         self.model = "claude-haiku-4-5-20251001"
 
     async def scan(self, document: dict,

@@ -31,7 +31,10 @@ class ExpungementAgent:
 
     def __init__(self):
         self.client = Anthropic(
-            api_key=settings.ANTHROPIC_API_KEY)
+            api_key=settings.ANTHROPIC_API_KEY,
+            max_retries=3,
+            timeout=60.0,
+        )
         self.guide_model = "claude-sonnet-4-6"
         self.eligibility_model = "claude-haiku-4-5-20251001"
 

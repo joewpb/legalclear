@@ -22,7 +22,10 @@ class ExplainerAgent:
 
     def __init__(self):
         self.client = Anthropic(
-            api_key=settings.ANTHROPIC_API_KEY)
+            api_key=settings.ANTHROPIC_API_KEY,
+            max_retries=3,
+            timeout=60.0,
+        )
         self.model = "claude-sonnet-4-6"
 
     async def explain(self, document: dict,
