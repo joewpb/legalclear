@@ -148,38 +148,24 @@ async def upload_document(
         if not user:
             user = db.get_or_create_user(email, lang)
 
-        access = check_access(user, None)
-
         session_id = db.create_session(
             user_id=user["id"] if user and user.get("id") else user_id,
             filename=filename,
             token_count=doc.get("token_estimate", 0),
             price_tier=tier["tier"],
             price_usd=float(tier["price_usd"]),
-            payment_type=access["payment_type"]
+            payment_type="free"
         )
 
         document_id = db.create_document(session_id, doc.get("text", ""))
 
-        response = {
+        return {
             "session_id": session_id,
             "document_id": document_id,
             "classification": classification,
             "escalation": escalation,
-            "access": access,
             "price": tier
         }
-
-        if not access["allowed"]:
-            intent = stripe_client.create_payment_intent(
-                price_usd=tier["price_usd"],
-                session_id=session_id,
-                user_email=email
-            )
-            db.update_payment_status(session_id, "pending", intent["payment_intent_id"])
-            response["payment"] = intent
-
-        return response
     except Exception as e:
         logger.error(f"Upload failed: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Upload processing failed: {str(e)}")
@@ -192,9 +178,6 @@ async def process_document(session_id: str, background_tasks: BackgroundTasks, l
             raise HTTPException(status_code=404, detail="Session not found")
 
         user = db.get_user(session["user_id"])
-        access = check_access(user, session)
-        if not access["allowed"]:
-            raise HTTPException(status_code=402, detail="Payment required")
 
         if db.client is None:
             raise HTTPException(status_code=503, detail="Database unavailable")
@@ -233,9 +216,6 @@ async def process_document(session_id: str, background_tasks: BackgroundTasks, l
             escalation=escalation,
             language=lang
         )
-
-        if access["payment_type"] == "free" and user:
-            db.mark_free_doc_used(user["id"])
 
         db.log_usage(
             category=classification.get("document_category", "unknown"),
@@ -304,18 +284,23 @@ async def get_documents(user_id: str):
     return db.get_user_documents(user_id)
 
 @app.post("/florida-filing/prepare", dependencies=[Depends(verify_api_key)])
-async def prepare_florida_filing(case_data: dict):
+async def prepare_florida_filing(case_data: dict, user_id: str = Header()):
+    user = db.get_user(user_id)
+    access = check_access(user, None)
+    if not access["allowed"]:
+        raise HTTPException(status_code=402, detail="Upgrade to file")
+
     from src.platforms.florida_courts import PDFAGenerator, CountyRouter, ManualFilingHelper
     gen = PDFAGenerator()
     router = CountyRouter()
     helper = ManualFilingHelper()
-    
+
     # In a real deployed environment, replace "/tmp/lc_test_packet/" with bounded dir.
     packet = gen.generate_packet(case_data, "/tmp/lc_filings/")
     route = router.route(case_data.get("county", ""))
     instr = helper.get_instructions(case_data.get("county", ""), "en")
     btn = helper.get_deep_link_button(case_data.get("county", ""))
-    
+
     return {
         "packet": packet,
         "route": route,
