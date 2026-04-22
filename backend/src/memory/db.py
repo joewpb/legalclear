@@ -262,6 +262,36 @@ class DatabaseManager:
             self.logger.error(f"get_history failed for {document_id}: {e}")
             return []
 
+    def count_filings(self, user_id: str) -> int:
+        if self.client is None:
+            return 0
+        try:
+            result = (self.client.table("filings")
+                      .select("id")
+                      .eq("user_id", user_id)
+                      .execute())
+            return len(result.data) if result.data else 0
+        except Exception as e:
+            self.logger.error(f"count_filings failed: {e}")
+            return 0
+
+    def record_filing(self, user_id: str, document_id: str,
+                      filing_type: str = "florida",
+                      jurisdiction: str = "FL") -> bool:
+        if self.client is None:
+            return False
+        try:
+            self.client.table("filings").insert({
+                "user_id": user_id,
+                "document_id": document_id,
+                "filing_type": filing_type,
+                "jurisdiction": jurisdiction
+            }).execute()
+            return True
+        except Exception as e:
+            self.logger.error(f"record_filing failed: {e}")
+            return False
+
     def log_usage(
             self, category: str,
             jurisdiction: str, language: str,

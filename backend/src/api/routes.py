@@ -285,10 +285,12 @@ async def get_documents(user_id: str):
 
 @app.post("/florida-filing/prepare", dependencies=[Depends(verify_api_key)])
 async def prepare_florida_filing(case_data: dict, user_id: str = Header()):
-    user = db.get_user(user_id)
-    access = check_access(user, None)
-    if not access["allowed"]:
-        raise HTTPException(status_code=402, detail="Upgrade to file")
+    filing_count = db.count_filings(user_id)
+    if filing_count >= 1:
+        raise HTTPException(
+            status_code=402,
+            detail="First filing free. Upgrade for expert guidance on next steps."
+        )
 
     from src.platforms.florida_courts import PDFAGenerator, CountyRouter, ManualFilingHelper
     gen = PDFAGenerator()
@@ -300,6 +302,8 @@ async def prepare_florida_filing(case_data: dict, user_id: str = Header()):
     route = router.route(case_data.get("county", ""))
     instr = helper.get_instructions(case_data.get("county", ""), "en")
     btn = helper.get_deep_link_button(case_data.get("county", ""))
+
+    db.record_filing(user_id, case_data.get("document_id", ""), "florida", "FL")
 
     return {
         "packet": packet,
