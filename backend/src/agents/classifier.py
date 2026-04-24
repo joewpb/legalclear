@@ -1,6 +1,10 @@
 import json
+import logging
+import traceback
 from anthropic import Anthropic
 from src.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = (
     "You are a legal document classification expert. "
@@ -100,7 +104,12 @@ Document text:
                         raw = raw[4:]
                 return json.loads(raw)
             except Exception as e:
-                print(f"Exception calling Anthropic: {e}")
+                logger.error(
+                    "Anthropic call failed in %s: %s\n%s",
+                    self.__class__.__name__,
+                    repr(e),
+                    traceback.format_exc()
+                )
                 if attempt == 1:
                     return self._default()
         return self._default()

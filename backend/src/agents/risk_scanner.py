@@ -1,7 +1,11 @@
 import json
+import logging
+import traceback
 from anthropic import Anthropic
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
+
+logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = (
     "You are a legal document risk scanner for LegalClear. "
@@ -95,6 +99,13 @@ Document text:
                 lang, "standard")
             return result
         except Exception as e:
+            logger.error(
+                "Anthropic call failed in %s: %s\n%s",
+                self.__class__.__name__,
+                repr(e),
+                traceback.format_exc()
+            )
             return {"error": True, "message": str(e),
+                    "exception_type": type(e).__name__,
                     "disclaimer": get_disclaimer(
                         lang, "standard")}
