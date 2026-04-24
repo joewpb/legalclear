@@ -59,6 +59,10 @@ class EligibilityRequest(BaseModel):
 class ProcessRequest(BaseModel):
     lang: str = "en"
 
+class ChatRequest(BaseModel):
+    message: str
+    lang: str = "en"
+
 @app.get("/health")
 async def health():
     return {"status": "ok", "version": "1.0", "product": "LegalClear"}
@@ -244,7 +248,9 @@ async def process_document(session_id: str, background_tasks: BackgroundTasks, l
         raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
 
 @app.post("/chat/{document_id}", dependencies=[Depends(verify_api_key)])
-async def chat(document_id: str, question: str, lang: str = "en"):
+async def chat(document_id: str, body: ChatRequest):
+    question = body.message
+    lang = body.lang
     try:
         doc_record = db.get_document(document_id)
         if not doc_record:
