@@ -193,7 +193,5 @@ Document text:
                     else "Could not process your question."),
                 "confidence": "low",
                 "disclaimer": get_disclaimer(lang, "short"),
-                "language": lang,
-                "error": str(e),
-                "exception_type": type(e).__name__
+                "language": lang
             }
