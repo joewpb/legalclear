@@ -124,11 +124,19 @@ Production cutover progress (2026-05-15):
    `https://legalclear.app` (set in `routers/packet.py`). Override on
    Railway if the prod frontend hostname differs.
 
-The leaked Supabase PAT (`sbp_0074fb3f…`) and the leaked Stripe
-`rk_live_…` key both went over the chat transport and must still be
-rotated manually:
-- PAT: https://supabase.com/dashboard/account/tokens
-- Stripe: https://dashboard.stripe.com/apikeys → click the key → Roll
+**Credential hygiene (closed):** the leaked Supabase PAT
+(`sbp_0074fb3f…`) and the Stripe `rk_live_…` key that went over the
+chat transport were both rotated 2026-05-15. Post-rotation smoke
+against `/api/packet/build` still returned a `cs_live_…` Stripe URL,
+confirming the new secret key was synced to the `zesty-delight`
+service before the old key was invalidated.
+
+**v1 retheme shipped 2026-05-15** (commit `6c11fe0`). Light mode
+`#FAFAF7 / #1A1A1A`, `#1E40AF` accent, Fraunces serif + Inter sans,
+geometric mark favicon, color-split "legal clear" wordmark. Verified
+live on `https://appealing-victory-production-d519.up.railway.app/`
+via headless Chromium — 0 page errors, 0 console errors, all 8 tiles
+render, wordmark colors confirmed at the exact target RGB values.
 
 **LegalClear v1 shipped 2026-05-15.**
 
