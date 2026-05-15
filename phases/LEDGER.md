@@ -91,16 +91,31 @@ Production cutover progress (2026-05-15):
    API — 12 columns + 3 indexes (`packets_pkey`, `idx_packets_user`,
    `idx_packets_status`). The `packet_builder.py` Supabase mirror that
    was silent/best-effort before now persists every build.
-2. **Railway deploy config:** UPDATED on push. `requirements.txt`
-   gained `pikepdf>=10.6.0` + `jinja2>=3.1.6` + explicit `httpx`
-   (without these, Phase 23 imports 500 on prod — `pyproject.toml`
-   alone is not enough because Railway's nixpacks builder installs
-   from `requirements.txt`). `nixpacks.toml` + `railway.json` now run
-   `playwright install chromium` after pip install, and `nixpacks.toml`
-   declares the Debian apt packages Playwright's bundled Chromium
-   needs at runtime (libnss3, libxkbcommon0, libgbm1, etc.). First
-   post-push Railway build will materialize Chromium in the deploy
-   image — expect a slightly longer cold deploy than prior phases.
+2. **Railway deploy:** GREEN at commit `7e7fae8` after a four-step
+   correction. Each commit fixed a real blocker the prior one revealed:
+   - `da2cc18` synced `requirements.txt` with `pyproject.toml`
+     (pikepdf + jinja2 + httpx) — but edited the orphaned root-level
+     configs, not the live `backend/` ones.
+   - `c8af4ca` moved the fixes into the live `backend/railway.json` +
+     `backend/nixpacks.toml`, fixed `_STORAGE_ROOT` from `parents[3]
+     / "backend"` to `parents[2]` (the former resolved to filesystem
+     root on Railway with rootDirectory=/backend), and bundled
+     `fl_disqualifying_offenses.json` inside `backend/src/data/`.
+   - `d99b9be` switched the Chromium runtime deps to their `t64`
+     variants for Ubuntu 24.04 noble (`libasound2`, `libcups2`,
+     `libatk1.0-0`, `libatk-bridge2.0-0` had no installation
+     candidate on noble; the t64 names are the only ones that
+     resolve).
+   - `7e7fae8` stopped overriding the Nixpacks Python provider's
+     install phase (the override displaced `/opt/venv` creation and
+     made bare `pip` not-found at stage 7). Now the provider runs
+     `pip install -r requirements.txt` natively and a
+     `[phases.build]` runs `python -m playwright install chromium`
+     after the venv is live.
+
+   Deploy is up, `/health` returns 200. Stripe checkout creation +
+   PDF/A pipeline are runtime-tested but not yet exercised against
+   the production hostname.
 3. **Stripe key:** still `sk_test_…` per `.env.example`. Live key
    swap is the last manual gate before real money moves.
 4. **`FRONTEND_URL` env on Railway backend:** defaults to
