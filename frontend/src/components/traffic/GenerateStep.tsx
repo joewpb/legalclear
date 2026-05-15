@@ -1,11 +1,25 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import counties from "../../data/fl_counties.json";
-import type { ContestResult, County, TrafficForm } from "./types";
+import LanguageToggle, {
+  readLanguage,
+  type Language,
+} from "../packet/LanguageToggle";
+import type { County, TrafficForm } from "./types";
 
 const COUNTIES = counties as County[];
 const API_URL = (import.meta as any).env?.VITE_API_URL || "http://localhost:8001";
 const FLHSMV_SCHOOL_URL =
   "https://www.flhsmv.gov/driver-licenses-id-cards/locations/";
+
+// Phase 23 — /api/traffic/generate returns packet_id + checkout for the
+// contest path. Pay and school paths still link out directly.
+type GenerateResult = {
+  packet_id: string;
+  fee_usd: number;
+  file_count: number;
+  checkout_url: string;
+};
 
 type Props = {
   form: TrafficForm;
@@ -13,10 +27,11 @@ type Props = {
 };
 
 export default function GenerateStep({ form, onBack }: Props) {
+  const navigate = useNavigate();
   const county = COUNTIES.find((c) => c.name === form.county);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<ContestResult | null>(null);
+  const [language, setLanguage] = useState<Language>(() => readLanguage());
 
   async function submitContest() {
     setSubmitting(true);
@@ -31,10 +46,20 @@ export default function GenerateStep({ form, onBack }: Props) {
           issue_date: form.issue_date,
           county: form.county,
           chosen_path: form.chosen_path,
+          language,
         }),
       });
       if (!r.ok) throw new Error(`Server returned ${r.status}`);
-      setResult((await r.json()) as ContestResult);
+      const j = (await r.json()) as GenerateResult;
+      try {
+        sessionStorage.setItem(
+          `lc.packet.${j.packet_id}.checkout_url`,
+          j.checkout_url
+        );
+      } catch {
+        /* non-fatal */
+      }
+      navigate(`/filing-packet/${j.packet_id}`);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -44,9 +69,20 @@ export default function GenerateStep({ form, onBack }: Props) {
 
   return (
     <section style={{ padding: 32, display: "grid", gap: 16 }}>
-      <h2 className="mono" style={{ fontSize: 20, margin: 0 }}>
-        Step 3 — Next steps
-      </h2>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <h2 className="mono" style={{ fontSize: 20, margin: 0 }}>
+          Step 3 — Next steps
+        </h2>
+        {form.chosen_path === "contest" && (
+          <LanguageToggle value={language} onChange={setLanguage} />
+        )}
+      </div>
 
       <SummaryCard form={form} />
 
@@ -58,16 +94,12 @@ export default function GenerateStep({ form, onBack }: Props) {
         <SchoolPath />
       )}
 
-      {form.chosen_path === "contest" && !result && (
+      {form.chosen_path === "contest" && (
         <ContestPath
           onSubmit={submitContest}
           submitting={submitting}
           error={error}
         />
-      )}
-
-      {form.chosen_path === "contest" && result && (
-        <ContestResultCard r={result} />
       )}
 
       <div style={{ display: "flex", justifyContent: "flex-start" }}>
@@ -227,7 +259,10 @@ function ContestPath({
   );
 }
 
-function ContestResultCard({ r }: { r: ContestResult }) {
+// Phase 23 — ContestResultCard kept below but no longer rendered; the
+// contest path navigates to /filing-packet/:packetId after submit.
+// Retained as dead code only to minimize diff if a future change reverts.
+function _ContestResultCard_unused({ r }: { r: any }) {
   return (
     <article
       style={{

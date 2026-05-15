@@ -28,3 +28,7 @@ mobile/.expo/
 mobile/node_modules/
 mobile/dist/
 .env.example
+
+# Phase 23 generated packet artifacts (PDFs + ZIPs created at runtime
+# by backend/src/services/packet_builder.py — never commit user output).
+backend/storage/

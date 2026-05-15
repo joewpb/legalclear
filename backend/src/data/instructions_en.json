@@ -1,0 +1,88 @@
+{
+  "small_claims": {
+    "title": "Filing Your Small Claims Case",
+    "summary": "This packet contains the documents you need to file a Florida small claims case. The Statement of Claim states what you are owed and why; the summons notifies the defendant of the lawsuit; the civil cover sheet tells the clerk how to docket the case.",
+    "steps": [
+      "Print all three documents in this packet on letter-size paper.",
+      "Sign the Statement of Claim in front of a notary public.",
+      "Go to myflcourtaccess.com and log in or register a free account.",
+      "Select your county and the Small Claims case type.",
+      "Upload each PDF in order: 01 Statement of Claim, 02 Walkthrough, 03 Summary.",
+      "Pay the filing fee online with a credit or debit card.",
+      "Save your confirmation number — you will need it to track your case."
+    ],
+    "what_happens_next": "The clerk will review your filing within 5 to 7 business days. Once accepted, you will receive a case number and a pre-trial conference date by mail or email. The defendant must be served before that date.",
+    "county_overrides": {}
+  },
+  "expungement": {
+    "title": "Filing Your Expungement Petition",
+    "summary": "Expunging a Florida criminal record is a two-stage process. First, the Florida Department of Law Enforcement (FDLE) must issue a Certificate of Eligibility. Once the Certificate is in hand, you file a Petition to Expunge in the court of original jurisdiction.",
+    "steps": [
+      "Print all three documents and the FDLE application.",
+      "Have the FDLE application signed in front of a notary public.",
+      "Mail the FDLE application with a certified copy of the disposition, fingerprint card, and $75 money order to FDLE in Tallahassee.",
+      "Wait 12 to 16 weeks for the Certificate of Eligibility to be issued.",
+      "Once you receive the Certificate, file the Petition to Expunge in the court where the case was disposed of.",
+      "Serve the State Attorney and the arresting agency with copies of the petition.",
+      "Attend any hearing the judge schedules and bring all original documents."
+    ],
+    "what_happens_next": "If granted, the court will order the record sealed or expunged and send notice to every agency that holds a copy. Allow 60 to 90 days from the order for the record to actually disappear from public databases.",
+    "county_overrides": {}
+  },
+  "landlord_deposit": {
+    "title": "Demanding the Return of Your Security Deposit",
+    "summary": "Under Florida Statute 83.49, a landlord has 15 days from move-out to return your security deposit in full, or 30 days to send written notice of any claim against it. This packet creates a written demand that triggers the landlord's statutory obligation.",
+    "steps": [
+      "Print the demand letter on letter-size paper.",
+      "Sign and date the letter.",
+      "Make at least two copies for your records.",
+      "Send the original via U.S. Postal Service certified mail, return receipt requested.",
+      "Keep the green return receipt and the certified mail receipt with the copy of the letter.",
+      "Wait 15 days. If the landlord does not respond, you may file a small claims case to recover the deposit plus damages."
+    ],
+    "what_happens_next": "If the landlord still refuses or fails to respond, Florida law allows recovery of the full deposit plus damages, attorney's fees, and court costs. Use the LegalClear Small Claims tile to start that filing.",
+    "county_overrides": {}
+  },
+  "landlord_repairs": {
+    "title": "Notifying Your Landlord of a Material Defect",
+    "summary": "Florida Statute 83.56(1) requires a tenant to give the landlord written notice and seven days to cure a material noncompliance before withholding rent or terminating the lease. This packet provides the statutory 7-day notice.",
+    "steps": [
+      "Print the 7-day notice on letter-size paper.",
+      "Sign and date the notice.",
+      "Make a copy for your records and a photocopy with the date stamp.",
+      "Deliver the notice to your landlord by U.S. Postal Service certified mail, return receipt requested.",
+      "If safe to do so, also leave a copy at the rental unit with the date and time of delivery noted.",
+      "Wait the full seven days before withholding rent or vacating."
+    ],
+    "what_happens_next": "If the landlord makes the repair, your tenancy continues as before. If they do not, you may withhold rent or terminate the lease — but consult a Florida attorney before doing either, because the wrong path can lead to eviction.",
+    "county_overrides": {}
+  },
+  "landlord_eviction": {
+    "title": "Answering an Eviction Complaint",
+    "summary": "Under Florida Statute 83.60, a tenant has five business days from service of the eviction complaint to file a written Answer and to deposit any disputed rent into the court registry. Failure to do both can result in a default judgment of eviction.",
+    "steps": [
+      "Print the Answer on letter-size paper.",
+      "Fill in any factual defenses with specific dates and amounts.",
+      "Sign and date the Answer.",
+      "Make a copy for your records.",
+      "File the original at the County Clerk's office where the eviction was filed.",
+      "If you are disputing the amount of rent, also deposit the disputed rent into the court registry on the same day."
+    ],
+    "what_happens_next": "The court will schedule a hearing within 30 to 45 days. Attend it. Bring all receipts, photos, and communications with the landlord. If you do not appear, the judge will likely enter a default judgment of eviction.",
+    "county_overrides": {}
+  },
+  "traffic": {
+    "title": "Requesting a Court Hearing for a Traffic Citation",
+    "summary": "If you elect to contest a Florida traffic citation, you must request a court hearing in writing within 30 days of the issue date. This packet provides the written request.",
+    "steps": [
+      "Print the hearing request letter on letter-size paper.",
+      "Sign and date the letter.",
+      "Make a copy for your records.",
+      "Submit the original to the county clerk listed on the citation, either in person or by mail.",
+      "Keep the dated stamp or certified mail receipt as proof of timely filing.",
+      "Calendar the hearing date as soon as the clerk notifies you."
+    ],
+    "what_happens_next": "The clerk will assign a hearing date, typically 60 to 120 days out. Until then, do not pay the citation — paying admits the violation and waives the hearing.",
+    "county_overrides": {}
+  }
+}

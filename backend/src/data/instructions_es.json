@@ -1,0 +1,88 @@
+{
+  "small_claims": {
+    "title": "Presentación de su caso en la corte de reclamos menores",
+    "summary": "Este paquete contiene los documentos necesarios para presentar un caso de reclamos menores en Florida. La Declaración de la Demanda establece lo que se le adeuda y por qué; la citación notifica al demandado de la demanda; la hoja de cubierta civil indica al secretario cómo registrar el caso.",
+    "steps": [
+      "Imprima los tres documentos del paquete en papel tamaño carta.",
+      "Firme la Declaración de la Demanda ante un notario público.",
+      "Diríjase a myflcourtaccess.com e inicie sesión o registre una cuenta gratuita.",
+      "Seleccione su condado y el tipo de caso Reclamos Menores.",
+      "Cargue cada PDF en orden: 01 Declaración de la Demanda, 02 Guía, 03 Resumen.",
+      "Pague la tarifa de presentación en línea con tarjeta de crédito o débito.",
+      "Conserve su número de confirmación; lo necesitará para dar seguimiento a su caso."
+    ],
+    "what_happens_next": "El secretario revisará su presentación dentro de 5 a 7 días hábiles. Una vez aceptada, recibirá un número de caso y una fecha de conferencia previa al juicio por correo postal o electrónico. El demandado debe ser notificado antes de esa fecha.",
+    "county_overrides": {}
+  },
+  "expungement": {
+    "title": "Presentación de su petición de cancelación de antecedentes",
+    "summary": "La cancelación de un antecedente penal en Florida es un proceso de dos etapas. Primero, el Departamento de Aplicación de la Ley de Florida (FDLE) debe expedir un Certificado de Elegibilidad. Una vez obtenido el Certificado, se presenta la Petición de Cancelación ante el tribunal de jurisdicción original.",
+    "steps": [
+      "Imprima los tres documentos y la solicitud del FDLE.",
+      "Firme la solicitud del FDLE ante un notario público.",
+      "Envíe por correo la solicitud del FDLE junto con una copia certificada de la disposición, una tarjeta de huellas digitales y un giro postal por $75 a FDLE en Tallahassee.",
+      "Espere de 12 a 16 semanas a que se expida el Certificado de Elegibilidad.",
+      "Una vez recibido el Certificado, presente la Petición de Cancelación en el tribunal donde se resolvió el caso.",
+      "Notifique al Fiscal del Estado y a la agencia que efectuó el arresto con copias de la petición.",
+      "Asista a cualquier audiencia programada por el juez y lleve consigo todos los documentos originales."
+    ],
+    "what_happens_next": "Si se concede, el tribunal ordenará el sellado o cancelación del registro y notificará a cada agencia que conserve una copia. Conceda de 60 a 90 días a partir de la orden para que el registro desaparezca de las bases de datos públicas.",
+    "county_overrides": {}
+  },
+  "landlord_deposit": {
+    "title": "Reclamación de la devolución de su depósito de garantía",
+    "summary": "Conforme al Estatuto de Florida 83.49, el arrendador dispone de 15 días desde la mudanza para devolver íntegramente su depósito de garantía, o de 30 días para enviar notificación escrita de cualquier reclamación contra el mismo. Este paquete genera una reclamación escrita que activa la obligación legal del arrendador.",
+    "steps": [
+      "Imprima la carta de reclamación en papel tamaño carta.",
+      "Firme y feche la carta.",
+      "Haga al menos dos copias para sus archivos.",
+      "Envíe el original por correo certificado del Servicio Postal de los Estados Unidos, con acuse de recibo.",
+      "Conserve el acuse de recibo verde y el comprobante de correo certificado junto con la copia de la carta.",
+      "Espere 15 días. Si el arrendador no responde, podrá iniciar un caso de reclamos menores para recuperar el depósito y los daños correspondientes."
+    ],
+    "what_happens_next": "Si el arrendador continúa rehusándose o no responde, la legislación de Florida permite recuperar el depósito íntegro más daños, honorarios de abogado y costas judiciales. Utilice la sección de Reclamos Menores de LegalClear para iniciar dicha presentación.",
+    "county_overrides": {}
+  },
+  "landlord_repairs": {
+    "title": "Notificación al arrendador de un defecto material",
+    "summary": "El Estatuto de Florida 83.56(1) exige al arrendatario entregar al arrendador notificación escrita y un plazo de siete días para subsanar un incumplimiento material antes de retener la renta o terminar el contrato de arrendamiento. Este paquete contiene la notificación legal de siete días.",
+    "steps": [
+      "Imprima la notificación de siete días en papel tamaño carta.",
+      "Firme y feche la notificación.",
+      "Haga una copia para sus archivos y una fotocopia con el sello de la fecha.",
+      "Entregue la notificación a su arrendador por correo certificado del Servicio Postal de los Estados Unidos, con acuse de recibo.",
+      "Si es seguro hacerlo, deje también una copia en la unidad de alquiler con la fecha y hora de entrega anotadas.",
+      "Espere los siete días completos antes de retener la renta o desocupar la propiedad."
+    ],
+    "what_happens_next": "Si el arrendador efectúa la reparación, el arrendamiento continuará como antes. De lo contrario, podrá retener la renta o terminar el contrato; sin embargo, consulte a un abogado de Florida antes de optar por cualquiera de las dos vías, ya que un procedimiento incorrecto puede conllevar al desalojo.",
+    "county_overrides": {}
+  },
+  "landlord_eviction": {
+    "title": "Contestación a una demanda de desalojo",
+    "summary": "Conforme al Estatuto de Florida 83.60, el arrendatario dispone de cinco días hábiles a partir de la notificación de la demanda de desalojo para presentar una Contestación por escrito y depositar la renta en disputa en el registro del tribunal. La omisión de cualquiera de ambos requisitos puede resultar en sentencia de desalojo en rebeldía.",
+    "steps": [
+      "Imprima la Contestación en papel tamaño carta.",
+      "Complete las defensas de hecho con fechas y cantidades específicas.",
+      "Firme y feche la Contestación.",
+      "Haga una copia para sus archivos.",
+      "Presente el original en la oficina del Secretario del Condado donde se interpuso la demanda de desalojo.",
+      "Si está disputando el monto de la renta, deposite también la renta en disputa en el registro del tribunal el mismo día."
+    ],
+    "what_happens_next": "El tribunal programará una audiencia dentro de 30 a 45 días. Asista a la misma. Lleve todos los recibos, fotografías y comunicaciones con el arrendador. Si no comparece, es probable que el juez dicte sentencia de desalojo en rebeldía.",
+    "county_overrides": {}
+  },
+  "traffic": {
+    "title": "Solicitud de audiencia judicial por una infracción de tránsito",
+    "summary": "Si opta por impugnar una infracción de tránsito de Florida, deberá solicitar una audiencia judicial por escrito dentro de los 30 días siguientes a la fecha de emisión. Este paquete contiene la solicitud escrita correspondiente.",
+    "steps": [
+      "Imprima la solicitud de audiencia en papel tamaño carta.",
+      "Firme y feche la solicitud.",
+      "Haga una copia para sus archivos.",
+      "Entregue el original al secretario del condado indicado en la infracción, ya sea en persona o por correo.",
+      "Conserve el sello con la fecha o el comprobante de correo certificado como prueba de la presentación oportuna.",
+      "Anote en su calendario la fecha de la audiencia tan pronto como el secretario se la notifique."
+    ],
+    "what_happens_next": "El secretario asignará una fecha de audiencia, generalmente dentro de 60 a 120 días. Hasta entonces, no pague la infracción; el pago constituye una admisión de la infracción y renuncia a la audiencia.",
+    "county_overrides": {}
+  }
+}

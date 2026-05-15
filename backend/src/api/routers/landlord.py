@@ -1,18 +1,23 @@
-"""Landlord/Tenant FL router — Phase 18.
+"""Landlord/Tenant FL router — Phase 18, wired to PacketBuilder in Phase 23.
 
-Source: phases/source/PHASE_18_landlord_tenant.md
+Source: phases/source/PHASE_18_landlord_tenant.md + PHASE_23_packet_builder.md.
 
-Three sub-flow generators (deposit / repairs / eviction), each returning
-the correct FL statute reference (§83.49 / §83.56(1) / §83.60). Real
-packet generation lands in Phase 23.
+Three sub-flow generators (deposit / repairs / eviction) each call
+PacketBuilder with the corresponding packet_type (landlord_deposit /
+landlord_repairs / landlord_eviction). Each cover sheet template carries
+the correct FL statute reference (§83.49 / §83.56(1) / §83.60) in the
+"summary" + "what happens next" blocks rendered from instructions_*.json.
 
-Path note: source put this at backend/src/api/routes/landlord.py;
-repo location is backend/src/api/routers/ (see Phase 10 divergence).
-HTTP endpoints unchanged.
+Path note: source put this at backend/src/api/routes/landlord.py; repo
+location is backend/src/api/routers/ (see Phase 10 divergence). HTTP
+endpoints unchanged.
 """
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List
+
+from src.api.routers.packet import build_packet_with_checkout
+from src.services.packet_builder import PacketRequest
 
 router = APIRouter(prefix="/api/landlord")
 
@@ -25,6 +30,9 @@ class DepositRequest(BaseModel):
     landlord_address: str
     reason_given: Optional[str] = None
     tenant_response: Optional[str] = None
+    county: str = "Miami-Dade"
+    language: str = "en"
+    user_id: Optional[str] = None
 
 
 class RepairsRequest(BaseModel):
@@ -33,6 +41,9 @@ class RepairsRequest(BaseModel):
     issue_description: str
     prior_communication: str
     tenant_intent: str
+    county: str = "Miami-Dade"
+    language: str = "en"
+    user_id: Optional[str] = None
 
 
 class EvictionRequest(BaseModel):
@@ -40,48 +51,40 @@ class EvictionRequest(BaseModel):
     notice_type: str
     notice_date: str
     defenses: List[str]
+    county: str = "Miami-Dade"
+    language: str = "en"
+    user_id: Optional[str] = None
+
+
+async def _build(packet_type: str, req: BaseModel, county: str, language: str, user_id: Optional[str]):
+    try:
+        return await build_packet_with_checkout(
+            PacketRequest(
+                packet_type=packet_type,  # type: ignore[arg-type]
+                language=language if language in ("en", "es") else "en",
+                county=county,
+                user_id=user_id or "anon",
+                tile_data=req.model_dump(exclude={"language", "user_id"}),
+            )
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500, detail=f"Packet build failed: {exc}"
+        )
 
 
 @router.post("/deposit/generate")
 async def gen_deposit(req: DepositRequest):
-    # TODO: replace with real Claude-generated output (Phase 23 wires to PacketBuilder)
-    return {
-        "document_name": "Demand for Return of Security Deposit",
-        "document_url": None,
-        "delivery_instructions": "Send via certified mail with return receipt. Keep a copy.",
-        "applicable_statute": "FL §83.49",
-        "deadlines": [
-            "Landlord has 15 days from receipt to respond if claim was made",
-            "30-day landlord-notice window may have already elapsed",
-        ],
-    }
+    return await _build("landlord_deposit", req, req.county, req.language, req.user_id)
 
 
 @router.post("/repairs/generate")
 async def gen_repairs(req: RepairsRequest):
-    # TODO: replace with real Claude-generated output (Phase 23 wires to PacketBuilder)
-    return {
-        "document_name": "7-Day Notice of Noncompliance with Opportunity to Cure",
-        "document_url": None,
-        "delivery_instructions": "Send via certified mail. Wait 7 days before further action.",
-        "applicable_statute": "FL §83.56(1)",
-        "deadlines": [
-            "Landlord has 7 days to cure",
-            "After 7 days, tenant may withhold rent or terminate",
-        ],
-    }
+    return await _build("landlord_repairs", req, req.county, req.language, req.user_id)
 
 
 @router.post("/eviction/generate")
 async def gen_eviction(req: EvictionRequest):
-    # TODO: replace with real Claude-generated output (Phase 23 wires to PacketBuilder)
-    return {
-        "document_name": "Answer to Eviction Complaint",
-        "document_url": None,
-        "delivery_instructions": "File with the court within 5 business days of being served. Pay any disputed rent into the court registry.",
-        "applicable_statute": "FL §83.60",
-        "deadlines": [
-            "5 business days from service to file answer",
-            "Disputed rent must be deposited with court registry",
-        ],
-    }
+    return await _build("landlord_eviction", req, req.county, req.language, req.user_id)

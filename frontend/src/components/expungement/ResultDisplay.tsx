@@ -1,4 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import LanguageToggle, {
+  readLanguage,
+  type Language,
+} from "../packet/LanguageToggle";
 
 const API_URL = (import.meta as any).env?.VITE_API_URL || "http://localhost:8001";
 
@@ -9,10 +14,13 @@ export type EligibilityResult = {
   next_steps: string[];
 };
 
+// Phase 23 — /api/expungement/generate now returns a packet_id + Stripe
+// checkout URL instead of the prior scaffold JSON.
 export type GenerateResult = {
-  forms: { name: string; url: string }[];
-  filing_instructions: string;
-  estimated_timeline_months: number;
+  packet_id: string;
+  fee_usd: number;
+  file_count: number;
+  checkout_url: string;
 };
 
 type Props = {
@@ -41,9 +49,10 @@ const STATUS_CONFIG = {
 
 export default function ResultDisplay({ result, quizPayload, onRestart }: Props) {
   const cfg = STATUS_CONFIG[result.status];
-  const [packet, setPacket] = useState<GenerateResult | null>(null);
+  const navigate = useNavigate();
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [language, setLanguage] = useState<Language>(() => readLanguage());
 
   async function generatePacket() {
     setGenerating(true);
@@ -52,10 +61,19 @@ export default function ResultDisplay({ result, quizPayload, onRestart }: Props)
       const r = await fetch(`${API_URL}/api/expungement/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(quizPayload),
+        body: JSON.stringify({ ...quizPayload, language }),
       });
       if (!r.ok) throw new Error(`Server returned ${r.status}`);
-      setPacket((await r.json()) as GenerateResult);
+      const j = (await r.json()) as GenerateResult;
+      try {
+        sessionStorage.setItem(
+          `lc.packet.${j.packet_id}.checkout_url`,
+          j.checkout_url
+        );
+      } catch {
+        /* non-fatal */
+      }
+      navigate(`/filing-packet/${j.packet_id}`);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -71,12 +89,24 @@ export default function ResultDisplay({ result, quizPayload, onRestart }: Props)
         margin: 32,
       }}
     >
-      <h2
-        className="mono"
-        style={{ fontSize: 22, margin: "0 0 16px", color: cfg.border }}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 16,
+        }}
       >
-        {cfg.heading}
-      </h2>
+        <h2
+          className="mono"
+          style={{ fontSize: 22, margin: 0, color: cfg.border }}
+        >
+          {cfg.heading}
+        </h2>
+        {cfg.canGenerate && (
+          <LanguageToggle value={language} onChange={setLanguage} />
+        )}
+      </div>
       <p style={{ marginBottom: 12 }}>{result.reason}</p>
       <p style={{ color: "var(--muted)", fontSize: 14, marginBottom: 16 }}>
         Applicable statute: <span className="mono">{result.applicable_statute}</span>
@@ -99,7 +129,7 @@ export default function ResultDisplay({ result, quizPayload, onRestart }: Props)
         </p>
       )}
 
-      {cfg.canGenerate && !packet && (
+      {cfg.canGenerate && (
         <button
           className="btn"
           onClick={generatePacket}
@@ -122,35 +152,6 @@ export default function ResultDisplay({ result, quizPayload, onRestart }: Props)
         >
           {error}
         </p>
-      )}
-
-      {packet && (
-        <div style={{ marginTop: 24 }}>
-          <h3 className="mono" style={{ fontSize: 16, margin: "0 0 8px" }}>
-            Your expungement packet
-          </h3>
-          <p style={{ color: "var(--muted)", marginBottom: 12 }}>
-            {packet.filing_instructions}
-          </p>
-          <p style={{ marginBottom: 12 }}>
-            <strong>Estimated timeline:</strong>{" "}
-            {packet.estimated_timeline_months} months
-          </p>
-          <ul style={{ paddingLeft: 16 }}>
-            {packet.forms.map((f) => (
-              <li key={f.url} style={{ marginBottom: 6 }}>
-                <a
-                  href={f.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: "var(--accent)" }}
-                >
-                  {f.name}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
       )}
 
       <p style={{ marginTop: 24 }}>

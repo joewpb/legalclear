@@ -55,12 +55,14 @@ from src.api.routers.landlord import router as landlord_router  # noqa: E402
 from src.api.routers.traffic import router as traffic_router  # noqa: E402
 from src.api.routers.police_report import router as police_report_router  # noqa: E402
 from src.api.routers.case_law import router as case_law_router  # noqa: E402
+from src.api.routers.packet import router as packet_router  # noqa: E402
 app.include_router(small_claims_router)
 app.include_router(expungement_router)
 app.include_router(landlord_router)
 app.include_router(traffic_router)
 app.include_router(police_report_router)
 app.include_router(case_law_router)
+app.include_router(packet_router)
 
 def verify_api_key(x_api_key: str = Header(default="")):
     if x_api_key != settings.API_KEY:
@@ -121,7 +123,25 @@ async def stripe_webhook(request: Request):
         user_id = obj.get("metadata", {}).get("user_id")
         if user_id:
             db.update_user_subscription(user_id, "cancelled", None)
-            
+    elif event_type == "checkout.session.completed":
+        # Phase 23 — $35 Filing Packet purchase. The packet_id rides in
+        # the session metadata set by /api/packet/build. We mark the
+        # packet paid in the in-memory store + best-effort Supabase
+        # mirror so the gated /download endpoint unlocks.
+        packet_id = obj.get("metadata", {}).get("packet_id")
+        if packet_id:
+            from src.services.packet_builder import mark_packet_paid
+            mark_packet_paid(packet_id)
+            if db.client is not None:
+                try:
+                    db.client.table("packets").update(
+                        {"status": "paid"}
+                    ).eq("id", packet_id).execute()
+                except Exception as exc:
+                    logger.debug(
+                        f"Supabase packets mark-paid mirror skipped: {exc}"
+                    )
+
     return {"status": "success"}
 
 @app.post("/user", dependencies=[Depends(verify_api_key)])

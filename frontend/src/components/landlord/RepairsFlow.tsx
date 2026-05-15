@@ -1,19 +1,25 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import LanguageToggle, {
+  readLanguage,
+  type Language,
+} from "../packet/LanguageToggle";
 
 const API_URL = (import.meta as any).env?.VITE_API_URL || "http://localhost:8001";
 
 const ISSUE_TYPES = ["Heat", "AC", "Water", "Mold", "Electrical", "Structural", "Other"];
 const INTENTS = ["Withhold rent", "Terminate lease", "Repair-and-deduct"];
 
-type RepairsResult = {
-  document_name: string;
-  document_url: string | null;
-  delivery_instructions: string;
-  applicable_statute: string;
-  deadlines: string[];
+// Phase 23 — /api/landlord/repairs/generate returns packet_id + checkout.
+type GenerateResult = {
+  packet_id: string;
+  fee_usd: number;
+  file_count: number;
+  checkout_url: string;
 };
 
 export default function RepairsFlow() {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     property_address: "",
@@ -23,8 +29,8 @@ export default function RepairsFlow() {
     tenant_intent: "",
   });
   const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState<RepairsResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [language, setLanguage] = useState<Language>(() => readLanguage());
 
   const set = (k: keyof typeof form, v: string) =>
     setForm((f) => ({ ...f, [k]: v }));
@@ -41,10 +47,19 @@ export default function RepairsFlow() {
       const r = await fetch(`${API_URL}/api/landlord/repairs/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, language }),
       });
       if (!r.ok) throw new Error(`Server returned ${r.status}`);
-      setResult((await r.json()) as RepairsResult);
+      const j = (await r.json()) as GenerateResult;
+      try {
+        sessionStorage.setItem(
+          `lc.packet.${j.packet_id}.checkout_url`,
+          j.checkout_url
+        );
+      } catch {
+        /* non-fatal */
+      }
+      navigate(`/filing-packet/${j.packet_id}`);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -52,10 +67,17 @@ export default function RepairsFlow() {
     }
   }
 
-  if (result) return <ResultCard r={result} />;
-
   return (
     <section style={{ padding: 32 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          marginBottom: 8,
+        }}
+      >
+        <LanguageToggle value={language} onChange={setLanguage} />
+      </div>
       <ProgressBar step={step} />
 
       {step === 1 && (
@@ -274,30 +296,5 @@ function ProgressBar({ step }: { step: number }) {
   );
 }
 
-function ResultCard({ r }: { r: RepairsResult }) {
-  return (
-    <section
-      style={{
-        padding: 32,
-        margin: 32,
-        border: "2px solid var(--success)",
-      }}
-    >
-      <h2 className="mono" style={{ fontSize: 20, margin: "0 0 8px" }}>
-        {r.document_name}
-      </h2>
-      <p style={{ color: "var(--muted)", fontSize: 14, marginBottom: 12 }}>
-        Statute: <span className="mono">{r.applicable_statute}</span>
-      </p>
-      <p style={{ marginBottom: 12 }}>{r.delivery_instructions}</p>
-      <h3 className="mono" style={{ fontSize: 16, margin: "12px 0 8px" }}>
-        Deadlines
-      </h3>
-      <ul style={{ paddingLeft: 16 }}>
-        {r.deadlines.map((d) => (
-          <li key={d}>{d}</li>
-        ))}
-      </ul>
-    </section>
-  );
-}
+// Phase 23 — ResultCard removed; navigation to /filing-packet/:packetId
+// after submit replaces the inline result display.

@@ -53,7 +53,7 @@ and #5) resolved 2026-05-14 — scaffold files in place; awaiting `uv sync`
 | 20 | Traffic / Tickets FL wizard (3 paths: pay / school / contest)              | COMPLETE 2026-05-15 | `TrafficFL.tsx` page + 3-step wizard (`CitationTypeStep` / `OptionsStep` / `GenerateStep`) + shared `traffic/types.ts`; `fl_traffic_violations.json` (all 7 citation types). Pay path links to `fl_counties.json` clerk_url (reused from Phase 16); School path links to FLHSMV; Contest path POSTs to `/api/traffic/generate` and renders the returned hearing-request packet. DUI selection shows red-bordered attorney warning and disables the Contest path. Backend router at `backend/src/api/routers/traffic.py` registered in `routes.py` (Phase 10 path divergence continues). `test_phase_20.py`: 2/2 pass (7-type data + 30-day deadline + ≥3 prep tips). `npm run build` clean (1762 modules, 96.27 kB gzip JS). |
 | 21 | Police Report Analyzer + new `scanner.py` agent                            | COMPLETE 2026-05-15 | New `backend/src/agents/scanner.py` (top-level `scan_documents`, `claude-sonnet-4-6`, `cache_control: ephemeral`, fence-strip + retry-once parse, fail-soft to empty findings on any exception). Router at `backend/src/api/routers/police_report.py` — Part A divergence #2 resolved by importing the real symbol: `from src.ingestion import ingest_document` (signature `(bytes, filename) -> dict`) rather than the source's `from ..services.pdf_processor import extract`. Per-file extraction errors caught so malformed PDFs return empty text instead of 500. Frontend: `PoliceReportAnalyzer.tsx` + `UploadInterface` + `FindingsList` + `FindingCard` + shared `SeverityBadge.tsx` (HIGH=danger/white, MEDIUM=accent/black, LOW=muted/white). Up to 4 supplementary uploads. `/police-report` route swapped from PhaseStub. Existing classifier/explainer/risk_scanner agents untouched. `test_phase_21.py`: 3/3 pass with junk PDF bytes (router fail-soft proven). `npm run build` clean (1767 modules, 97.73 kB gzip JS). |
 | 22 | FL Case Law Lookup via CourtListener (RAG-only, sanctions guard)           | COMPLETE 2026-05-15 | Backend router at `backend/src/api/routers/case_law.py` — RAG-only architecture, LLM only writes the 2-sentence `plain_english_summary` and is forbidden from touching `case_name` / `citation` / `court` / `date_filed` / `courtlistener_url`. Results without `absolute_url` are dropped (sanctions-protection layer, Mata v. Avianca 2023 precedent). Court filter map honors `all` / `fl_supreme` (`fla`) / `fl_appellate` (`flaapp`) / `federal_fl` (`flmd,flnd,flsd,ca11`). httpx 0.28.1 already in env (anthropic transitive) — no `uv add` needed. Frontend: `CaseLawLookupFL.tsx` + `SearchBar` + `CourtFilter` + `ResultsList` + `ResultCard` + shared `types.ts`; disclaimer above results, empty-state copy per spec, "VIEW ON COURTLISTENER" external link per result. `App.tsx` last PhaseStub removed (all 8 tiles now wired to real pages). **Runtime note:** CourtListener v3 now requires auth (returns 403 without a token); router correctly surfaces this as 502 per source spec — test accepts both 200 and 502, and the no-fabricated-URL guarantee is structural (enforced even with empty results). Production may benefit from adding a `COURTLISTENER_TOKEN` env var, but it's not required to pass Phase 22. `test_phase_22.py`: 3/3 pass. `npm run build` clean (1772 modules, 98.89 kB gzip JS). |
-| 23 | Mode A Filing Pipeline: PacketBuilder + PDF/A + EN/ES + $35 Stripe         | PENDING | Final phase. Needs `uv add pikepdf jinja2`. Resolves Phase 11 `myflcourtaccess` divergence. Carries `test_no_mode_b` + `test_full_v1.py`. |
+| 23 | Mode A Filing Pipeline: PacketBuilder + PDF/A + EN/ES + $35 Stripe         | COMPLETE 2026-05-15 | Final phase. Backend: 4 new services (`packet_builder`, `pdfa_generator`, `county_router`, `translation_layer`), packet router at `/api/packet/{build,walkthrough,{id},{id}/download,{id}/track,{id}/mark_paid}`, 12 cover-sheet templates + form-fields-summary + 2 walkthrough HTMLs, 67-county clerk details JSON, EN/ES instructions JSON, EN/ES walkthrough JSON. Tile routers 16/17/18/20 rewired to call `build_packet_with_checkout()` — response shape now `{packet_id, fee_usd, file_count, checkout_url}` per spec. Stripe webhook extended with `checkout.session.completed` branch. In-memory packet store (Supabase mirror best-effort; `2026_05_15_packets.sql` migration provided). Frontend: `FilingPacket.tsx` page at `/filing-packet/:packetId` + 5 components (`PacketSummary`, `LanguageToggle`, `PaymentGate`, `UploadWalkthrough`, `FilingTracker`). All 4 wizard review steps (SmallClaims/Expungement/Landlord×3/Traffic) navigate to FilingPacket after generate. `test_phase_23.py`: 10/10 pass (≈47s — full Stripe + Playwright pipeline). `test_full_v1.py`: 4/4 pass. Regression: 39/39 across phases 16-23 + full v1 (Phase 16/17/18/20 tests updated to assert the new Phase 23 contract; statute references still proven via `instructions_en.json` content checks). `npm run build` clean (1778 modules, 101.97 kB gzip JS). |
 
 ---
 
@@ -66,10 +66,11 @@ and #5) resolved 2026-05-14 — scaffold files in place; awaiting `uv sync`
    + `tsconfig.node.json` added; TS deps in `package.json` devDeps. Run
    `cd frontend && npm install` once to materialize before Phase 15 builds
    the first `.tsx` files.
-3. **Phase 11 `myflcourtaccess` references unmarked.** Latent Phase 23
-   `test_no_mode_b` failure. Resolution: Phase 23 either deprecates
-   `florida_courts.py` to a wrapper or adds `# walkthrough text only`
-   comments. No action needed before Phase 15.
+3. ~~**Phase 11 `myflcourtaccess` references unmarked.**~~ **RESOLVED
+   2026-05-15** — `backend/src/platforms/florida_courts.py` carries the
+   required `# walkthrough text only` marker at the top (lines 5-11).
+   No other `.py` file under `backend/src/` references the hostname.
+   `test_no_mode_b` passes in Phase 23.
 4. ~~`backend/src/services/pdf_processor.py` path mismatch.~~ **RESOLVED
    2026-05-15** — Phase 21's `police_report.py` router imports the real
    symbol `from src.ingestion import ingest_document` instead of the
@@ -77,6 +78,12 @@ and #5) resolved 2026-05-14 — scaffold files in place; awaiting `uv sync`
    explicitly permits this adjustment.
 
 Once `uv sync` + `npm install` complete, Phase 15 is fully unblocked.
+
+**v1 ship state (2026-05-15):** Phases 0-23 complete. 39/39 backend
+assertions pass across phases 16-23 + full v1 smoke. Mode B automation:
+absent. Frontend bundle: 101.97 kB gzip. Filing Packet product at $35
+(Stripe test mode). Languages live: en, es. Mobile (Phase 13) remains
+out-of-scope per source.
 
 ---
 

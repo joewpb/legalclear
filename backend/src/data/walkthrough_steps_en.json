@@ -1,0 +1,60 @@
+{
+  "title": "How to file your packet on MyFLCourtAccess",
+  "intro": "MyFLCourtAccess is the official Florida electronic filing portal operated by the Florida Courts E-Filing Authority. The steps below walk you through filing the documents in this packet manually. LegalClear does not file on your behalf — you are filing the case yourself.",
+  "steps": [
+    {
+      "number": 1,
+      "title": "Go to MyFLCourtAccess.com",
+      "instruction": "Open any web browser and navigate to https://www.myflcourtaccess.com.",
+      "what_to_expect": "You will see a sign-in screen. If this is your first filing, click 'Register' in the top right corner."
+    },
+    {
+      "number": 2,
+      "title": "Create or sign in to your account",
+      "instruction": "Use a personal email address — this is where the clerk will send all notifications. Choose a strong password and verify the account through the link sent to your inbox.",
+      "what_to_expect": "After verification you will land on the filer dashboard with options to start a new case or upload to an existing one."
+    },
+    {
+      "number": 3,
+      "title": "Select 'File a New Case'",
+      "instruction": "From the dashboard, click 'File a New Case'. You will be prompted to choose the county and the case category.",
+      "what_to_expect": "A dropdown listing all 67 Florida counties."
+    },
+    {
+      "number": 4,
+      "title": "Select your county and case type",
+      "instruction": "Choose the county where the underlying dispute happened or where the defendant resides. Select the case type that matches the packet you generated (small claims, eviction answer, traffic hearing request, expungement petition, etc.).",
+      "what_to_expect": "Each case type has its own intake form — fill in the basic case information (parties, amount in controversy, etc.) before uploading."
+    },
+    {
+      "number": 5,
+      "title": "Upload the three PDFs in this packet",
+      "instruction": "Upload the documents in this order: 01_cover_sheet.pdf, 02_how_to_file.pdf, 03_form_fields_summary.pdf. The portal accepts PDFs up to 25 MB each.",
+      "what_to_expect": "A progress bar for each upload, then a green check mark when accepted."
+    },
+    {
+      "number": 6,
+      "title": "Review the submission",
+      "instruction": "Use the portal's review screen to verify every uploaded document is readable and correctly named. Edit any case data the portal flagged in yellow.",
+      "what_to_expect": "A summary screen with the total filing fee and a 'Pay & Submit' button."
+    },
+    {
+      "number": 7,
+      "title": "Pay the filing fee",
+      "instruction": "Pay the filing fee shown in this packet (typically $55–$401 depending on case type). The portal accepts credit card, debit card, or e-check.",
+      "what_to_expect": "A printable payment receipt. Save it — you will need it if there is any dispute about timely filing."
+    },
+    {
+      "number": 8,
+      "title": "Record your confirmation number",
+      "instruction": "After payment, the portal displays a confirmation number that begins with the county prefix. Write it down or screenshot it.",
+      "what_to_expect": "You will receive an email from noreply@myflcourtaccess.com with the same confirmation number. The clerk's docketing decision arrives within 5 to 7 business days."
+    },
+    {
+      "number": 9,
+      "title": "Track your case in LegalClear",
+      "instruction": "Return to your LegalClear Filing Packet page and paste the confirmation number into the tracking field.",
+      "what_to_expect": "LegalClear records the confirmation and timestamps the filing so you have a complete record of what was submitted, when, and where."
+    }
+  ]
+}

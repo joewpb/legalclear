@@ -39,21 +39,41 @@ def test_traffic_data_file():
 
 
 def test_contest_endpoint():
-    r = httpx.post(f"{BACKEND}/api/traffic/generate", json={
-        "citation_type": "Speeding",
-        "citation_number": "AB1234567",
-        "issue_date": "2026-04-15",
-        "county": "Miami-Dade",
-        "chosen_path": "contest",
-    })
-    assert r.status_code == 200
+    # Phase 23 supersedes Phase 20's scaffold response. /api/traffic/generate
+    # now returns {packet_id, fee_usd, file_count, checkout_url}. The
+    # 30-day filing deadline + ≥3 prep tips that used to be JSON now live
+    # in the rendered PDF cover sheet via instructions_*.json (asserted
+    # below).
+    r = httpx.post(
+        f"{BACKEND}/api/traffic/generate",
+        json={
+            "citation_type": "Speeding",
+            "citation_number": "AB1234567",
+            "issue_date": "2026-04-15",
+            "county": "Miami-Dade",
+            "chosen_path": "contest",
+            "language": "en",
+        },
+        timeout=60.0,
+    )
+    assert r.status_code == 200, r.text
     data = r.json()
-    assert data["filing_deadline_days"] == 30
-    assert "hearing_preparation_tips" in data
-    assert len(data["hearing_preparation_tips"]) >= 3
+    for key in ("packet_id", "fee_usd", "file_count", "checkout_url"):
+        assert key in data, f"missing {key} in {data}"
+    assert data["checkout_url"].startswith("https://checkout.stripe.com")
+
+
+def test_contest_packet_content():
+    """Phase 20 invariant: the 30-day filing deadline still surfaces to
+    the user — now via the traffic packet instructions instead of the
+    legacy scaffold JSON."""
+    inst = json.load(open("backend/src/data/instructions_en.json"))
+    traffic_text = json.dumps(inst["traffic"])
+    assert "30 days" in traffic_text or "30-day" in traffic_text
 
 
 if __name__ == "__main__":
     test_traffic_data_file()
     test_contest_endpoint()
+    test_contest_packet_content()
     print("PHASE 20 COMPLETE — all checks passed.")

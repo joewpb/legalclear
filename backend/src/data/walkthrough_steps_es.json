@@ -1,0 +1,60 @@
+{
+  "title": "Cómo presentar su paquete en MyFLCourtAccess",
+  "intro": "MyFLCourtAccess es el portal oficial de presentación electrónica de Florida, operado por la Autoridad de Presentación Electrónica de los Tribunales de Florida. Los siguientes pasos lo guiarán para presentar los documentos de este paquete manualmente. LegalClear no presenta documentos en su nombre; usted es quien presenta el caso.",
+  "steps": [
+    {
+      "number": 1,
+      "title": "Ingrese a MyFLCourtAccess.com",
+      "instruction": "Abra cualquier navegador web y diríjase a https://www.myflcourtaccess.com.",
+      "what_to_expect": "Verá una pantalla de inicio de sesión. Si es su primera presentación, haga clic en 'Register' en la esquina superior derecha."
+    },
+    {
+      "number": 2,
+      "title": "Cree o inicie sesión en su cuenta",
+      "instruction": "Utilice una dirección de correo electrónico personal — allí enviará el secretario todas las notificaciones. Elija una contraseña segura y confirme la cuenta mediante el enlace enviado a su bandeja de entrada.",
+      "what_to_expect": "Después de la verificación, accederá al panel del presentador con opciones para iniciar un caso nuevo o cargar documentos a uno existente."
+    },
+    {
+      "number": 3,
+      "title": "Seleccione 'File a New Case' (Iniciar un caso nuevo)",
+      "instruction": "Desde el panel, haga clic en 'File a New Case'. Se le pedirá que elija el condado y la categoría del caso.",
+      "what_to_expect": "Un menú desplegable con los 67 condados de Florida."
+    },
+    {
+      "number": 4,
+      "title": "Seleccione su condado y tipo de caso",
+      "instruction": "Elija el condado donde ocurrió la controversia o donde reside el demandado. Seleccione el tipo de caso que coincida con el paquete que generó (reclamos menores, contestación de desalojo, solicitud de audiencia de tránsito, petición de cancelación, etc.).",
+      "what_to_expect": "Cada tipo de caso cuenta con su propio formulario de admisión; complete la información básica (partes, monto en controversia, etc.) antes de cargar los archivos."
+    },
+    {
+      "number": 5,
+      "title": "Cargue los tres documentos PDF de este paquete",
+      "instruction": "Cargue los documentos en el siguiente orden: 01_cover_sheet.pdf, 02_how_to_file.pdf, 03_form_fields_summary.pdf. El portal admite archivos PDF de hasta 25 MB cada uno.",
+      "what_to_expect": "Aparecerá una barra de progreso por cada carga, seguida de una marca verde de verificación cuando se acepte."
+    },
+    {
+      "number": 6,
+      "title": "Revise la presentación",
+      "instruction": "Utilice la pantalla de revisión del portal para verificar que cada documento cargado sea legible y esté correctamente nombrado. Edite cualquier dato del caso que el portal haya marcado en amarillo.",
+      "what_to_expect": "Una pantalla de resumen con la tarifa total de presentación y un botón 'Pay & Submit' (Pagar y enviar)."
+    },
+    {
+      "number": 7,
+      "title": "Pague la tarifa de presentación",
+      "instruction": "Pague la tarifa de presentación indicada en este paquete (generalmente entre $55 y $401, según el tipo de caso). El portal acepta tarjeta de crédito, tarjeta de débito o cheque electrónico.",
+      "what_to_expect": "Un recibo de pago imprimible. Consérvelo — lo necesitará si surge cualquier controversia sobre la presentación oportuna."
+    },
+    {
+      "number": 8,
+      "title": "Anote su número de confirmación",
+      "instruction": "Después del pago, el portal mostrará un número de confirmación que comienza con el prefijo del condado. Anótelo o tome una captura de pantalla.",
+      "what_to_expect": "Recibirá un correo de noreply@myflcourtaccess.com con el mismo número de confirmación. La decisión de registro del secretario llegará dentro de 5 a 7 días hábiles."
+    },
+    {
+      "number": 9,
+      "title": "Dé seguimiento al caso en LegalClear",
+      "instruction": "Regrese a la página del Paquete de Presentación de LegalClear y pegue el número de confirmación en el campo de seguimiento.",
+      "what_to_expect": "LegalClear registrará la confirmación y marcará la presentación con fecha y hora para que usted disponga de un registro completo de lo presentado, cuándo y dónde."
+    }
+  ]
+}

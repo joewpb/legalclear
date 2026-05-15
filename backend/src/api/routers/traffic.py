@@ -1,19 +1,21 @@
-"""Traffic / Tickets FL router — Phase 20.
+"""Traffic / Tickets FL router — Phase 20, wired to PacketBuilder in Phase 23.
 
-Source: phases/source/PHASE_20_traffic.md
+Source: phases/source/PHASE_20_traffic.md + PHASE_23_packet_builder.md.
 
-Scaffolds the Contest path: returns a placeholder hearing-request packet
-with a 30-day filing deadline and a list of preparation tips. Pay and
-traffic-school paths are entirely frontend (links out to county clerk
-portals and FLHSMV); they don't hit this router. Real Claude-generated
-output lands in Phase 23.
+Contest path builds a packet with packet_type=traffic. Pay and
+traffic-school paths are entirely frontend (links to county clerk
+portals and FLHSMV); they don't hit this router.
 
 Path note: source put this at backend/src/api/routes/traffic.py; repo
 location is backend/src/api/routers/ (see Phase 10 divergence). HTTP
 endpoints unchanged.
 """
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from typing import Optional
+
+from src.api.routers.packet import build_packet_with_checkout
+from src.services.packet_builder import PacketRequest
 
 router = APIRouter(prefix="/api/traffic")
 
@@ -24,20 +26,25 @@ class TrafficRequest(BaseModel):
     issue_date: str
     county: str
     chosen_path: str  # "pay" | "school" | "contest"
+    language: str = "en"
+    user_id: Optional[str] = None
 
 
 @router.post("/generate")
 async def gen_traffic(req: TrafficRequest):
-    # TODO: replace with real Claude-generated output (Phase 23 wires to PacketBuilder)
-    return {
-        "document_name": "Request for Court Hearing",
-        "document_url": None,
-        "filing_deadline_days": 30,
-        "filing_location": f"{req.county} County Clerk of Courts",
-        "hearing_preparation_tips": [
-            "Request the officer's notes via discovery",
-            "Photograph the location of the alleged violation",
-            "Subpoena any witnesses if applicable",
-            "Bring a copy of your driving record",
-        ],
-    }
+    try:
+        return await build_packet_with_checkout(
+            PacketRequest(
+                packet_type="traffic",
+                language=req.language if req.language in ("en", "es") else "en",
+                county=req.county,
+                user_id=req.user_id or "anon",
+                tile_data=req.model_dump(exclude={"language", "user_id"}),
+            )
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500, detail=f"Packet build failed: {exc}"
+        )

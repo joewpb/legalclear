@@ -1,0 +1,672 @@
+[
+  {
+    "name": "Alachua",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Baker",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Bay",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Bradford",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Brevard",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Broward",
+    "clerk_url": "https://www.browardclerk.org/",
+    "clerk_address": "201 SE 6th St, Fort Lauderdale, FL 33301",
+    "clerk_phone": "(954) 831-6565",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Calhoun",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Charlotte",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Citrus",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Clay",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Collier",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Columbia",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "DeSoto",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Dixie",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Duval",
+    "clerk_url": "https://www.duvalclerk.com/",
+    "clerk_address": "501 W Adams St, Jacksonville, FL 32202",
+    "clerk_phone": "(904) 255-2000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Escambia",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Flagler",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Franklin",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Gadsden",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Gilchrist",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Glades",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Gulf",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Hamilton",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Hardee",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Hendry",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Hernando",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Highlands",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Hillsborough",
+    "clerk_url": "https://www.hillsclerk.com/",
+    "clerk_address": "800 E Twiggs St, Tampa, FL 33602",
+    "clerk_phone": "(813) 276-8100",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Holmes",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Indian River",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Jackson",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Jefferson",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Lafayette",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Lake",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Lee",
+    "clerk_url": "https://www.leeclerk.org/",
+    "clerk_address": "2075 Dr Martin Luther King Jr Blvd, Fort Myers, FL 33901",
+    "clerk_phone": "(239) 533-2328",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Leon",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Levy",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Liberty",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Madison",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Manatee",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Marion",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Martin",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Miami-Dade",
+    "clerk_url": "https://www.miamidade.gov/clerk",
+    "clerk_address": "73 W Flagler St, Miami, FL 33130",
+    "clerk_phone": "(305) 275-1155",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Monroe",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Nassau",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Okaloosa",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Okeechobee",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Orange",
+    "clerk_url": "https://www.myorangeclerk.com/",
+    "clerk_address": "425 N Orange Ave, Orlando, FL 32801",
+    "clerk_phone": "(407) 836-2000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Osceola",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Palm Beach",
+    "clerk_url": "https://www.mypalmbeachclerk.com/",
+    "clerk_address": "205 N Dixie Hwy, West Palm Beach, FL 33401",
+    "clerk_phone": "(561) 355-2996",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Pasco",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Pinellas",
+    "clerk_url": "https://www.mypinellasclerk.gov/",
+    "clerk_address": "315 Court St, Clearwater, FL 33756",
+    "clerk_phone": "(727) 464-7000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Polk",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Putnam",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Santa Rosa",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Sarasota",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Seminole",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "St. Johns",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "St. Lucie",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Sumter",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Suwannee",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Taylor",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Union",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Volusia",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Wakulla",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Walton",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  },
+  {
+    "name": "Washington",
+    "clerk_url": "https://www.flclerks.com/",
+    "clerk_address": "",
+    "clerk_phone": "(555) 000-0000",
+    "fee_tier_1": 55,
+    "fee_tier_2": 80,
+    "fee_tier_3": 175,
+    "fee_tier_4": 300
+  }
+]

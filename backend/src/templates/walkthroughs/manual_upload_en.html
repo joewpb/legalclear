@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{ walkthrough.title }}</title>
+<style>
+  body { font-family: "Helvetica", "Arial", sans-serif; color: #000; font-size: 11pt; line-height: 1.45; }
+  h1 { font-size: 19pt; letter-spacing: 0.03em; border-bottom: 2px solid #000; padding-bottom: 6pt; margin: 0 0 14pt; }
+  h2 { font-size: 12pt; text-transform: uppercase; letter-spacing: 0.04em; margin: 14pt 0 6pt; }
+  .intro { background: #f3f3f3; padding: 10pt 12pt; border-left: 4pt solid #000; margin-bottom: 16pt; }
+  .step { border: 1px solid #000; padding: 10pt 12pt; margin-bottom: 10pt; page-break-inside: avoid; }
+  .step .num { font-weight: 700; letter-spacing: 0.06em; font-size: 10pt; color: #555; }
+  .step .title { font-weight: 700; font-size: 12pt; margin: 2pt 0 6pt; }
+  .step .instruction { margin: 0 0 6pt; }
+  .step .expect { color: #444; font-size: 10.5pt; font-style: italic; }
+  .meta { color: #555; font-size: 9.5pt; margin-bottom: 14pt; }
+  .footer { margin-top: 18pt; padding-top: 8pt; border-top: 1px solid #888; font-size: 9pt; color: #444; }
+</style>
+</head>
+<body>
+<h1>{{ walkthrough.title }}</h1>
+
+<p class="meta">
+  Packet ID: <strong>{{ packet_id }}</strong> &middot;
+  County: <strong>{{ county_name }}</strong> &middot;
+  Filing fee: <strong>${{ "%.2f"|format(fee_usd) }}</strong>
+</p>
+
+<div class="intro">{{ walkthrough.intro }}</div>
+
+{% for step in walkthrough.steps %}
+<div class="step">
+  <div class="num">STEP {{ step.number }}</div>
+  <div class="title">{{ step.title }}</div>
+  <p class="instruction">{{ step.instruction }}</p>
+  <p class="expect">What to expect: {{ step.what_to_expect }}</p>
+</div>
+{% endfor %}
+
+<div class="footer">
+  LegalClear does not file documents on your behalf — these steps walk you through filing the case yourself on MyFLCourtAccess.com. Not legal advice.
+</div>
+</body>
+</html>

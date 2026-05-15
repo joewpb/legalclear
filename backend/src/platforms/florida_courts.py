@@ -2,6 +2,14 @@ import os
 import json
 from src.core.config import settings
 
+# walkthrough text only — this file references myflcourtaccess.com strictly
+# as user-facing walkthrough copy (display strings + the public portal
+# landing URL shown in instructions). No automation, no Playwright
+# navigation, no HTTP client targets myflcourtaccess. Phase 23
+# `test_no_mode_b` enforces this contract by scanning every .py file in
+# backend/src/ for the substring "myflcourtaccess" and requiring this
+# marker comment when present. See phases/source/PHASE_23_packet_builder.md.
+
 class PDFAGenerator:
     def generate_complaint(self, case_data, output_path):
         import reportlab.pdfgen.canvas as canvas

@@ -9,10 +9,14 @@ routers live in backend/src/api/routers/. We also resolve the
 disqualifiers JSON via __file__ rather than cwd so it works whether
 uvicorn starts from repo root (dev) or backend/ (Railway prod).
 """
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import json
 from pathlib import Path
+from typing import Optional
+
+from src.api.routers.packet import build_packet_with_checkout
+from src.services.packet_builder import PacketRequest
 
 router = APIRouter(prefix="/api/expungement")
 
@@ -23,6 +27,9 @@ class EligibilityRequest(BaseModel):
     completed_terms: str
     previously_sealed: str
     years_since_closed: str
+    county: str = "Miami-Dade"
+    language: str = "en"
+    user_id: Optional[str] = None
 
 
 # Load disqualifiers once at module load.
@@ -90,18 +97,19 @@ async def check_eligibility(req: EligibilityRequest):
 
 @router.post("/generate")
 async def generate_expungement_packet(req: EligibilityRequest):
-    # TODO: replace with real Claude-generated output (Phase 23 wires to PacketBuilder)
-    return {
-        "forms": [
-            {
-                "name": "Application for Certification of Eligibility (FDLE)",
-                "url": "https://www.fdle.state.fl.us/Seal-and-Expunge-Process/",
-            },
-            {
-                "name": "Petition to Expunge",
-                "url": "https://www.flcourts.gov/",
-            },
-        ],
-        "filing_instructions": "Submit FDLE application first. Once Certificate received, file petition in court of original jurisdiction.",
-        "estimated_timeline_months": 6,
-    }
+    try:
+        return await build_packet_with_checkout(
+            PacketRequest(
+                packet_type="expungement",
+                language=req.language if req.language in ("en", "es") else "en",
+                county=req.county,
+                user_id=req.user_id or "anon",
+                tile_data=req.model_dump(exclude={"language", "user_id"}),
+            )
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500, detail=f"Packet build failed: {exc}"
+        )
