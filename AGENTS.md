@@ -1,37 +1,98 @@
-# LegalClear — Agent instructions
+# AGENTS.md — LegalClear
 
-## Project
-Full-stack AI legal document explanation product.
-Backend: FastAPI + Python 3.11
-Frontend: React + Vite + TailwindCSS
-Mobile: React Native + Expo
-Database: Supabase (Postgres)
-Payments: Stripe
-AI: Anthropic API (claude-sonnet-4-6, claude-haiku-4-5-20251001)
+Build law for the LegalClear codebase. Read by Claude Code, OpenCode, and any
+other agent operating in this repo. Portable on purpose — no tool-specific syntax.
 
-## Python environment rules
-Use uv for ALL Python environment and package management.
-- Create venv: uv venv --python 3.11
-- Install: uv pip install -r requirements.txt
-- Run: uv run python script.py
-- Never use pip directly. Never use python3 directly.
-- Venv lives at backend/.venv/
+---
 
-## Port rules — critical
-LegalClear FastAPI backend runs on port 8001.
-Nemotron inference container runs on port 8000.
-Never change the backend port to 8000.
-Never change any API URL to use port 8000.
+## 1. What LegalClear is
 
-## Build rules
-Complete each phase fully before starting the next.
-Run the verification test at the end of each phase.
-Fix all failing assertions before proceeding.
-Print PHASE N COMPLETE when all checks pass.
-If a test fails more than twice print PHASE N BLOCKED and stop.
+Pay-per-use legal document analysis. A user uploads a contract, lease, or court
+form; an agent pipeline classifies it, explains it in plain language, walks the
+user through form fields, scans for risky clauses, and exports a structured
+report. Part B adds a Small Claims filing wizard with a paid Filing Packet,
+Florida courts integration, a filing walkthrough, and a tracking page.
 
-## Code style
-Python: PEP 8, type hints on all function signatures.
-Always use async/await for IO operations.
-All agent methods return typed dicts.
-JSON parsing: always strip markdown fences before json.loads().
+This is a phased build. The phase system is the project. See
+`phases/LEDGER.md` for current state and `phases/PHASE_SPECS.md` for specs.
+
+---
+
+## 2. Stack and ports — hard constraints
+
+| Component        | Value                                    |
+|------------------|------------------------------------------|
+| Backend          | FastAPI — **port 8001**                  |
+| Frontend         | React — **port 3000**                    |
+| Mobile           | React Native                             |
+| Database         | Supabase (production DB — not SQLite)    |
+| Payments         | Stripe                                   |
+| Python env/pkgs  | `uv` — for everything, no exceptions     |
+| Deploy           | Railway                                  |
+
+**Never use port 8000 for the LegalClear app.** Port 8000 is reserved and using
+it is a build failure, not a warning.
+
+---
+
+## 3. Build rules — phase discipline
+
+- Execute phases in strict numeric order. **Never skip. Never reorder.**
+- Complete each phase fully before starting the next.
+- Run the phase's verification command at the end of every phase.
+- Fix all failing assertions before proceeding.
+- If a phase's verification fails more than twice, print
+  `PHASE N BLOCKED — <error summary>` and halt. Do not continue.
+- Only print `PHASE N COMPLETE` when every assertion passes.
+- Part A (phases 0–14) is already built and deployed. **Verify only — never
+  rebuild Part A.** Part B (phases 15–23) is the build target.
+
+---
+
+## 4. Code style
+
+**Python**
+- PEP 8. Type hints on all function signatures.
+- `async`/`await` for all IO operations.
+- All agent methods return typed dicts.
+- JSON parsing: always strip markdown fences before `json.loads()`.
+  Retry once on a JSON parse failure before raising.
+
+**JavaScript / React**
+- Functional components, hooks.
+- No secrets in client code. All keys server-side.
+
+---
+
+## 5. The phase system
+
+- `phases/LEDGER.md` — the single source of truth for phase status. If the
+  ledger, agent memory, and the actual repo disagree, **the repo wins.**
+  Re-verify and correct the ledger.
+- `phases/PHASE_SPECS.md` — goal, verification command, and pass criteria per
+  phase. Part A entries are verify-only. Part B entries are full build specs.
+- The `phase-orchestrator` agent drives this. Launch a build session with
+  `claude --agent phase-orchestrator`.
+
+---
+
+## 6. Deploy targets
+
+| Surface  | Build               | Railway service     |
+|----------|---------------------|---------------------|
+| Backend  | `uv sync` → push    | `zesty-delight`     |
+| Frontend | `npm run build` → push | `appealing-victory` |
+
+Stripe must show the **"LegalClear Filing Packet"** product at **$35.00**.
+Languages live: `en`, `es`.
+
+---
+
+## 7. Hard fails
+
+These abort the build immediately:
+
+- Use of port 8000 for the app.
+- Mode B automation present anywhere in `backend/src/`.
+- A `PHASE N COMPLETE` printed while any assertion for phase N failed.
+- Touching `/api/upload` — the upload flow exists and is correct. Leave it.
