@@ -1,0 +1,262 @@
+[
+  {
+    "case_type": "Family",
+    "sub_category": "Divorce (no children, no property)",
+    "forms": [
+      {
+        "name": "Petition for Simplified Dissolution of Marriage",
+        "form_number": "12.901(a)",
+        "url": "https://www.flcourts.gov/Resources-Services/Court-Improvement/Family-Courts/Family-Law-Forms"
+      },
+      {
+        "name": "Marital Settlement Agreement for Simplified Dissolution of Marriage",
+        "form_number": "12.902(f)(3)",
+        "url": "https://www.flcourts.gov/Resources-Services/Court-Improvement/Family-Courts/Family-Law-Forms"
+      }
+    ]
+  },
+  {
+    "case_type": "Family",
+    "sub_category": "Divorce with children",
+    "forms": [
+      {
+        "name": "Petition for Dissolution of Marriage with Dependent or Minor Child(ren)",
+        "form_number": "12.901(b)(1)",
+        "url": "https://www.flcourts.gov/Resources-Services/Court-Improvement/Family-Courts/Family-Law-Forms"
+      },
+      {
+        "name": "Uniform Child Custody Jurisdiction and Enforcement Act (UCCJEA) Affidavit",
+        "form_number": "12.902(d)",
+        "url": "https://www.flcourts.gov/Resources-Services/Court-Improvement/Family-Courts/Family-Law-Forms"
+      },
+      {
+        "name": "Child Support Guidelines Worksheet",
+        "form_number": "12.902(e)",
+        "url": "https://www.flcourts.gov/Resources-Services/Court-Improvement/Family-Courts/Family-Law-Forms"
+      },
+      {
+        "name": "Parenting Plan",
+        "form_number": "12.995(a)",
+        "url": "https://www.flcourts.gov/Resources-Services/Court-Improvement/Family-Courts/Family-Law-Forms"
+      }
+    ]
+  },
+  {
+    "case_type": "Family",
+    "sub_category": "Child support modification",
+    "forms": [
+      {
+        "name": "Supplemental Petition for Modification of Child Support",
+        "form_number": "12.905(b)",
+        "url": "https://www.flcourts.gov/Resources-Services/Court-Improvement/Family-Courts/Family-Law-Forms"
+      },
+      {
+        "name": "Family Law Financial Affidavit (Short Form)",
+        "form_number": "12.902(b)",
+        "url": "https://www.flcourts.gov/Resources-Services/Court-Improvement/Family-Courts/Family-Law-Forms"
+      }
+    ]
+  },
+  {
+    "case_type": "Family",
+    "sub_category": "Paternity",
+    "forms": [
+      {
+        "name": "Petition to Determine Paternity and for Related Relief",
+        "form_number": "12.983(a)",
+        "url": "https://www.flcourts.gov/Resources-Services/Court-Improvement/Family-Courts/Family-Law-Forms"
+      }
+    ]
+  },
+  {
+    "case_type": "Family",
+    "sub_category": "Time-sharing / Custody modification",
+    "forms": [
+      {
+        "name": "Supplemental Petition for Modification of Parenting Plan / Time-Sharing Schedule",
+        "form_number": "12.905(a)",
+        "url": "https://www.flcourts.gov/Resources-Services/Court-Improvement/Family-Courts/Family-Law-Forms"
+      }
+    ]
+  },
+  {
+    "case_type": "Family",
+    "sub_category": "Name change (adult)",
+    "forms": [
+      {
+        "name": "Petition for Change of Name (Adult)",
+        "form_number": "12.982(a)",
+        "url": "https://www.flcourts.gov/Resources-Services/Court-Improvement/Family-Courts/Family-Law-Forms"
+      }
+    ]
+  },
+  {
+    "case_type": "Civil",
+    "sub_category": "Filing a complaint",
+    "forms": [
+      {
+        "name": "Civil Cover Sheet",
+        "form_number": "1.997",
+        "url": "https://www.flcourts.gov/Resources-Services/Office-of-Court-Improvement/Family-Courts"
+      }
+    ]
+  },
+  {
+    "case_type": "Civil",
+    "sub_category": "Summons",
+    "forms": [
+      {
+        "name": "Summons — Personal Service on a Natural Person",
+        "form_number": "1.902(a)",
+        "url": "https://www.flcourts.gov/Resources-Services/Office-of-Court-Improvement/Family-Courts"
+      },
+      {
+        "name": "Summons — Personal Service on Public Agency or Officer",
+        "form_number": "1.902(b)",
+        "url": "https://www.flcourts.gov/Resources-Services/Office-of-Court-Improvement/Family-Courts"
+      }
+    ]
+  },
+  {
+    "case_type": "Civil",
+    "sub_category": "Motion practice",
+    "forms": [
+      {
+        "name": "Standard Motion (general civil)",
+        "form_number": "Rule 1.100",
+        "url": "https://www.flcourts.gov/Resources-Services/Office-of-Court-Improvement/Family-Courts"
+      }
+    ]
+  },
+  {
+    "case_type": "Probate",
+    "sub_category": "Formal administration",
+    "forms": [
+      {
+        "name": "Petition for Administration",
+        "form_number": "P-3.0200 (Rule 5.200)",
+        "url": "https://www.flcourts.gov/Resources-Services/Office-of-Court-Improvement/Probate"
+      }
+    ]
+  },
+  {
+    "case_type": "Probate",
+    "sub_category": "Summary administration",
+    "forms": [
+      {
+        "name": "Petition for Summary Administration",
+        "form_number": "P-5.0530 (Rule 5.530)",
+        "url": "https://www.flcourts.gov/Resources-Services/Office-of-Court-Improvement/Probate"
+      }
+    ]
+  },
+  {
+    "case_type": "Probate",
+    "sub_category": "Disposition without administration",
+    "forms": [
+      {
+        "name": "Disposition of Personal Property Without Administration",
+        "form_number": "P-5.0620 (Rule 5.620)",
+        "url": "https://www.flcourts.gov/Resources-Services/Office-of-Court-Improvement/Probate"
+      }
+    ]
+  },
+  {
+    "case_type": "Small Claims",
+    "sub_category": "Statement of claim",
+    "forms": [
+      {
+        "name": "Statement of Claim (Small Claims)",
+        "form_number": "Form 7.310 (FL Small Claims Rules)",
+        "url": "https://www.flcourts.gov/Resources-Services/Office-of-Court-Improvement"
+      }
+    ]
+  },
+  {
+    "case_type": "Small Claims",
+    "sub_category": "Summons / Notice to appear",
+    "forms": [
+      {
+        "name": "Summons / Notice to Appear for Pretrial Conference",
+        "form_number": "Form 7.322 (FL Small Claims Rules)",
+        "url": "https://www.flcourts.gov/Resources-Services/Office-of-Court-Improvement"
+      }
+    ]
+  },
+  {
+    "case_type": "Small Claims",
+    "sub_category": "Garnishment / Attachment",
+    "forms": [
+      {
+        "name": "Motion for Writ of Garnishment",
+        "form_number": "FS §77.03",
+        "url": "https://www.flclerks.com"
+      },
+      {
+        "name": "Motion for Writ of Attachment",
+        "form_number": "FS §76.08",
+        "url": "https://www.flclerks.com"
+      }
+    ]
+  },
+  {
+    "case_type": "Small Claims",
+    "sub_category": "Post-judgment collection",
+    "forms": [
+      {
+        "name": "Motion for Proceedings Supplementary",
+        "form_number": "FS §56.29",
+        "url": "https://www.flclerks.com"
+      }
+    ]
+  },
+  {
+    "case_type": "Traffic",
+    "sub_category": "Request court hearing",
+    "forms": [
+      {
+        "name": "Election of Hearing on Traffic Infraction",
+        "form_number": "FS §318.14",
+        "url": "https://www.flhsmv.gov/driver-licenses-id-cards/citations-suspensions-and-revocations/"
+      }
+    ]
+  },
+  {
+    "case_type": "Traffic",
+    "sub_category": "Elect driver improvement school",
+    "forms": [
+      {
+        "name": "Election of Basic Driver Improvement (BDI) Course",
+        "form_number": "FS §318.14(9)",
+        "url": "https://www.flhsmv.gov/driver-licenses-id-cards/citations-suspensions-and-revocations/"
+      }
+    ]
+  },
+  {
+    "case_type": "Criminal",
+    "sub_category": "Seal / Expunge",
+    "forms": [
+      {
+        "name": "Application for Certification of Eligibility to Seal or Expunge",
+        "form_number": "FDLE Form (per §943.0585 / §943.059)",
+        "url": "https://www.fdle.state.fl.us/Seal-and-Expunge-Home"
+      },
+      {
+        "name": "Petition to Seal or Expunge",
+        "form_number": "Per Rule 3.692, Fla. R. Crim. P.",
+        "url": "https://www.fdle.state.fl.us/Seal-and-Expunge-Home"
+      }
+    ]
+  },
+  {
+    "case_type": "Criminal",
+    "sub_category": "Return of property",
+    "forms": [
+      {
+        "name": "Motion for Return of Property",
+        "form_number": "Per Rule 3.190(h), Fla. R. Crim. P.",
+        "url": "https://www.flcourts.gov"
+      }
+    ]
+  }
+]
