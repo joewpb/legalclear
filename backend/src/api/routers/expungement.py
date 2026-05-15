@@ -33,11 +33,9 @@ class EligibilityRequest(BaseModel):
 
 
 # Load disqualifiers once at module load.
-# parents[4] from backend/src/api/routers/expungement.py is the repo root.
+# Data file lives in backend/src/data/ (co-located with other JSON data).
 _DATA_FILE = (
-    Path(__file__).resolve().parents[4]
-    / "frontend"
-    / "src"
+    Path(__file__).resolve().parents[2]
     / "data"
     / "fl_disqualifying_offenses.json"
 )
