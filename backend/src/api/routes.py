@@ -53,10 +53,12 @@ from src.api.routers.small_claims import router as small_claims_router  # noqa: 
 from src.api.routers.expungement import router as expungement_router  # noqa: E402
 from src.api.routers.landlord import router as landlord_router  # noqa: E402
 from src.api.routers.traffic import router as traffic_router  # noqa: E402
+from src.api.routers.police_report import router as police_report_router  # noqa: E402
 app.include_router(small_claims_router)
 app.include_router(expungement_router)
 app.include_router(landlord_router)
 app.include_router(traffic_router)
+app.include_router(police_report_router)
 
 def verify_api_key(x_api_key: str = Header(default="")):
     if x_api_key != settings.API_KEY:

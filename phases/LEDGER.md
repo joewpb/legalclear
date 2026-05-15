@@ -51,7 +51,7 @@ and #5) resolved 2026-05-14 — scaffold files in place; awaiting `uv sync`
 | 18 | Landlord/Tenant FL: 3 sub-flows (deposit / repairs / eviction)             | COMPLETE 2026-05-15 | `LandlordTenantFL.tsx` landing page + 3 sub-flow components (`DepositFlow`, `RepairsFlow`, `EvictionFlow`) under `components/landlord/`; nested `Routes` inside the page handle `/landlord`, `/landlord/deposit`, `/landlord/repairs`, `/landlord/eviction`. `App.tsx` route is `/landlord/*` (wildcard). Backend router at `backend/src/api/routers/landlord.py` registered in `routes.py` — source path divergence (Phase 10 note) continues. All 3 generate endpoints return correct FL statute (§83.49 / §83.56(1) / §83.60). `test_phase_18.py`: 3/3 pass. `npm run build` clean (1755 modules, 92.02 kB gzip JS). |
 | 19 | Court Forms Finder FL (frontend-only, data-driven, ≥18 entries)            | COMPLETE 2026-05-15 | `FormsFinderFL.tsx` (case-type → sub-category → forms list, no backend call) + `fl_courts_forms_index.json` with 20 entries / 28 forms across Family 6 / Civil 3 / Probate 3 / Small Claims 4 / Traffic 2 / Criminal 2 (all minimums met). Every URL on an approved govt domain (`flcourts.gov` / `flhsmv.gov` / `fdle.state.fl.us` / `flclerks.com`) — landing pages only, no fabricated PDF URLs per source spec. `App.tsx` route swap `/forms` PhaseStub → `FormsFinderFL`. `test_phase_19.py`: 4/4 pass (count, coverage, types, URL whitelist). `npm run build` clean (1757 modules, 94.02 kB gzip JS). |
 | 20 | Traffic / Tickets FL wizard (3 paths: pay / school / contest)              | COMPLETE 2026-05-15 | `TrafficFL.tsx` page + 3-step wizard (`CitationTypeStep` / `OptionsStep` / `GenerateStep`) + shared `traffic/types.ts`; `fl_traffic_violations.json` (all 7 citation types). Pay path links to `fl_counties.json` clerk_url (reused from Phase 16); School path links to FLHSMV; Contest path POSTs to `/api/traffic/generate` and renders the returned hearing-request packet. DUI selection shows red-bordered attorney warning and disables the Contest path. Backend router at `backend/src/api/routers/traffic.py` registered in `routes.py` (Phase 10 path divergence continues). `test_phase_20.py`: 2/2 pass (7-type data + 30-day deadline + ≥3 prep tips). `npm run build` clean (1762 modules, 96.27 kB gzip JS). |
-| 21 | Police Report Analyzer + new `scanner.py` agent                            | PENDING | Imports `pdf_processor.extract` — adjust path per Part A divergence 2. |
+| 21 | Police Report Analyzer + new `scanner.py` agent                            | COMPLETE 2026-05-15 | New `backend/src/agents/scanner.py` (top-level `scan_documents`, `claude-sonnet-4-6`, `cache_control: ephemeral`, fence-strip + retry-once parse, fail-soft to empty findings on any exception). Router at `backend/src/api/routers/police_report.py` — Part A divergence #2 resolved by importing the real symbol: `from src.ingestion import ingest_document` (signature `(bytes, filename) -> dict`) rather than the source's `from ..services.pdf_processor import extract`. Per-file extraction errors caught so malformed PDFs return empty text instead of 500. Frontend: `PoliceReportAnalyzer.tsx` + `UploadInterface` + `FindingsList` + `FindingCard` + shared `SeverityBadge.tsx` (HIGH=danger/white, MEDIUM=accent/black, LOW=muted/white). Up to 4 supplementary uploads. `/police-report` route swapped from PhaseStub. Existing classifier/explainer/risk_scanner agents untouched. `test_phase_21.py`: 3/3 pass with junk PDF bytes (router fail-soft proven). `npm run build` clean (1767 modules, 97.73 kB gzip JS). |
 | 22 | FL Case Law Lookup via CourtListener (RAG-only, sanctions guard)           | PENDING | LLM forbidden from generating case names/citations. Needs `uv add httpx` → requires Part A divergence 1 resolved. |
 | 23 | Mode A Filing Pipeline: PacketBuilder + PDF/A + EN/ES + $35 Stripe         | PENDING | Final phase. Needs `uv add pikepdf jinja2`. Resolves Phase 11 `myflcourtaccess` divergence. Carries `test_no_mode_b` + `test_full_v1.py`. |
 
@@ -70,10 +70,11 @@ and #5) resolved 2026-05-14 — scaffold files in place; awaiting `uv sync`
    `test_no_mode_b` failure. Resolution: Phase 23 either deprecates
    `florida_courts.py` to a wrapper or adds `# walkthrough text only`
    comments. No action needed before Phase 15.
-4. **`backend/src/services/pdf_processor.py` path mismatch.** Source Phase 21
-   imports from that path; repo equivalent lives at `backend/src/ingestion/`.
-   Resolution: re-export from `services/` or adjust the Phase 21 import. No
-   action needed before Phase 21.
+4. ~~`backend/src/services/pdf_processor.py` path mismatch.~~ **RESOLVED
+   2026-05-15** — Phase 21's `police_report.py` router imports the real
+   symbol `from src.ingestion import ingest_document` instead of the
+   source's `extract`. No shim or re-export needed; the source spec
+   explicitly permits this adjustment.
 
 Once `uv sync` + `npm install` complete, Phase 15 is fully unblocked.
 

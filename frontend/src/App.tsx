@@ -10,6 +10,7 @@ import ExpungementFL from "./pages/ExpungementFL"; // Phase 17
 import LandlordTenantFL from "./pages/LandlordTenantFL"; // Phase 18
 import FormsFinderFL from "./pages/FormsFinderFL"; // Phase 19
 import TrafficFL from "./pages/TrafficFL"; // Phase 20
+import PoliceReportAnalyzer from "./pages/PoliceReportAnalyzer"; // Phase 21
 
 // Existing Part A / Part B-in-progress pages — kept as-is per Phase 15
 // "do not touch existing FastAPI routes / existing pages" rule.
@@ -47,13 +48,10 @@ export default function App() {
         {/* Tile 6 — Phase 20 (3-path traffic wizard) */}
         <Route path="/traffic" element={<TrafficFL />} />
 
-        {/* Tiles 7, 8 — stubs until their phase builds them */}
-        <Route
-          path="/police-report"
-          element={
-            <PhaseStub title="POLICE REPORT ANALYZER" phase="Phase 21" />
-          }
-        />
+        {/* Tile 7 — Phase 21 (police report analyzer) */}
+        <Route path="/police-report" element={<PoliceReportAnalyzer />} />
+
+        {/* Tile 8 — stub until its phase builds it */}
         <Route
           path="/case-law"
           element={<PhaseStub title="FL CASE LAW LOOKUP" phase="Phase 22" />}
