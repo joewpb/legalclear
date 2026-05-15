@@ -45,7 +45,7 @@ and #5) resolved 2026-05-14 — scaffold files in place; awaiting `uv sync`
 
 | #  | Title (per source)                                                       | Status  | Note |
 |----|---------------------------------------------------------------------------|---------|------|
-| 15 | Hub Restructure + Brutalist Design System (8-tile HomeHub)                 | PENDING | Scaffold blockers cleared 2026-05-14. Ready to execute once deps materialize. |
+| 15 | Hub Restructure + Brutalist Design System (8-tile HomeHub)                 | COMPLETE 2026-05-14 | `HomeHub.tsx` + `HubTile.tsx` + `PhaseStub.tsx` + `brutalist.css` shipped; `App.jsx` converted to `App.tsx` with 10 routes (hub + tile 1 to existing uploader + 6 stubs + existing /expungement, /results, /pay); `index.html` carries static tile titles in `<noscript>` for the test's HTML-content check. `frontend/tests/test_phase_15.py`: 4/4 assertions pass. `npm run build` clean (1739 modules, 28.80 kB CSS / 86.71 kB gzip JS). |
 | 16 | Small Claims FL 5-step wizard + 67-county data                             | PENDING | Adds `/api/small-claims/generate`, `fl_counties.json`. |
 | 17 | Expungement FL UI: 5-question quiz + `/api/expungement/*`                  | PENDING | NEW page `ExpungementFL.tsx`. Existing `ExpungementPage.jsx` is unrelated multi-state design — not a Phase 17 artifact. |
 | 18 | Landlord/Tenant FL: 3 sub-flows (deposit / repairs / eviction)             | PENDING | FL §83.49 / §83.56 / §83.60. |
