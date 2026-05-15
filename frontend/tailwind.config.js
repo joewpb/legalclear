@@ -6,37 +6,36 @@ export default {
   ],
   theme: {
     extend: {
-      fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        display: ['Playfair Display', 'serif'],
-      },
       colors: {
-        background: '#09090b', // zinc-950
-        foreground: '#F8FAFC',
-        sidebar: '#18181b', // zinc-900
+        // Mirrors the CSS-variable tokens in src/styles/theme.css.
+        // Use either via Tailwind utility (bg-bg, text-fg, text-accent)
+        // or directly as var(--bg) etc. in inline styles.
+        bg: "#FAFAF7",
+        fg: "#1A1A1A",
+        accent: "#1E40AF",
+        "accent-hover": "#1E3A8A",
+        muted: "#6B6B66",
+        border: "#E5E5E0",
+        "border-strong": "#C7C7BF",
+        danger: "#B91C1C",
+        success: "#166534",
       },
-      animation: {
-        'blob': 'blob 7s infinite',
-        'fade-in': 'fadeIn 0.5s ease-out',
-        'slide-up': 'slideUp 0.5s ease-out forwards',
-        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        serif: ['Fraunces', 'Georgia', 'serif'],
       },
-      keyframes: {
-        blob: {
-          '0%': { transform: 'translate(0px, 0px) scale(1)' },
-          '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
-          '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
-          '100%': { transform: 'translate(0px, 0px) scale(1)' },
-        },
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
-        slideUp: {
-          '0%': { transform: 'translateY(20px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
-        }
-      }
+      maxWidth: {
+        prose: "680px",
+        page: "1140px",
+      },
+      borderRadius: {
+        DEFAULT: "4px",
+      },
+      boxShadow: {
+        // The single elevation token. Apply sparingly — currently used
+        // only by HubTile on hover.
+        soft: "0 1px 2px rgba(26, 26, 26, 0.04)",
+      },
     },
   },
   plugins: [],

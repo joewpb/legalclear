@@ -1,5 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
+// Shared chrome (v1 retheme)
+import SiteHeader from "./components/SiteHeader";
+import SiteFooter from "./components/SiteFooter";
+
 // Hub (Phase 15)
 import HomeHub from "./pages/HomeHub";
 
@@ -27,7 +31,16 @@ import PaywallPage from "./pages/PaywallPage";
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "100vh",
+        }}
+      >
+        <SiteHeader />
+        <main style={{ flex: 1 }}>
+          <Routes>
         {/* Phase 15 — new hub at / */}
         <Route path="/" element={<HomeHub />} />
 
@@ -61,7 +74,10 @@ export default function App() {
         {/* Existing routes preserved (Phase 12 era) */}
         <Route path="/results/:documentId" element={<ResultsPage />} />
         <Route path="/pay/:documentId" element={<PaywallPage />} />
-      </Routes>
+          </Routes>
+        </main>
+        <SiteFooter />
+      </div>
     </BrowserRouter>
   );
 }
