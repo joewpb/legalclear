@@ -46,6 +46,12 @@ FORM_CATEGORIES = [
     "small_claims_judgment"
 ]
 
+# Part B routers (Phase 15+). Each phase's router declares its own
+# /api/* prefix; HTTP paths match source spec even though the on-disk
+# location is backend/src/api/routers/ rather than .../routes/.
+from src.api.routers.small_claims import router as small_claims_router  # noqa: E402
+app.include_router(small_claims_router)
+
 def verify_api_key(x_api_key: str = Header(default="")):
     if x_api_key != settings.API_KEY:
         raise HTTPException(status_code=401, detail="Invalid API Key")

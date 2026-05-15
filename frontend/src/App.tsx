@@ -4,6 +4,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomeHub from "./pages/HomeHub";
 import PhaseStub from "./pages/PhaseStub";
 
+// Part B tile pages
+import SmallClaimsFL from "./pages/SmallClaimsFL"; // Phase 16
+
 // Existing Part A / Part B-in-progress pages — kept as-is per Phase 15
 // "do not touch existing FastAPI routes / existing pages" rule.
 // The /expungement route still points at the multi-state ExpungementPage
@@ -30,11 +33,10 @@ export default function App() {
         {/* Tile 3 — existing expungement page (Phase 17 will replace) */}
         <Route path="/expungement" element={<ExpungementPage />} />
 
-        {/* Tiles 2, 4, 5, 6, 7, 8 — stubs until their phase builds them */}
-        <Route
-          path="/small-claims"
-          element={<PhaseStub title="SMALL CLAIMS (FL)" phase="Phase 16" />}
-        />
+        {/* Tile 2 — Phase 16 */}
+        <Route path="/small-claims" element={<SmallClaimsFL />} />
+
+        {/* Tiles 4, 5, 6, 7, 8 — stubs until their phase builds them */}
         <Route
           path="/landlord"
           element={
