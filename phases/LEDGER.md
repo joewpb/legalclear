@@ -85,6 +85,32 @@ absent. Frontend bundle: 101.97 kB gzip. Filing Packet product at $35
 (Stripe test mode). Languages live: en, es. Mobile (Phase 13) remains
 out-of-scope per source.
 
+Production cutover progress (2026-05-15):
+
+1. **Supabase `packets` migration:** APPLIED. Verified via Management
+   API — 12 columns + 3 indexes (`packets_pkey`, `idx_packets_user`,
+   `idx_packets_status`). The `packet_builder.py` Supabase mirror that
+   was silent/best-effort before now persists every build.
+2. **Railway deploy config:** UPDATED on push. `requirements.txt`
+   gained `pikepdf>=10.6.0` + `jinja2>=3.1.6` + explicit `httpx`
+   (without these, Phase 23 imports 500 on prod — `pyproject.toml`
+   alone is not enough because Railway's nixpacks builder installs
+   from `requirements.txt`). `nixpacks.toml` + `railway.json` now run
+   `playwright install chromium` after pip install, and `nixpacks.toml`
+   declares the Debian apt packages Playwright's bundled Chromium
+   needs at runtime (libnss3, libxkbcommon0, libgbm1, etc.). First
+   post-push Railway build will materialize Chromium in the deploy
+   image — expect a slightly longer cold deploy than prior phases.
+3. **Stripe key:** still `sk_test_…` per `.env.example`. Live key
+   swap is the last manual gate before real money moves.
+4. **`FRONTEND_URL` env on Railway backend:** defaults to
+   `https://legalclear.app` (set in `routers/packet.py`). Override on
+   Railway if the prod frontend hostname differs.
+
+The leaked Supabase PAT (`sbp_0074fb3f…`) is still live until revoked
+manually at https://supabase.com/dashboard/account/tokens — there is
+no Management API endpoint for token revocation.
+
 ---
 
 ## Provenance + cross-references

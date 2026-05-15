@@ -1,8 +1,28 @@
 [phases.setup]
 nixPkgs = ["python311", "gcc"]
+# Phase 23 — Playwright Chromium runtime deps. Pulled in via apt because
+# Nixpacks layers Debian on top of Nix and Playwright's bundled Chromium
+# binary is dynamically linked against these libs. Without them, the
+# `chromium.launch()` call in pdfa_generator.py errors at runtime even
+# though `playwright install chromium` succeeds at build time.
+aptPkgs = [
+    "libnss3", "libnspr4",
+    "libatk1.0-0", "libatk-bridge2.0-0",
+    "libcups2", "libdrm2",
+    "libxkbcommon0", "libxcomposite1", "libxdamage1",
+    "libxfixes3", "libxrandr2",
+    "libgbm1", "libpango-1.0-0", "libcairo2", "libasound2",
+    "fonts-liberation"
+]
 
 [phases.install]
-cmds = ["cd backend && pip install -r requirements.txt"]
+cmds = [
+    "cd backend && pip install -r requirements.txt",
+    # Download the Playwright-pinned Chromium build into ~/.cache/ms-playwright
+    # so pdfa_generator.py can spawn it at request time. System libs above
+    # satisfy the binary's dynamic linker; no `--with-deps` needed.
+    "cd backend && python -m playwright install chromium"
+]
 
 [start]
 cmd = "cd backend && uvicorn src.api.routes:app --host 0.0.0.0 --port $PORT"

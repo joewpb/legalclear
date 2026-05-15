@@ -16,3 +16,4 @@ this file is for context not derivable from those.
 - [Mode B hardened](mode-b-hardened.md) — no `myflcourtaccess` automation in `backend/src/`; Phase 23 `test_no_mode_b` enforces with string scan; Playwright IS permitted (used for PDF generation)
 - [Backend uvicorn target](backend-uvicorn-target.md) — verification tests need `uvicorn src.api.routes:app`, NOT `main:app` (Phase 10 split entrypoint from app module)
 - [Phase 23 shipped](phase-23-shipped.md) — tile-generate response shape changed by design (now `{packet_id, fee_usd, file_count, checkout_url}`); packet store is in-memory with Supabase mirror best-effort
+- [Railway installs from requirements.txt](railway-deploy-deps.md) — every `uv add` must be mirrored into `backend/requirements.txt`; Playwright also needs apt deps + `playwright install` step
