@@ -1,0 +1,29 @@
+[project]
+name = "legalclear-backend"
+version = "0.1.0"
+description = "LegalClear backend — FastAPI on :8001 with Anthropic, Supabase, and Stripe."
+requires-python = ">=3.11"
+# Dependencies mirror backend/requirements.txt (Railway nixpacks installs via
+# `pip install -r requirements.txt` per the root nixpacks.toml — this
+# pyproject.toml exists so local `uv` workflows work as the source spec
+# requires. Keep both files in sync; Phase 22/23 will `uv add` new packages
+# and those additions must be reflected in requirements.txt too.
+dependencies = [
+    "anthropic",
+    "fastapi",
+    "uvicorn",
+    "pymupdf",
+    "pytesseract",
+    "pillow",
+    "supabase",
+    "stripe",
+    "python-dotenv",
+    "pydantic",
+    "aiohttp",
+    "python-multipart",
+    "pytest",
+    "deep-translator",
+    "reportlab",
+    "weasyprint",
+    "playwright",
+]

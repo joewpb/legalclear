@@ -19,7 +19,7 @@ the no-block clause applies)
 
 | #  | Title (per source)                                  | Status                | Last verified | Note |
 |----|------------------------------------------------------|-----------------------|---------------|------|
-| 0  | Project scaffold + venv                              | DEPLOYED — divergence | 2026-05-14    | Source verify expects `backend/pyproject.toml`; repo has only `backend/requirements.txt`. **Blocks Phase 22 & 23 `uv add`.** Fix scaffold (add pyproject.toml) before Phase 15 executes. |
+| 0  | Project scaffold + venv                              | DEPLOYED              | 2026-05-14    | `backend/pyproject.toml` added 2026-05-14 mirroring `requirements.txt` (Railway nixpacks still uses pip+requirements.txt explicitly; pyproject.toml unblocks local `uv` workflows + Phase 22/23 `uv add`). `uv sync` not yet run — no lockfile. |
 | 1  | DB / memory layer (`db.py`, `DatabaseManager`)       | DEPLOYED              | 2026-05-14    | `backend/src/memory/db.py` — prior ledger mislabeled this phase as "Document ingestion." |
 | 2  | PDF extraction + OCR pipeline                        | DEPLOYED — divergence | 2026-05-14    | Source path is `backend/src/services/pdf_processor.py`; repo has equivalent at `backend/src/ingestion/`. Phase 21's source imports `from ..services.pdf_processor` — will need adjustment at Phase 21 time. |
 | 3  | Classifier Agent                                     | DEPLOYED              | 2026-05-14    | `backend/src/agents/classifier.py` — model `claude-sonnet-4-6` confirmed. |
@@ -31,19 +31,21 @@ the no-block clause applies)
 | 9  | Stripe paywall ($5/$10/$15 + $20/mo + 1 free doc)    | DEPLOYED — re-verify  | 2026-05-14    | `backend/src/payments/stripe_client.py` — exact price tiers + free-doc gate not yet re-verified against source. |
 | 10 | FastAPI backend consolidation                        | DEPLOYED — divergence | 2026-05-14    | Source path `backend/src/api/main.py`; repo split into `backend/main.py` (entrypoint) + `backend/src/api/routes.py`. Source endpoints use `/api/*` prefix; repo serves at bare paths. Not a Part B blocker (Part B routers declare their own `/api/*` prefix). |
 | 11 | FL Courts Mode A scaffold                            | DEPLOYED — see Phase 23 | 2026-05-14  | `backend/src/platforms/florida_courts.py` — Mode A only. Contains 5 `myflcourtaccess` references with NO `# walkthrough text only` marker. Phase 23 `test_no_mode_b` would fail today. Source Phase 11 says Phase 23 may deprecate this file to a thin wrapper. |
-| 12 | React + Tailwind frontend                            | DEPLOYED — divergence | 2026-05-14    | `frontend/` — Vite + React, but 100% `.jsx` (0 `.tsx`). Source uses `.tsx`. Phase 15 creates new `.tsx` files — Vite TS config must be in place by Phase 15. |
+| 12 | React + Tailwind frontend                            | DEPLOYED              | 2026-05-14    | `frontend/tsconfig.json` + `tsconfig.node.json` added 2026-05-14; `typescript` + `@types/{node,react,react-dom}` added to `package.json` devDeps. `allowJs: true` keeps existing `.jsx` working. `npm install` not yet run — TS deps not yet materialized. |
 | 13 | React Native (Expo)                                  | NOT BUILT — no-block  | 2026-05-14    | `mobile/` is empty. Source verify command would fail, but source explicitly says "Note it in the final report but do NOT block." Mobile is OOS for Phases 15-23 per source. |
 | 14 | Railway / nginx deploy                               | DEPLOYED              | 2026-05-14    | Railway services `zesty-delight` (backend) + `appealing-victory` (frontend) live. nginx + systemd: not used (Railway-only deploy is fine per source — source mentions both as options). |
 
-## Part B — phases 15-23 · BUILD TARGET · HARD STOP UNTIL PART A DIVERGENCES RESOLVED
+## Part B — phases 15-23 · BUILD TARGET
 
 Source files for all 9 phases are now in `phases/source/` and complete with
 goal, deliverables, verify command, and pass criteria. The orchestrator
-executes each per its source file.
+executes each per its source file. Hard blockers (Part A divergences #1
+and #5) resolved 2026-05-14 — scaffold files in place; awaiting `uv sync`
++ `npm install` to materialize deps.
 
 | #  | Title (per source)                                                       | Status  | Note |
 |----|---------------------------------------------------------------------------|---------|------|
-| 15 | Hub Restructure + Brutalist Design System (8-tile HomeHub)                 | PENDING | Blocked by Part A divergences 1, 5 (pyproject.toml + TS config). |
+| 15 | Hub Restructure + Brutalist Design System (8-tile HomeHub)                 | PENDING | Scaffold blockers cleared 2026-05-14. Ready to execute once deps materialize. |
 | 16 | Small Claims FL 5-step wizard + 67-county data                             | PENDING | Adds `/api/small-claims/generate`, `fl_counties.json`. |
 | 17 | Expungement FL UI: 5-question quiz + `/api/expungement/*`                  | PENDING | NEW page `ExpungementFL.tsx`. Existing `ExpungementPage.jsx` is unrelated multi-state design — not a Phase 17 artifact. |
 | 18 | Landlord/Tenant FL: 3 sub-flows (deposit / repairs / eviction)             | PENDING | FL §83.49 / §83.56 / §83.60. |
@@ -55,15 +57,15 @@ executes each per its source file.
 
 ---
 
-## Open gaps — orchestrator must resolve before Phase 15
+## Open gaps
 
-1. **`backend/pyproject.toml` missing.** Source Phase 0 expects it; Phases 22
-   and 23 call `uv add`. Decision: introduce a minimal `pyproject.toml`
-   covering current `backend/requirements.txt` content during the Phase 0
-   re-verify pass — treated as a scaffold gap, not a rebuild.
-2. **TypeScript config missing for frontend.** Phase 15 source creates `.tsx`
-   files; repo Vite project is `.jsx`-only. Decision: add `tsconfig.json` +
-   relevant TS deps as part of Phase 15 setup.
+1. ~~`backend/pyproject.toml` missing.~~ **RESOLVED 2026-05-14** — file
+   added mirroring `requirements.txt`. Run `cd backend && uv sync` once
+   to materialize the lockfile before any Phase 22/23 `uv add` command.
+2. ~~TypeScript config missing.~~ **RESOLVED 2026-05-14** — `tsconfig.json`
+   + `tsconfig.node.json` added; TS deps in `package.json` devDeps. Run
+   `cd frontend && npm install` once to materialize before Phase 15 builds
+   the first `.tsx` files.
 3. **Phase 11 `myflcourtaccess` references unmarked.** Latent Phase 23
    `test_no_mode_b` failure. Resolution: Phase 23 either deprecates
    `florida_courts.py` to a wrapper or adds `# walkthrough text only`
@@ -73,8 +75,7 @@ executes each per its source file.
    Resolution: re-export from `services/` or adjust the Phase 21 import. No
    action needed before Phase 21.
 
-Once gaps 1 + 2 are resolved (one-time scaffold patches, not Part A
-rebuilds), Phase 15 can execute.
+Once `uv sync` + `npm install` complete, Phase 15 is fully unblocked.
 
 ---
 
