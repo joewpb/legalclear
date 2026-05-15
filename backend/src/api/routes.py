@@ -51,8 +51,10 @@ FORM_CATEGORIES = [
 # location is backend/src/api/routers/ rather than .../routes/.
 from src.api.routers.small_claims import router as small_claims_router  # noqa: E402
 from src.api.routers.expungement import router as expungement_router  # noqa: E402
+from src.api.routers.landlord import router as landlord_router  # noqa: E402
 app.include_router(small_claims_router)
 app.include_router(expungement_router)
+app.include_router(landlord_router)
 
 def verify_api_key(x_api_key: str = Header(default="")):
     if x_api_key != settings.API_KEY:

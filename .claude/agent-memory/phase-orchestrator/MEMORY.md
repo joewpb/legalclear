@@ -14,3 +14,4 @@ this file is for context not derivable from those.
 - [Phase 13 mobile not built](phase-13-mobile-out-of-scope.md) — `mobile/` empty; source policy is "do not block"; OOS for Phases 15-23
 - [Phase 14 Railway deploy](phase-14-railway-supersedes-systemd.md) — Railway via nixpacks/railway.json; systemd+nginx referenced in source but not required
 - [Mode B hardened](mode-b-hardened.md) — no `myflcourtaccess` automation in `backend/src/`; Phase 23 `test_no_mode_b` enforces with string scan; Playwright IS permitted (used for PDF generation)
+- [Backend uvicorn target](backend-uvicorn-target.md) — verification tests need `uvicorn src.api.routes:app`, NOT `main:app` (Phase 10 split entrypoint from app module)

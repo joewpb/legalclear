@@ -7,6 +7,7 @@ import PhaseStub from "./pages/PhaseStub";
 // Part B tile pages
 import SmallClaimsFL from "./pages/SmallClaimsFL"; // Phase 16
 import ExpungementFL from "./pages/ExpungementFL"; // Phase 17
+import LandlordTenantFL from "./pages/LandlordTenantFL"; // Phase 18
 
 // Existing Part A / Part B-in-progress pages — kept as-is per Phase 15
 // "do not touch existing FastAPI routes / existing pages" rule.
@@ -35,13 +36,10 @@ export default function App() {
         {/* Tile 2 — Phase 16 */}
         <Route path="/small-claims" element={<SmallClaimsFL />} />
 
-        {/* Tiles 4, 5, 6, 7, 8 — stubs until their phase builds them */}
-        <Route
-          path="/landlord"
-          element={
-            <PhaseStub title="LANDLORD / TENANT (FL)" phase="Phase 18" />
-          }
-        />
+        {/* Tile 4 — Phase 18 (landing + 3 sub-flows; sub-routes handled inside) */}
+        <Route path="/landlord/*" element={<LandlordTenantFL />} />
+
+        {/* Tiles 5, 6, 7, 8 — stubs until their phase builds them */}
         <Route
           path="/forms"
           element={
