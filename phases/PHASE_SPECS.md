@@ -1,177 +1,165 @@
-# LegalClear — Phase Specs (REBUILT)
+# LegalClear — Phase Specs (Index)
 
-Supersedes the prior `phases/PHASE_SPECS.md`. The earlier version's Part A
-naming was a reconstruction and was **wrong from Phase 2 onward** — the
-phase-orchestrator caught this on its first reconcile pass against the oneshot.
-This file corrects it.
+**The verbatim source spec for every phase lives in `phases/source/PHASE_NN_*.md`.**
+That directory is canonical. This file is a thin orchestrator-facing index over
+it. If this file disagrees with the source files, the source files win — re-read
+them and correct this index.
 
-## Provenance — read before trusting anything here
-
-| Section | Source | Confidence |
-|---|---|---|
-| Part A names + goals (0–14) | The verbatim oneshot prompt | **Canonical.** Confirmed by Claude Code's reconcile. |
-| Part A verify commands + pass criteria | NOT transcribed here on purpose | Lift verbatim from the oneshot — Claude Code has it in hand. Do not reconstruct. |
-| Part B goals / verify / pass (15–23) | `LegalClear_Complete_Phases_0-23.md`, "AI legal app clarification" chat, 2026-05-12 | **Solid.** Cross-confirmed across retrievals. |
-| Part B per-phase deliverables + code | Same doc — NOT retrievable through search | **MISSING.** Splice from your copy. Marked `<<< VERBATIM SOURCE >>>` below. |
-
-Hard rule: do not execute any Part B phase until its `<<< VERBATIM SOURCE >>>`
-marker is resolved from the May 12 document.
+Supersedes the prior v2 of `PHASE_SPECS.md`. The v2 had Part A phase 1/2/8 names
+wrong and Part B phase 17-23 subjects almost entirely wrong; the source files
+land them correctly.
 
 ---
 
-# PART A — phases 0-14 — VERIFY ONLY
+## Universal rules (from `phases/source/README.md`)
 
-Corrected mapping. The orchestrator runs each verify command, confirms what
-exists, and **never rebuilds**. Verify commands + pass criteria are in the
-oneshot — Claude Code lifts them from there, not from this file.
-
-| # | Phase | Status | Note |
-|---|---|---|---|
-| 0 | Scaffold | DEPLOYED — re-verify | — |
-| 1 | Document ingestion | DEPLOYED — re-verify | `/api/upload` lives here. Never touch it. |
-| 2 | Core utilities | DEPLOYED — re-verify | Was mislabeled "Classifier agent" in old ledger. |
-| 3 | Classifier agent | DEPLOYED — re-verify | — |
-| 4 | Explainer agent | DEPLOYED — re-verify | — |
-| 5 | Form guide agent | DEPLOYED — re-verify | — |
-| 6 | Risk scanner agent | DEPLOYED — re-verify | — |
-| 7 | Expungement agent | DEPLOYED — re-verify | `expungement.py` belongs here — not "unaccounted for". |
-| 8 | Memory layer | DEPLOYED — re-verify | — |
-| 9 | Payments | DEPLOYED — re-verify | Old ledger's "Phase 9 = Mobile" was wrong. Real Phase 9 = Payments, passes. |
-| 10 | API | DEPLOYED — re-verify | — |
-| 11 | Florida courts | DEPLOYED — re-verify | `florida_courts.py` present, Mode A form — consistent with current no-Mode-B policy. Re-verify against oneshot deliverables. |
-| 12 | Web frontend | DEPLOYED — re-verify | — |
-| 13 | Mobile app | **OUT-OF-SCOPE (v1)** | `mobile/` is empty. Decision: not a v1 blocker. Do not build, do not count as a fail. Revisit post-v1. |
-| 14 | Deploy | DEPLOYED — divergence noted | Oneshot specced systemd; repo + AGENTS.md use Railway. Railway is canonical (hardened policy supersedes oneshot — same precedent as the Mode B rule). Mark DEPLOYED with this note. |
-
-### Port note (from the oneshot header)
-Port `8000` is reserved for the **Nemotron inference container** — it is not
-off-limits in general. AGENTS.md's "8000 = build failure" rule is specifically
-about binding *the app* to 8000. Both statements are consistent. The app stays
-on `8001`.
-
-### Mode B note (from the oneshot footer)
-The oneshot references Florida Mode B env vars
-(`FLORIDA_PORTAL_EMAIL` / `FLORIDA_PORTAL_PASSWORD`). Mode B was part of the
-original Part A Florida design. AGENTS.md's current "no Mode B automation in
-`backend/src/`" is a **hardened policy that supersedes the oneshot**. The repo's
-`florida_courts.py` is the Mode A version — consistent with current policy.
-Leave it Mode A.
+- **uv only.** No `pip`, no `python3` direct.
+- **Backend on 8001.** Port 8000 is Nemotron's inference container — the app
+  must not bind there.
+- **No automation against `myflcourtaccess.com`.** Mode A only. Phase 23 has
+  a hard test (`test_no_mode_b`) that scans every `.py` file under
+  `backend/src/` for the literal string `myflcourtaccess`; any non-commented
+  match fails the build. Walkthrough text strings are permitted only when the
+  enclosing file carries a `# walkthrough text only` comment.
+- **Florida jurisdiction only** in v1.
+- **Brutalist design tokens** (defined in Phase 15) are mandatory on every
+  new frontend component from Phase 15 onward.
+- **All agent prompts** use `cache_control: ephemeral`.
+- **Strip markdown fences** from agent JSON output before `json.loads()`;
+  retry once on parse failure.
 
 ---
 
-# PART B — phases 15-23 — BUILD TARGET
+## Part A — phases 0-14 — VERIFY ONLY
 
-Goal / verify / pass are solid. The `<<< VERBATIM SOURCE >>>` line in each phase
-is where the deliverables + code from `LegalClear_Complete_Phases_0-23.md` must
-be pasted before that phase executes.
+Each phase's full spec (goal, verify command, pass criteria, contract) lives
+in the source file. The orchestrator runs the verify command, confirms what
+exists, and never rebuilds. Reality-vs-source divergences are listed below
+the table.
 
-### Phase 15 — Hub + Small Claims tile
-- **Goal:** app hub loads; a Small Claims tile routes into the wizard.
-- **verify:** hub route renders; Small Claims tile present and navigates.
-- **pass:** hub renders without error; tile click lands on the wizard route.
-- `<<< VERBATIM SOURCE: Phase 15 deliverables + code — splice from May 12 doc >>>`
+| #  | Source file                            | Title                                       | Status                  |
+|----|----------------------------------------|---------------------------------------------|-------------------------|
+| 0  | `phases/source/PHASE_00_setup.md`       | Project scaffold + venv                     | DEPLOYED — divergence   |
+| 1  | `phases/source/PHASE_01_memory.md`      | DB / memory layer (`db.py`, `DatabaseManager`) | DEPLOYED               |
+| 2  | `phases/source/PHASE_02_pdf_processor.md` | PDF extraction + OCR pipeline             | DEPLOYED — divergence   |
+| 3  | `phases/source/PHASE_03_classifier_agent.md` | Classifier Agent                       | DEPLOYED                |
+| 4  | `phases/source/PHASE_04_explainer_agent.md`  | Explainer Agent                        | DEPLOYED                |
+| 5  | `phases/source/PHASE_05_form_guide_agent.md` | Form Guide Agent                       | DEPLOYED                |
+| 6  | `phases/source/PHASE_06_risk_scanner_agent.md` | Risk Scanner Agent                   | DEPLOYED                |
+| 7  | `phases/source/PHASE_07_expungement_agent.md` | Expungement Agent                     | DEPLOYED                |
+| 8  | `phases/source/PHASE_08_supabase.md`     | Supabase production DB migration            | DEPLOYED                |
+| 9  | `phases/source/PHASE_09_payments.md`     | Stripe paywall ($5/$10/$15 + $20/mo + 1 free) | DEPLOYED — re-verify  |
+| 10 | `phases/source/PHASE_10_api.md`          | FastAPI backend consolidation               | DEPLOYED — divergence   |
+| 11 | `phases/source/PHASE_11_fl_courts_v1.md` | FL Courts Mode A scaffold                   | DEPLOYED — see Phase 23 |
+| 12 | `phases/source/PHASE_12_web_frontend.md` | React + Tailwind frontend                   | DEPLOYED — divergence   |
+| 13 | `phases/source/PHASE_13_mobile_app.md`   | React Native (Expo)                         | NOT BUILT — no-block    |
+| 14 | `phases/source/PHASE_14_deploy.md`       | Railway / nginx deploy                      | DEPLOYED                |
 
-### Phase 16 — Small Claims 5-step wizard
-- **Goal:** a 5-step guided wizard collecting Small Claims filing inputs.
-- **verify:** all 5 steps render and advance; state persists across steps.
-- **pass:** wizard completes start to finish; collected state survives step nav.
-- `<<< VERBATIM SOURCE: Phase 16 deliverables + code — splice from May 12 doc >>>`
+### Part A — repo-vs-source divergences (must surface before Part B starts)
 
-### Phase 17 — i18n (en/es) + review screen
-- **Goal:** language layer with `en` and `es`; review screen honors selected language.
-- **verify:** review screen renders with `en` selected and with `es` selected.
-- **pass:** both language paths render the review screen correctly.
-- `<<< VERBATIM SOURCE: Phase 17 deliverables + code — splice from May 12 doc >>>`
-
-### Phase 18 — Filing Packet generation
-- **Goal:** Generate produces the Filing Packet — 3 PDFs bundled into one ZIP.
-- **verify:** Generate yields a ZIP; ZIP contains exactly 3 PDFs.
-- **pass:** ZIP downloads; unzips to exactly 3 valid PDFs.
-- `<<< VERBATIM SOURCE: Phase 18 deliverables + code — splice from May 12 doc >>>`
-
-### Phase 19 — Stripe Filing Packet payment
-- **Goal:** "LegalClear Filing Packet" Stripe product at $35.00; pay flow;
-  `?paid=1` redirect; download gated behind payment.
-- **verify:** test card `4242 4242 4242 4242` completes; redirect to `?paid=1`;
-  ZIP download available only after payment.
-- **pass:** unpaid users cannot download; paid users land on `?paid=1` and can.
-- `<<< VERBATIM SOURCE: Phase 19 deliverables + code — splice from May 12 doc >>>`
-
-### Phase 20 — Florida courts walkthrough
-- **Goal:** filing walkthrough for myflcourtaccess.com — 8+ steps. Builds on the
-  existing `florida_courts.py` (Mode A). **No Mode B automation.**
-- **verify:** walkthrough renders 8+ steps; `grep` confirms no Mode B automation
-  in `backend/src/`.
-- **pass:** 8+ steps render; grep for Mode B automation in `backend/src/` is clean.
-- `<<< VERBATIM SOURCE: Phase 20 deliverables + code — splice from May 12 doc >>>`
-
-### Phase 21 — Tracking page
-- **Goal:** user enters a court confirmation number; tracking page reflects status.
-- **verify:** entering a test confirmation number updates the tracking page.
-- **pass:** test confirmation number produces a visible status update.
-- `<<< VERBATIM SOURCE: Phase 21 deliverables + code — splice from May 12 doc >>>`
-
-### Phase 22 — Integration wire-up + polish
-- **Goal:** end-to-end wiring across hub → wizard → packet → pay → walkthrough → tracking.
-- **verify:** full happy-path runs start to finish without manual intervention.
-- **pass:** the complete v1 flow runs unbroken, no manual steps.
-- `<<< VERBATIM SOURCE: Phase 22 deliverables + code — splice from May 12 doc >>>`
-
-### Phase 23 — Full v1 verification + deploy
-- **Goal:** all Part B phase tests pass; deploy to Railway; emit final report.
-- **verify:** `test_phase_15.py` … `test_phase_23.py` and `test_full_v1.py` all pass.
-- **pass:** every Part B test green; both Railway services deployed; report emitted.
-- `<<< VERBATIM SOURCE: Phase 23 deliverables + code — splice from May 12 doc >>>`
+1. **Phase 0** — source verify expects `backend/pyproject.toml` (`uv` project
+   file). Repo has only `backend/requirements.txt`. Phase 22 and Phase 23 source
+   specs run `uv add httpx`, `uv add pikepdf jinja2` — these require
+   `pyproject.toml` to exist. **This is a hard Part B blocker.** Decision
+   pending: introduce `backend/pyproject.toml` (one-time scaffold fix, not
+   a Part A rebuild) before Phase 15 begins.
+2. **Phase 2** — source path is `backend/src/services/pdf_processor.py`. Repo
+   has it at `backend/src/ingestion/` instead. Functional, but Phase 21 source
+   imports `from ..services.pdf_processor import extract` — the import path
+   will break unless the Phase 21 import is adjusted to `from ..ingestion...`
+   or the file is moved/re-exported under `services/`.
+3. **Phase 10** — source uses `/api/*` prefix on every endpoint
+   (`/api/upload`, `/api/chat`, `/api/eligibility`, `/api/stripe/webhook`,
+   `/api/push/register`). Repo serves the same logical endpoints at bare
+   paths (`/upload`, `/chat/{document_id}`, `/eligibility`, `/webhook`).
+   **Not a Part B blocker** — every Part B router declares its own
+   `prefix="/api/..."`, so Part B endpoints will be at `/api/*` regardless.
+   Part A bare-path endpoints stay as-is; the frontend already knows them.
+4. **Phase 11** — `backend/src/platforms/florida_courts.py` contains 5
+   `myflcourtaccess` references with NO `# walkthrough text only` comment.
+   Phase 23's `test_no_mode_b` would fail today. Source Phase 11 explicitly
+   says "Phase 23 may deprecate `florida_courts.py` to a thin wrapper or
+   remove it" — Phase 23 resolves this. **Not a Part A fix; Phase 23 work.**
+5. **Phase 12** — source builds `.tsx` (TypeScript). Repo is 100% `.jsx`,
+   zero `.tsx`. Phase 15 source creates new files as `.tsx`. **Vite config
+   must accept .tsx by Phase 15.** Decision pending: convert to TS at
+   Phase 15 boundary, or rewrite Phase 15 deliverables as `.jsx`. Source
+   wins → introduce TS.
+6. **Phase 13** — source says mobile is built (`mobile/App.tsx`,
+   `mobile/app.json`). Repo `mobile/` is empty. Source policy: "Note it in
+   the final report but do NOT block. Mobile is deferred." Phase 13 source
+   is explicit: "**Mobile work is OUT OF SCOPE for Phases 15–23.**" So
+   empty `mobile/` is a documented Part A gap, not a Part B blocker.
 
 ---
 
-# Deployment (after Phase 23 passes)
+## Part B — phases 15-23 — BUILD TARGET — HARD STOP UNTIL DIVERGENCES RESOLVED
 
-1. **Backend:** `uv sync` → commit → push to GitHub `main` → Railway auto-deploys `zesty-delight`.
-2. **Frontend:** `npm run build` → commit → push to GitHub `main` → Railway auto-deploys `appealing-victory`.
-3. **Stripe dashboard:** confirm "LegalClear Filing Packet" product at $35.00 is visible.
-4. **Smoke test:**
-   - Hub loads → Small Claims tile → 5-step wizard → review with `en` selected → Generate.
-   - Land on Filing Packet page → pay $35 with test card `4242 4242 4242 4242`.
-   - Redirect to `?paid=1` → download ZIP → confirm 3 PDFs inside.
-   - View Walkthrough → see 8+ steps for myflcourtaccess.com.
-   - Enter test confirmation number → tracking page updates.
+Each phase's full spec (deliverables, code blocks, test, pass criteria) lives
+in the source file. The orchestrator builds the phase per the source, runs
+its `test_phase_NN.py`, and marks the row COMPLETE only when every assertion
+in the source passes.
+
+| #  | Source file                              | Title                                                            | Status                  |
+|----|------------------------------------------|------------------------------------------------------------------|-------------------------|
+| 15 | `phases/source/PHASE_15_hub_restructure.md` | Hub Restructure + Brutalist Design System (8-tile HomeHub)    | PENDING                 |
+| 16 | `phases/source/PHASE_16_small_claims.md` | Small Claims FL 5-step wizard + 67-county data                   | PENDING                 |
+| 17 | `phases/source/PHASE_17_expungement_ui.md` | Expungement FL UI: 5-question quiz + `/api/expungement/*`      | PENDING                 |
+| 18 | `phases/source/PHASE_18_landlord_tenant.md` | Landlord/Tenant FL: 3 sub-flows (deposit / repairs / eviction) | PENDING                 |
+| 19 | `phases/source/PHASE_19_forms_finder.md` | Court Forms Finder FL (frontend-only, data-driven, ≥18 entries)  | PENDING                 |
+| 20 | `phases/source/PHASE_20_traffic.md`      | Traffic / Tickets FL wizard (3 paths: pay / school / contest)    | PENDING                 |
+| 21 | `phases/source/PHASE_21_police_report.md` | Police Report Analyzer + new `scanner.py` agent                 | PENDING                 |
+| 22 | `phases/source/PHASE_22_case_law.md`     | FL Case Law Lookup via CourtListener (RAG-only, sanctions guard) | PENDING                 |
+| 23 | `phases/source/PHASE_23_packet_builder.md` | Mode A Filing Pipeline: PacketBuilder + PDF/A + EN/ES + $35 Stripe | PENDING — final phase |
+
+### Part B notes
+
+- **Hub tile count: 8.** Resolves the prior 6-vs-8 question. Order is
+  fixed per Phase 15 source: `/upload`, `/small-claims`, `/expungement`,
+  `/landlord`, `/forms`, `/traffic`, `/police-report`, `/case-law`.
+- **Phase 23 is a single phase**, not a 9-way split. It carries
+  `test_phase_23.py` (10 assertions) plus `test_full_v1.py` (4 assertions)
+  inside the same source file.
+- **EN/ES is Phase 23's responsibility**, not Phase 17's. Phase 23 ships
+  pre-translated templates (`instructions_{en,es}.json`,
+  `walkthrough_steps_{en,es}.json`, `cover_sheets/{type}_{en,es}.html`).
+  Phase 12 already has the frontend EN/ES toggle; Phase 23 deepens it
+  with backend-side templates.
+- **$35 Stripe Filing Packet is Phase 23's responsibility**, not Phase 19's.
+  Phase 23 attaches a new Stripe product via the existing Phase 09 webhook
+  handler (adds a `checkout.session.completed` branch keyed on `packet_id`
+  metadata). Phase 09 internals stay untouched.
+- **Phase 23's `test_no_mode_b`** is the project's hardest gate. See
+  Phase 11 divergence above — `florida_courts.py` will need either
+  `# walkthrough text only` comments or deprecation before Phase 23 passes.
+- **Repo state: Part B is 0% built.** Zero new frontend pages, zero new
+  backend routers, zero new services, zero new templates, zero new tests.
+  `frontend/src/pages/ExpungementPage.jsx` exists but is a multi-state
+  design that predates Phase 17's FL-only quiz — it is not a Phase 17
+  deliverable.
 
 ---
 
-# Final report format
+## Deployment (after Phase 23 passes)
 
-After all Part B phases (15-23) deploy successfully, the orchestrator outputs
-**exactly** this and nothing outside it:
+Per `phases/source/PHASE_23_packet_builder.md`:
 
-```
-=== LEGALCLEAR V1 FULL DEPLOYMENT REPORT ===
-Part A verified: Phases 0-14 (existing, deployed; Phase 13 Mobile out-of-scope v1)
-Part B completed: Phases 15, 16, 17, 18, 19, 20, 21, 22, 23
-Frontend bundle hash: [hash]
-Backend deploy: success
-Frontend deploy: success
-Live URLs:
-  Frontend: [url]
-  Backend: [url]
-Stripe product configured: yes ($35 Filing Packet)
-Languages live: en, es
-Verification:
-  test_phase_15.py: passed
-  test_phase_16.py: passed
-  test_phase_17.py: passed
-  test_phase_18.py: passed
-  test_phase_19.py: passed
-  test_phase_20.py: passed
-  test_phase_21.py: passed
-  test_phase_22.py: passed
-  test_phase_23.py: passed
-  test_full_v1.py: passed
-TODOs remaining: [count of `# TODO:` markers]
-Mode B automation present: no
-Blocking issues: none
-=== END REPORT ===
-```
+1. **Backend:** `uv sync` → commit → push to GitHub `main` → Railway
+   auto-deploys `zesty-delight`.
+2. **Frontend:** `npm run build` → commit → push → Railway auto-deploys
+   `appealing-victory`.
+3. **Stripe dashboard:** confirm "LegalClear Filing Packet" product at
+   $35.00 is visible.
+4. **Smoke test:** Hub → Small Claims tile → 5-step wizard → review with EN →
+   Generate → FilingPacket → pay $35 with test card `4242 4242 4242 4242` →
+   `?paid=1` → download ZIP → 3 PDFs inside → Walkthrough renders ≥8 steps
+   for myflcourtaccess.com → enter test confirmation number → tracking
+   page updates.
 
-Do not claim success if any assertion failed at any phase. If Mode B automation
-is detected anywhere in `backend/src/`, fail the build.
+---
+
+## Final report format
+
+After Phase 23 passes its own tests AND `test_full_v1.py` passes, the
+orchestrator emits **exactly** the report block defined at the bottom of
+`phases/source/PHASE_23_packet_builder.md` and nothing outside it.

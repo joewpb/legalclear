@@ -1,68 +1,87 @@
 # LegalClear — Phase Ledger
 
-**Single source of truth for build state.** The `phase-orchestrator` agent reads
-this first every session and writes to it after every phase transition. If this
-ledger disagrees with the actual repo, the repo wins — re-verify and correct.
+**Single source of truth for build state.** The `phase-orchestrator` agent
+reads this first every session and writes to it after every phase transition.
+If this ledger disagrees with the actual repo or with `phases/source/`, the
+repo + source files win — re-verify and correct.
+
+Phase names + scopes are taken from `phases/source/PHASE_NN_*.md` (canonical,
+2026-05-14). Prior ledger revisions had Part A phase 1/2/8 names wrong and
+all of Part B 17-22 subjects wrong; this revision corrects against source.
 
 Status values: `DEPLOYED` · `COMPLETE` · `PENDING` · `BLOCKED` · `OUT-OF-SCOPE`
-
-Part A naming and scopes here are transcribed from the verbatim source build
-prompt `LegalClear_OneShot_Prompt.md` (== `Complete One Shot Build.md`), then
-re-verified phase-by-phase against the live repo on 2026-05-14.
+· `NOT BUILT` (used when source spec exists but the artifact is absent and
+the no-block clause applies)
 
 ---
 
 ## Part A — phases 0-14 · VERIFY ONLY · do not rebuild
 
-| #  | Name (canonical, from oneshot) | Status | Last verified | Note |
-|----|--------------------------------|--------|---------------|------|
-| 0  | Scaffold (dirs + requirements.txt + uv venv + jurisdictions/forms data) | DEPLOYED | 2026-05-14 | `requirements.txt` + `uv venv` is the canonical form per oneshot — pyproject.toml is NOT required. `playwright` listed but unused in `backend/src/` — keep an eye on it, not a Mode B violation today |
-| 1  | Document ingestion (PyMuPDF parser, Tesseract OCR, text_cleaner, ingest_document) | DEPLOYED | 2026-05-14 | `/api/upload` exists in `backend/src/api/routes.py:127` — do not touch |
-| 2  | Core utilities (config, disclaimer, escalation router, i18n, notifications) | DEPLOYED | 2026-05-14 | `backend/src/core/{config,disclaimer,escalation,i18n}.py` + `platforms/notifications.py` |
-| 3  | Classifier agent (document type, jurisdiction, metadata, price tiers) | DEPLOYED | 2026-05-14 | `backend/src/agents/classifier.py` — typed dict return |
-| 4  | Explainer agent (plain-language summary + Q&A, disclaimer in system prompt) | DEPLOYED | 2026-05-14 | `backend/src/agents/explainer.py` — disclaimer via `core/disclaimer.py` |
-| 5  | Form guide agent (field-by-field walkthrough, jurisdiction-aware) | DEPLOYED | 2026-05-14 | `backend/src/agents/form_guide.py` — loads `forms_library.json` |
-| 6  | Risk scanner agent (RED/YELLOW/GREEN clause scoring) | DEPLOYED | 2026-05-14 | `backend/src/agents/risk_scanner.py` — three-tier counts in response |
-| 7  | Expungement agent (eligibility + petition guide) | DEPLOYED | 2026-05-14 | `backend/src/agents/expungement.py` — wired into `/eligibility` route |
-| 8  | Memory layer (Supabase DatabaseManager + schema SQL) | DEPLOYED | 2026-05-14 | `backend/src/memory/db.py` (`usage_stats` table); schema at `deploy/supabase_schema.sql` |
-| 9  | Payments (Stripe pay-per-use + subscription + webhook) | DEPLOYED | 2026-05-14 | `backend/src/payments/stripe_client.py` + `/subscribe/{user_id}` + `/webhook` routes |
-| 10 | API (FastAPI app + endpoints + singleton wiring) | DEPLOYED | 2026-05-14 | `backend/src/api/routes.py` — `/health`, `/user`, `/upload`, `/process`, `/chat`, `/document(s)`, `/eligibility`, `/florida-filing/prepare`, `/webhook`, `/subscribe` |
-| 11 | Florida courts (PDFAGenerator + CountyRouter + ManualFilingHelper) | DEPLOYED | 2026-05-14 | `backend/src/platforms/florida_courts.py` — Mode A only. Oneshot's optional Mode B portal automation is **superseded** by AGENTS.md §7 (Mode B in `backend/src/` = hard fail) |
-| 12 | Web frontend (React + Vite + Tailwind + Stripe.js + i18next) | DEPLOYED | 2026-05-14 | `frontend/` — Upload/Results/Paywall views. `i18next` dep installed but en/es wiring is deferred to Part B Phase 17 |
-| 13 | Mobile app (Expo / React Native) | OUT-OF-SCOPE | 2026-05-14 | `mobile/` intentionally empty. Dropped from v1 scope. Do **not** build, do **not** count as a fail |
-| 14 | Deploy (services live, frontend builds, smoke tests pass) | DEPLOYED | 2026-05-14 | Railway via `nixpacks.toml` + `railway.json` (services `zesty-delight`, `appealing-victory`). Oneshot's systemd + nginx plan is **superseded** by Railway, same precedent as Mode B hardening |
+| #  | Title (per source)                                  | Status                | Last verified | Note |
+|----|------------------------------------------------------|-----------------------|---------------|------|
+| 0  | Project scaffold + venv                              | DEPLOYED — divergence | 2026-05-14    | Source verify expects `backend/pyproject.toml`; repo has only `backend/requirements.txt`. **Blocks Phase 22 & 23 `uv add`.** Fix scaffold (add pyproject.toml) before Phase 15 executes. |
+| 1  | DB / memory layer (`db.py`, `DatabaseManager`)       | DEPLOYED              | 2026-05-14    | `backend/src/memory/db.py` — prior ledger mislabeled this phase as "Document ingestion." |
+| 2  | PDF extraction + OCR pipeline                        | DEPLOYED — divergence | 2026-05-14    | Source path is `backend/src/services/pdf_processor.py`; repo has equivalent at `backend/src/ingestion/`. Phase 21's source imports `from ..services.pdf_processor` — will need adjustment at Phase 21 time. |
+| 3  | Classifier Agent                                     | DEPLOYED              | 2026-05-14    | `backend/src/agents/classifier.py` — model `claude-sonnet-4-6` confirmed. |
+| 4  | Explainer Agent                                      | DEPLOYED              | 2026-05-14    | `backend/src/agents/explainer.py` — model confirmed. |
+| 5  | Form Guide Agent                                     | DEPLOYED              | 2026-05-14    | `backend/src/agents/form_guide.py` — model confirmed. |
+| 6  | Risk Scanner Agent                                   | DEPLOYED              | 2026-05-14    | `backend/src/agents/risk_scanner.py` — red/yellow/green clause model. |
+| 7  | Expungement Agent                                    | DEPLOYED              | 2026-05-14    | `backend/src/agents/expungement.py` — FL §943.0585 / §943.059 / §943.0584 referenced. |
+| 8  | Supabase production DB migration                     | DEPLOYED              | 2026-05-14    | `backend/src/memory/db.py` routes to Supabase via `SUPABASE_URL`/`SUPABASE_KEY`. Prior ledger mislabeled this as "Memory layer" (that's Phase 1). Phase 23 will ADD a `packets` table. |
+| 9  | Stripe paywall ($5/$10/$15 + $20/mo + 1 free doc)    | DEPLOYED — re-verify  | 2026-05-14    | `backend/src/payments/stripe_client.py` — exact price tiers + free-doc gate not yet re-verified against source. |
+| 10 | FastAPI backend consolidation                        | DEPLOYED — divergence | 2026-05-14    | Source path `backend/src/api/main.py`; repo split into `backend/main.py` (entrypoint) + `backend/src/api/routes.py`. Source endpoints use `/api/*` prefix; repo serves at bare paths. Not a Part B blocker (Part B routers declare their own `/api/*` prefix). |
+| 11 | FL Courts Mode A scaffold                            | DEPLOYED — see Phase 23 | 2026-05-14  | `backend/src/platforms/florida_courts.py` — Mode A only. Contains 5 `myflcourtaccess` references with NO `# walkthrough text only` marker. Phase 23 `test_no_mode_b` would fail today. Source Phase 11 says Phase 23 may deprecate this file to a thin wrapper. |
+| 12 | React + Tailwind frontend                            | DEPLOYED — divergence | 2026-05-14    | `frontend/` — Vite + React, but 100% `.jsx` (0 `.tsx`). Source uses `.tsx`. Phase 15 creates new `.tsx` files — Vite TS config must be in place by Phase 15. |
+| 13 | React Native (Expo)                                  | NOT BUILT — no-block  | 2026-05-14    | `mobile/` is empty. Source verify command would fail, but source explicitly says "Note it in the final report but do NOT block." Mobile is OOS for Phases 15-23 per source. |
+| 14 | Railway / nginx deploy                               | DEPLOYED              | 2026-05-14    | Railway services `zesty-delight` (backend) + `appealing-victory` (frontend) live. nginx + systemd: not used (Railway-only deploy is fine per source — source mentions both as options). |
 
-## Part B — phases 15-23 · BUILD TARGET · HARD STOP UNTIL SOURCE LANDS
+## Part B — phases 15-23 · BUILD TARGET · HARD STOP UNTIL PART A DIVERGENCES RESOLVED
 
-Verbatim source for Part B lives in `LegalClear_Complete_Phases_0-23.md` (to be
-supplied). All nine `<<< SOURCE >>>` markers in `PHASE_SPECS.md` are unresolved.
-**Do not execute any Part B phase until that document is in the repo.**
+Source files for all 9 phases are now in `phases/source/` and complete with
+goal, deliverables, verify command, and pass criteria. The orchestrator
+executes each per its source file.
 
-| #  | Name (reconstructed — confirm against source on arrival) | Status | Note |
-|----|----------------------------------------------------------|--------|------|
-| 15 | Hub + Small Claims tile (entry UI)                        | PENDING | source missing — hard stop |
-| 16 | Small Claims 5-step wizard                                | PENDING | source missing — hard stop |
-| 17 | i18n layer (en/es) + review screen with language toggle   | PENDING | source missing — hard stop |
-| 18 | Filing Packet generation (3 PDFs bundled to ZIP)          | PENDING | source missing — hard stop |
-| 19 | Stripe "LegalClear Filing Packet" $35 + `?paid=1` gate    | PENDING | source missing — hard stop |
-| 20 | Florida courts walkthrough (8+ steps, myflcourtaccess.com) | PENDING | builds on Phase 11; Mode A only |
-| 21 | Tracking page (confirmation number → status updates)      | PENDING | source missing — hard stop |
-| 22 | Integration wire-up + polish                              | PENDING | source missing — hard stop |
-| 23 | Full v1 verification + Railway deploy + final report      | PENDING | source missing — hard stop |
+| #  | Title (per source)                                                       | Status  | Note |
+|----|---------------------------------------------------------------------------|---------|------|
+| 15 | Hub Restructure + Brutalist Design System (8-tile HomeHub)                 | PENDING | Blocked by Part A divergences 1, 5 (pyproject.toml + TS config). |
+| 16 | Small Claims FL 5-step wizard + 67-county data                             | PENDING | Adds `/api/small-claims/generate`, `fl_counties.json`. |
+| 17 | Expungement FL UI: 5-question quiz + `/api/expungement/*`                  | PENDING | NEW page `ExpungementFL.tsx`. Existing `ExpungementPage.jsx` is unrelated multi-state design — not a Phase 17 artifact. |
+| 18 | Landlord/Tenant FL: 3 sub-flows (deposit / repairs / eviction)             | PENDING | FL §83.49 / §83.56 / §83.60. |
+| 19 | Court Forms Finder FL (frontend-only, data-driven, ≥18 entries)            | PENDING | No backend changes. Strict URL whitelist (gov domains only). |
+| 20 | Traffic / Tickets FL wizard (3 paths: pay / school / contest)              | PENDING | Adds `/api/traffic/generate`, `fl_traffic_violations.json`. |
+| 21 | Police Report Analyzer + new `scanner.py` agent                            | PENDING | Imports `pdf_processor.extract` — adjust path per Part A divergence 2. |
+| 22 | FL Case Law Lookup via CourtListener (RAG-only, sanctions guard)           | PENDING | LLM forbidden from generating case names/citations. Needs `uv add httpx` → requires Part A divergence 1 resolved. |
+| 23 | Mode A Filing Pipeline: PacketBuilder + PDF/A + EN/ES + $35 Stripe         | PENDING | Final phase. Needs `uv add pikepdf jinja2`. Resolves Phase 11 `myflcourtaccess` divergence. Carries `test_no_mode_b` + `test_full_v1.py`. |
 
 ---
 
-## Open gaps — orchestrator must resolve
+## Open gaps — orchestrator must resolve before Phase 15
 
-1. **Part B source document** (`LegalClear_Complete_Phases_0-23.md`) must be
-   supplied before any Phase 15-23 execution begins. Until then, every Part B
-   `<<< SOURCE >>>` marker in `PHASE_SPECS.md` is unresolved and the orchestrator
-   halts at Phase 14.
-2. **Phase 0 `playwright` dependency** — listed in `requirements.txt` but not
-   imported in `backend/src/`. Not a Mode B violation as written, but it's a
-   landmine. Recommend removing during Part B polish (Phase 22) unless
-   something starts using it.
-3. **Phase 12 i18n wiring** — `i18next` is in `package.json` but no
-   `useTranslation` / `i18n.init` calls in `frontend/src/`. This is expected
-   (Part B Phase 17 wires en/es) but record it here so it doesn't get
-   re-flagged as a Phase 12 regression.
+1. **`backend/pyproject.toml` missing.** Source Phase 0 expects it; Phases 22
+   and 23 call `uv add`. Decision: introduce a minimal `pyproject.toml`
+   covering current `backend/requirements.txt` content during the Phase 0
+   re-verify pass — treated as a scaffold gap, not a rebuild.
+2. **TypeScript config missing for frontend.** Phase 15 source creates `.tsx`
+   files; repo Vite project is `.jsx`-only. Decision: add `tsconfig.json` +
+   relevant TS deps as part of Phase 15 setup.
+3. **Phase 11 `myflcourtaccess` references unmarked.** Latent Phase 23
+   `test_no_mode_b` failure. Resolution: Phase 23 either deprecates
+   `florida_courts.py` to a wrapper or adds `# walkthrough text only`
+   comments. No action needed before Phase 15.
+4. **`backend/src/services/pdf_processor.py` path mismatch.** Source Phase 21
+   imports from that path; repo equivalent lives at `backend/src/ingestion/`.
+   Resolution: re-export from `services/` or adjust the Phase 21 import. No
+   action needed before Phase 21.
+
+Once gaps 1 + 2 are resolved (one-time scaffold patches, not Part A
+rebuilds), Phase 15 can execute.
+
+---
+
+## Provenance + cross-references
+
+- Canonical source: `phases/source/PHASE_NN_*.md` (24 files + `README.md`).
+- Reference snapshots of pre-existing Part A frontend pages:
+  `phases/reference/` (informational only — not authoritative).
+- The earlier `LegalClear_OneShot_Prompt.md` at repo root is now superseded
+  by the per-phase source files but kept for historical context.

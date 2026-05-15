@@ -1,15 +1,16 @@
 # phase-orchestrator — MEMORY.md
 
-Index of durable, cross-session facts. `phases/LEDGER.md` is canonical
-for build state; this file is for context not derivable from the ledger
-or the repo alone.
+Index of durable, cross-session facts. `phases/LEDGER.md` is canonical for
+build state; `phases/source/PHASE_NN_*.md` is canonical for phase spec;
+this file is for context not derivable from those.
 
-- [Canonical Part A source](source-part-a.md) — `LegalClear_OneShot_Prompt.md` (== `Complete One Shot Build.md`) is the verbatim Part A build prompt
-- [Part B source missing](source-part-b-missing.md) — `LegalClear_Complete_Phases_0-23.md` not yet supplied; hard stop at Phase 14
-- [Phase numbering corrected 2026-05-14](phase-numbering-correction.md) — original ledger had Part A phase names shifted starting at Phase 2; now matches oneshot
-- [Phase 13 mobile is out of scope](phase-13-mobile-out-of-scope.md) — `mobile/` is intentionally empty; do not build, do not flag as fail
-- [Phase 14 deploy uses Railway not systemd](phase-14-railway-supersedes-systemd.md) — oneshot's systemd+nginx plan superseded by Railway nixpacks config
-- [Mode B policy hardened vs oneshot](mode-b-hardened.md) — oneshot allowed optional FL portal automation; AGENTS.md §7 now bans it in `backend/src/`
-- [Repo layout cheatsheet](repo-layout.md) — backend/src/ tree and where each Phase 0-14 deliverable lives
-- [Playwright is a landmine](playwright-landmine.md) — listed in requirements.txt but unused; not a violation today, recommend removal in Phase 22
-- [Phase 12 i18n wiring deferred](phase-12-i18n-deferred.md) — `i18next` installed but not wired; en/es runtime is Part B Phase 17, do not regression-flag
+- [Canonical source location](source-canonical.md) — `phases/source/PHASE_NN_*.md` is the verbatim spec for every phase; PHASE_SPECS.md + LEDGER.md are thin indexes over it
+- [Part A source — superseded](source-part-a.md) — `LegalClear_OneShot_Prompt.md` is historical; per-phase files at `phases/source/` are now canonical
+- [Phase numbering — canonical mapping](phase-numbering-correction.md) — real Part A names per source; two prior wrong mappings flagged
+- [Part A source divergences](part-a-source-divergences.md) — 6 documented drift points; #1 (pyproject.toml) and #5 (TS config) block Phase 15 start
+- [Repo layout cheatsheet](repo-layout.md) — source path vs repo path for every Phase 0-14 deliverable; Part B is 0% built
+- [Hub has 8 tiles](hub-8-tiles.md) — Phase 15 spec, fixed order, resolves prior 6-vs-8 question
+- [Phase 23 scope](phase-23-scope.md) — Phase 23 is one phase but the heaviest; PacketBuilder + PDF/A + EN/ES + $35 Stripe + tracker + full-v1 smoke
+- [Phase 13 mobile not built](phase-13-mobile-out-of-scope.md) — `mobile/` empty; source policy is "do not block"; OOS for Phases 15-23
+- [Phase 14 Railway deploy](phase-14-railway-supersedes-systemd.md) — Railway via nixpacks/railway.json; systemd+nginx referenced in source but not required
+- [Mode B hardened](mode-b-hardened.md) — no `myflcourtaccess` automation in `backend/src/`; Phase 23 `test_no_mode_b` enforces with string scan; Playwright IS permitted (used for PDF generation)

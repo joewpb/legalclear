@@ -1,27 +1,50 @@
 ---
 name: phase-numbering-correction
-description: Original LEDGER.md Part A phase names were misaligned with the oneshot source; corrected 2026-05-14
+description: Canonical Part A phase names per phases/source/ — two prior mappings were wrong; this is the authoritative one
 metadata:
   type: project
 ---
 
-On 2026-05-14 the ledger's Part A rows were rewritten to match
-`LegalClear_OneShot_Prompt.md`. The earlier ledger version had the
-phase names shifted starting at Phase 2: it labeled Phase 2 as "Classifier",
-Phase 3 as "Explainer", etc., and treated Phases 10-14 as STUBs.
+**Canonical Part A mapping (from `phases/source/PHASE_NN_*.md`, 2026-05-14):**
 
-**The actual mapping (canonical):**
-  0 Scaffold · 1 Document ingestion · 2 Core utilities · 3 Classifier ·
-  4 Explainer · 5 Form guide · 6 Risk scanner · 7 Expungement ·
-  8 Memory layer · 9 Payments · 10 API · 11 Florida courts ·
-  12 Web frontend · 13 Mobile app · 14 Deploy
+| # | Title                                          | Source file |
+|---|------------------------------------------------|-------------|
+| 0 | Project Setup (scaffold + venv)                 | `PHASE_00_setup.md` |
+| 1 | Memory Layer (DB) — `db.py`, `DatabaseManager`  | `PHASE_01_memory.md` |
+| 2 | PDF Processing Pipeline — `pdf_processor.py`    | `PHASE_02_pdf_processor.md` |
+| 3 | Classifier Agent                                | `PHASE_03_classifier_agent.md` |
+| 4 | Explainer Agent                                 | `PHASE_04_explainer_agent.md` |
+| 5 | Form Guide Agent                                | `PHASE_05_form_guide_agent.md` |
+| 6 | Risk Scanner Agent                              | `PHASE_06_risk_scanner_agent.md` |
+| 7 | Expungement Agent                               | `PHASE_07_expungement_agent.md` |
+| 8 | Supabase Production DB migration                | `PHASE_08_supabase.md` |
+| 9 | Stripe Payments                                 | `PHASE_09_payments.md` |
+| 10 | FastAPI Backend Consolidation                  | `PHASE_10_api.md` |
+| 11 | FL Courts Mode A v1                            | `PHASE_11_fl_courts_v1.md` |
+| 12 | Web Frontend v1                                | `PHASE_12_web_frontend.md` |
+| 13 | Mobile App (Expo / RN)                         | `PHASE_13_mobile_app.md` |
+| 14 | Deploy (Railway / nginx)                       | `PHASE_14_deploy.md` |
 
-**Why this matters:** prior reconciliation reports may exist (in chat
-history or commits) that use the WRONG mapping. If a finding refers to
-"Phase 9 mobile" or "Phase 2 classifier", it predates the correction —
-treat its phase numbers as suspect and re-map against the canonical list
-above.
+## Prior wrong mappings (do NOT trust artifacts that use these)
+
+**Wrong mapping #1 — pre-2026-05-14 ledger:** had Phase 1 = "Document
+ingestion", Phase 2 = "Classifier", Phases 10-14 as STUB. Numbers shifted
+by 1 from Phase 2 onward.
+
+**Wrong mapping #2 — 2026-05-14 v2 PHASE_SPECS.md and ledger
+(self-correcting attempt against the oneshot):** had Phase 1 = "Document
+ingestion", Phase 2 = "Core utilities (config/disclaimer/escalation/i18n)",
+Phase 8 = "Memory layer (Supabase DatabaseManager)". This swapped the
+memory layer (real Phase 1) with the Supabase migration (real Phase 8)
+and invented a "Core utilities" phase that doesn't exist as a labeled
+phase in the source. Part B subjects 17-22 were also entirely wrong.
+
+**Why this matters:** prior reconciliation reports, commit messages, and
+ledger entries may still reference these wrong names. If you see "Phase 8
+Memory layer" or "Phase 17 i18n" or "Phase 22 Integration polish" in any
+artifact, that artifact is using a wrong mapping. Re-map against the
+table above before trusting any claim.
 
 **How to apply:** when reading any older artifact that references Part A
-phase numbers, sanity-check against the canonical mapping before
-trusting the claim.
+or Part B phase numbers/titles, sanity-check against the canonical table
+above. Trust `phases/source/` over any summary.

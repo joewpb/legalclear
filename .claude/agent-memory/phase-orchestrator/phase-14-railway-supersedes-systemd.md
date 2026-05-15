@@ -1,32 +1,31 @@
 ---
 name: phase-14-railway-supersedes-systemd
-description: Phase 14 deploy uses Railway not systemd; oneshot's systemd+nginx plan is superseded
+description: Phase 14 deploy is Railway-only in practice; source mentions systemd+nginx but Railway nixpacks/railway.json are the active config
 metadata:
   type: project
 ---
 
-Phase 14 (Deploy) ships via **Railway**, not the oneshot's systemd +
-nginx plan.
+Phase 14 (Deploy) ships via **Railway** in the actual repo.
 
-**Why:** The oneshot prescribed local systemd services
-(`legalclear-backend.service`, `legalclear-frontend.service`) and an
-nginx reverse proxy. The project moved to Railway hosting instead.
-Joe confirmed Railway is canonical on 2026-05-14, same precedent as the
-Mode B policy hardening (see [[mode-b-hardened]]).
+**Per `phases/source/PHASE_14_deploy.md`:** source lists Railway services
+(`zesty-delight`, `appealing-victory`) AND mentions "nginx reverse proxy
+(where applicable)" and "systemd services for any local-host deployments."
+The source is permissive — Railway-only is consistent with source.
 
 **How it actually deploys:**
 - Backend: `backend/nixpacks.toml` + `backend/railway.json` →
   Railway service `zesty-delight`.
 - Frontend: `frontend/nixpacks.toml` + `frontend/railway.json` →
   Railway service `appealing-victory`.
-- Repo root also has top-level `nixpacks.toml` and `railway.json`.
+- Repo root also has top-level `nixpacks.toml` + `railway.json` (Railway
+  detects whichever it needs).
 
 **How to apply:**
-- Phase 14 verification checks for nixpacks/railway config files, not
-  systemd unit files or nginx.conf.
-- The oneshot's final deploy block (systemctl, /etc/systemd/system,
-  sed YOUR_USERNAME) is dead. Do not run it. Do not transcribe it
-  into PHASE_SPECS.md.
-- The repo's `deploy/` directory may still contain `supabase_schema.sql`
-  (legitimate, Phase 8) plus possibly orphaned systemd unit files
-  (ignore for Phase 14 purposes).
+- Phase 14 verification: check for nixpacks/railway config files and
+  confirm Railway services are healthy. systemd unit files and nginx.conf
+  are NOT required.
+- Part B per-phase final reports say "Commit + push. Wait for Railway
+  deploys" — that's the deployment loop after every Part B phase.
+- The `deploy/` directory may still contain `supabase_schema.sql`
+  (legitimate, Phase 8). Any orphaned systemd unit files there are
+  ignorable.
