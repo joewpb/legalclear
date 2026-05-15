@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // Hub (Phase 15)
 import HomeHub from "./pages/HomeHub";
-import PhaseStub from "./pages/PhaseStub";
 
 // Part B tile pages
 import SmallClaimsFL from "./pages/SmallClaimsFL"; // Phase 16
@@ -11,6 +10,7 @@ import LandlordTenantFL from "./pages/LandlordTenantFL"; // Phase 18
 import FormsFinderFL from "./pages/FormsFinderFL"; // Phase 19
 import TrafficFL from "./pages/TrafficFL"; // Phase 20
 import PoliceReportAnalyzer from "./pages/PoliceReportAnalyzer"; // Phase 21
+import CaseLawLookupFL from "./pages/CaseLawLookupFL"; // Phase 22
 
 // Existing Part A / Part B-in-progress pages — kept as-is per Phase 15
 // "do not touch existing FastAPI routes / existing pages" rule.
@@ -51,11 +51,8 @@ export default function App() {
         {/* Tile 7 — Phase 21 (police report analyzer) */}
         <Route path="/police-report" element={<PoliceReportAnalyzer />} />
 
-        {/* Tile 8 — stub until its phase builds it */}
-        <Route
-          path="/case-law"
-          element={<PhaseStub title="FL CASE LAW LOOKUP" phase="Phase 22" />}
-        />
+        {/* Tile 8 — Phase 22 (FL case law via CourtListener) */}
+        <Route path="/case-law" element={<CaseLawLookupFL />} />
 
         {/* Existing routes preserved (Phase 12 era) */}
         <Route path="/results/:documentId" element={<ResultsPage />} />
