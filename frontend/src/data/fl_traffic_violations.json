@@ -1,0 +1,51 @@
+[
+  {
+    "type": "Speeding",
+    "is_civil_infraction": true,
+    "is_criminal": false,
+    "points": 4,
+    "traffic_school_eligible": true
+  },
+  {
+    "type": "Red light camera",
+    "is_civil_infraction": true,
+    "is_criminal": false,
+    "points": 0,
+    "traffic_school_eligible": false
+  },
+  {
+    "type": "Stop sign / traffic signal violation",
+    "is_civil_infraction": true,
+    "is_criminal": false,
+    "points": 4,
+    "traffic_school_eligible": true
+  },
+  {
+    "type": "Reckless driving",
+    "is_civil_infraction": false,
+    "is_criminal": true,
+    "points": 4,
+    "traffic_school_eligible": false
+  },
+  {
+    "type": "DUI",
+    "is_civil_infraction": false,
+    "is_criminal": true,
+    "points": 0,
+    "traffic_school_eligible": false
+  },
+  {
+    "type": "Equipment / paperwork violation",
+    "is_civil_infraction": true,
+    "is_criminal": false,
+    "points": 0,
+    "traffic_school_eligible": false
+  },
+  {
+    "type": "Other civil infraction",
+    "is_civil_infraction": true,
+    "is_criminal": false,
+    "points": 3,
+    "traffic_school_eligible": true
+  }
+]

@@ -9,6 +9,7 @@ import SmallClaimsFL from "./pages/SmallClaimsFL"; // Phase 16
 import ExpungementFL from "./pages/ExpungementFL"; // Phase 17
 import LandlordTenantFL from "./pages/LandlordTenantFL"; // Phase 18
 import FormsFinderFL from "./pages/FormsFinderFL"; // Phase 19
+import TrafficFL from "./pages/TrafficFL"; // Phase 20
 
 // Existing Part A / Part B-in-progress pages — kept as-is per Phase 15
 // "do not touch existing FastAPI routes / existing pages" rule.
@@ -43,13 +44,10 @@ export default function App() {
         {/* Tile 5 — Phase 19 (data-driven forms lookup) */}
         <Route path="/forms" element={<FormsFinderFL />} />
 
-        {/* Tiles 6, 7, 8 — stubs until their phase builds them */}
-        <Route
-          path="/traffic"
-          element={
-            <PhaseStub title="TRAFFIC / TICKETS (FL)" phase="Phase 20" />
-          }
-        />
+        {/* Tile 6 — Phase 20 (3-path traffic wizard) */}
+        <Route path="/traffic" element={<TrafficFL />} />
+
+        {/* Tiles 7, 8 — stubs until their phase builds them */}
         <Route
           path="/police-report"
           element={
