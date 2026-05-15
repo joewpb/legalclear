@@ -13,12 +13,18 @@ aptPkgs = [
     "libgdk-pixbuf2.0-0",
     "libffi-dev",
     "shared-mime-info",
-    # Phase 23 — Playwright Chromium runtime deps
+    # Phase 23 — Playwright Chromium runtime deps. Several of these were
+    # renamed with a `t64` suffix on Ubuntu 24.04 (noble) as part of the
+    # Debian-wide 64-bit time_t migration; the legacy names (libasound2,
+    # libcups2, libatk1.0-0, libatk-bridge2.0-0) have no installation
+    # candidate on noble and break the apt install step. Use the t64
+    # variants verbatim.
     "libnss3",
     "libnspr4",
-    "libatk1.0-0",
-    "libatk-bridge2.0-0",
-    "libcups2",
+    "libdbus-1-3",
+    "libatk1.0-0t64",
+    "libatk-bridge2.0-0t64",
+    "libcups2t64",
     "libdrm2",
     "libxkbcommon0",
     "libxcomposite1",
@@ -26,7 +32,7 @@ aptPkgs = [
     "libxfixes3",
     "libxrandr2",
     "libgbm1",
-    "libasound2",
+    "libasound2t64",
     "fonts-liberation"
 ]
 
