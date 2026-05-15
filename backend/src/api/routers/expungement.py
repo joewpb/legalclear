@@ -5,9 +5,11 @@ Source: phases/source/PHASE_17_expungement_ui.md
 Path note: source spec puts this at backend/src/api/routes/expungement.py
 and reads disqualifiers via `open("frontend/src/data/...")` from cwd.
 The repo's backend/src/api/routes.py is a file (Phase 10 divergence) so
-routers live in backend/src/api/routers/. We also resolve the
-disqualifiers JSON via __file__ rather than cwd so it works whether
-uvicorn starts from repo root (dev) or backend/ (Railway prod).
+routers live in backend/src/api/routers/. Disqualifiers JSON is also
+bundled at backend/src/data/fl_disqualifying_offenses.json so Railway
+deploys (rootDirectory=/backend, no `frontend/` in the image) can resolve
+it via a backend-relative __file__ path. The frontend copy at
+frontend/src/data/ stays in place for client-side use.
 """
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -33,7 +35,10 @@ class EligibilityRequest(BaseModel):
 
 
 # Load disqualifiers once at module load.
-# Data file lives in backend/src/data/ (co-located with other JSON data).
+# parents[2] from backend/src/api/routers/expungement.py = backend/src/.
+# The JSON is bundled inside the backend tree (and a duplicate copy lives
+# under frontend/src/data/ for client-side use); reading from the backend
+# copy keeps Railway happy because rootDirectory=/backend strips frontend/.
 _DATA_FILE = (
     Path(__file__).resolve().parents[2]
     / "data"

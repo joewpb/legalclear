@@ -38,11 +38,12 @@ PacketType = Literal[
 ]
 Language = Literal["en", "es"]
 
-# Repo root → `backend/storage/packets/`. Resolving via __file__ keeps the
-# path stable regardless of cwd (Railway starts in `backend/`, dev runs
-# from repo root).
-_REPO_ROOT = Path(__file__).resolve().parents[3]
-_STORAGE_ROOT = _REPO_ROOT / "backend" / "storage" / "packets"
+# Resolve `<backend>/storage/packets/` from this file's __file__ so the
+# path works in both the repo-root dev layout and the Railway production
+# image (where rootDirectory=/backend collapses backend/ into /app/).
+# parents[2] from backend/src/services/packet_builder.py = backend/  (dev)
+# parents[2] from /app/src/services/packet_builder.py     = /app/    (prod)
+_STORAGE_ROOT = Path(__file__).resolve().parents[2] / "storage" / "packets"
 
 
 class PacketRequest(BaseModel):

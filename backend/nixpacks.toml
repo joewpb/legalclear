@@ -1,4 +1,9 @@
 [phases.setup]
+# Existing Part A apt deps (Tesseract OCR for ingestion; Cairo/Pango for
+# WeasyPrint) — kept verbatim. Phase 23 appends the dynamic libraries
+# Playwright's bundled Chromium binary needs at runtime. Without these
+# the chromium.launch() call in src/services/pdfa_generator.py errors
+# even when `playwright install chromium` succeeds at build time.
 aptPkgs = [
     "tesseract-ocr",
     "tesseract-ocr-eng",
@@ -7,5 +12,30 @@ aptPkgs = [
     "libpangocairo-1.0-0",
     "libgdk-pixbuf2.0-0",
     "libffi-dev",
-    "shared-mime-info"
+    "shared-mime-info",
+    # Phase 23 — Playwright Chromium runtime deps
+    "libnss3",
+    "libnspr4",
+    "libatk1.0-0",
+    "libatk-bridge2.0-0",
+    "libcups2",
+    "libdrm2",
+    "libxkbcommon0",
+    "libxcomposite1",
+    "libxdamage1",
+    "libxfixes3",
+    "libxrandr2",
+    "libgbm1",
+    "libasound2",
+    "fonts-liberation"
+]
+
+[phases.install]
+# Pip-installs everything in requirements.txt, then downloads the
+# Playwright-pinned Chromium build into ~/.cache/ms-playwright/ so
+# pdfa_generator.py can spawn it at request time. System libs above
+# satisfy the binary's dynamic linker.
+cmds = [
+    "pip install -r requirements.txt",
+    "python -m playwright install chromium"
 ]

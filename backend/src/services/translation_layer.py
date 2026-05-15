@@ -9,7 +9,9 @@ import json
 from functools import lru_cache
 from pathlib import Path
 
-# parents[3] from backend/src/services/translation_layer.py = repo root
+# parents[1] from backend/src/services/translation_layer.py = src/
+# Resolves identically in dev (backend/src/data/) and on Railway
+# (/app/src/data/ with rootDirectory=/backend).
 _DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 
 
