@@ -116,15 +116,21 @@ Production cutover progress (2026-05-15):
    Deploy is up, `/health` returns 200. Stripe checkout creation +
    PDF/A pipeline are runtime-tested but not yet exercised against
    the production hostname.
-3. **Stripe key:** still `sk_test_…` per `.env.example`. Live key
-   swap is the last manual gate before real money moves.
+3. **Stripe live key:** SWAPPED 2026-05-15. Prod smoke against
+   `/api/packet/build` returned `checkout_url` starting with
+   `cs_live_…`, confirming `STRIPE_SECRET_KEY=sk_live_…` is in
+   effect on the `zesty-delight` Railway service.
 4. **`FRONTEND_URL` env on Railway backend:** defaults to
    `https://legalclear.app` (set in `routers/packet.py`). Override on
    Railway if the prod frontend hostname differs.
 
-The leaked Supabase PAT (`sbp_0074fb3f…`) is still live until revoked
-manually at https://supabase.com/dashboard/account/tokens — there is
-no Management API endpoint for token revocation.
+The leaked Supabase PAT (`sbp_0074fb3f…`) and the leaked Stripe
+`rk_live_…` key both went over the chat transport and must still be
+rotated manually:
+- PAT: https://supabase.com/dashboard/account/tokens
+- Stripe: https://dashboard.stripe.com/apikeys → click the key → Roll
+
+**LegalClear v1 shipped 2026-05-15.**
 
 ---
 
