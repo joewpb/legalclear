@@ -1,6 +1,6 @@
 # LegalClear — Build Plan (FINAL)
 
-This supersedes all earlier plan files. Nine phases. Every decision from planning
+This supersedes all earlier plan files. Ten phases. Every decision from planning
 is locked. Hand Claude Code ONE phase at a time; verify each Definition of Done
 before the next. Do not one-shot this plan.
 
@@ -533,6 +533,131 @@ advice, and that high-stakes situations route the user toward professional help.
 
 ---
 
+## PHASE 9 — Police Report Scanner: CaseContext Activation
+
+**Objective:** Make the Police Report Analyzer's Scanner Agent produce a
+populated `CaseContext` object — including detection of the user's role
+(defendant, victim, witness, involved driver, etc.) and the report type — and
+surface the detected role in the UI. The existing flat `findings` output is
+preserved unchanged; `case_context` is returned alongside it.
+
+**Preconditions:** v1 Phase 21 (Police Report Analyzer) shipped and live. This
+phase EXTENDS it; it does not rebuild it.
+`frontend/src/components/policereport/types.ts` already defines the
+`CaseContext` interface, all enum unions, and `createEmptyCaseContext()`. That
+file is CORRECT and is NOT modified by this phase.
+No dependency on v2 Phases 1–8. This phase touches no Supabase query.
+
+### Tasks
+1. **Backend — Python CaseContext shape.** Create
+   `backend/src/agents/case_context.py`. Define `empty_case_context() -> dict`
+   returning a dict whose structure mirrors EXACTLY the `CaseContext` interface
+   in `frontend/src/components/policereport/types.ts` — same group keys
+   (`routing`, `document`, `incident`, `rightsEvents`, `people`,
+   `discrepancies`, `sensitivity`, `derived`), same field names, same defaults
+   as the frontend `createEmptyCaseContext()`. Before writing it, READ the
+   frontend types file and match it field-for-field. If any field is ambiguous,
+   STOP and report. Do NOT add fields. Do NOT add a `searchWasIllegal`-style
+   conclusion field.
+2. **Backend — extend the Scanner Agent.** In `backend/src/agents/scanner.py`:
+   add a SECOND system prompt constant, `CASE_CONTEXT_PROMPT`, instructing the
+   model to extract the `CaseContext` fields from the document text and return
+   them as a single JSON OBJECT (not an array). The prompt must:
+   - Detect `routing.userRole` from the enum set in types.ts (`suspect`,
+     `personOfInterest`, `victim`, `complainant`, `witness`, `involvedDriver`,
+     `citationHolder`, `juvenile`, `other`, `unclear`) by reading who the
+     document names as arrestee/defendant vs. victim/complainant vs. reporting
+     party vs. driver.
+   - Detect `routing.reportType` from the enum set (`arrestReport`,
+     `incidentReport`, `crashReport`, `citation`, `juvenileReport`, `unknown`).
+   - Set `routing.routingConfidence` (0–1). If the document does not make the
+     role clear, return `userRole: "unclear"` with low confidence. `"unknown"`
+     / `"unclear"` is a valid, correct output — a confident wrong role is the
+     failure mode to avoid.
+   - Extract only FACTS into the other groups. Quote statute numbers verbatim;
+     never generate them. Leave `derived` empty.
+
+   Reuse the existing universal rules: `cache_control: ephemeral` on the system
+   prompt, markdown-fence stripping, one JSON-parse retry.
+
+   Add `async def extract_case_context(extracted_texts: list[dict]) -> dict`
+   that runs this prompt and returns a `CaseContext`-shaped dict. It must be
+   FAIL-SOFT identically to `scan_documents`: ANY exception, missing API key,
+   empty text, or unparseable JSON yields `empty_case_context()` — never a 500.
+
+   Do NOT modify `scan_documents`, `_parse_findings`, `_strip_fences`, or the
+   `Finding` flow. The findings pipeline is unchanged.
+3. **Backend — extend the router.** In
+   `backend/src/api/routers/police_report.py`, in `analyze_report`: after the
+   existing `scan_documents` call, also call `extract_case_context` on the same
+   `extracted` list. Add `case_context` to the returned JSON object, alongside
+   the existing `findings` and `documents_analyzed`. Response becomes:
+   `{ "findings": [...], "documents_analyzed": N, "case_context": {...} }`.
+   Keep the endpoint 200-on-failure contract: if `extract_case_context` fails
+   soft to an empty context, the endpoint still returns 200. Do NOT touch
+   `/api/upload`. Do NOT change the multipart contract.
+4. **Frontend — types.** In `frontend/src/pages/PoliceReportAnalyzer.tsx`,
+   extend the local `AnalyzeResponse` type to include
+   `case_context: CaseContext`, importing `CaseContext` from
+   `../components/policereport/types`. Do NOT modify `types.ts` itself.
+5. **Frontend — role banner component.** Create
+   `frontend/src/components/policereport/CaseContextBanner.tsx`. A
+   presentational component that takes `caseContext: CaseContext` and renders,
+   above the findings, a plain banner stating:
+   - the detected role in plain language ("This report identifies you as:
+     Defendant"), mapping each `userRole` enum to a human label;
+   - the detected report type;
+   - if `routingConfidence` is low OR `userRole` is `"unclear"` / `"other"`:
+     show instead a neutral line — "This report's role could not be determined
+     automatically. Confirm with your attorney which party you are." No
+     interactive fork in this phase.
+
+   Match the existing visual style of `FindingCard.tsx` (CSS vars, `.mono`
+   class, inline-style pattern). Use only `lucide-react` if an icon is wanted —
+   no new dependencies.
+6. **Frontend — wire the banner in.** In `PoliceReportAnalyzer.tsx`, render
+   `<CaseContextBanner>` above `<FindingsList>` when `result` is present. No
+   other UI changes.
+7. **v2 ledger (D8 remediation).** Create `phases/V2_LEDGER.md` if it does not
+   exist. Add a status block for Phase 9: phase number, title, date, status,
+   and a one-line per-task checklist. This is the authoritative v2 state file
+   going forward.
+
+### Definition of Done
+- `backend/src/agents/case_context.py` exists; `empty_case_context()`
+  structurally matches the frontend `createEmptyCaseContext()`.
+- `scanner.py` has `extract_case_context`; `scan_documents` and the `Finding`
+  flow are byte-for-byte unchanged except for added code.
+- `POST /api/police-report/analyze` returns `case_context` alongside `findings`;
+  still returns 200 when analysis fails-soft.
+- A police report naming an arrestee yields `userRole: "suspect"`; a report
+  naming a victim/complainant yields `userRole: "victim"` or `"complainant"`;
+  an ambiguous report yields `"unclear"` with low confidence. Verify with at
+  least 3 sample documents.
+- `CaseContextBanner.tsx` exists and renders the detected role above the
+  findings list.
+- `npm run build` is clean. `tsc --noEmit` passes.
+- `phases/V2_LEDGER.md` exists with a Phase 9 status block.
+- `types.ts`, `/api/upload`, the classifier, risk_scanner, and explainer are
+  untouched.
+
+### Guardrails
+- DO NOT modify `frontend/src/components/policereport/types.ts`. The
+  `CaseContext` schema is already correct.
+- DO NOT touch `/api/upload` (AGENTS.md hard fail).
+- DO NOT rebuild v1 Phase 21. This phase only ADDS.
+- DO NOT modify the existing `findings` shape or `scan_documents`.
+- NO new dependencies, backend or frontend.
+- The scanner outputs FACTS and FLAGGED QUESTIONS only. No field, prompt
+  instruction, or output may state a legal conclusion (e.g. whether a search
+  was lawful). Role detection is identification, not adjudication.
+- `"unclear"` / `"unknown"` is a valid, first-class output. A confident wrong
+  answer is a liability (Core Principle 5).
+- If the repo structure contradicts any task here, STOP and print
+  `PHASE 9 BLOCKED — <reason>`. Do not improvise.
+
+---
+
 ## Sequencing Summary
 
 | Phase | Deliverable | Gate before next phase |
@@ -546,6 +671,7 @@ advice, and that high-stakes situations route the user toward professional help.
 | 6 | Reminder & notification scheduler | Reminders fire; no expired-deadline reminders |
 | 7 | Evaluation harness | 100% on `fatal`-tier deadline accuracy |
 | 8 | UPL wall + escalation + attorney review | No output gives legal advice |
+| 9 | Police Report Scanner: CaseContext activation | Scanner emits populated CaseContext; role/report-type detected; UI banner renders |
 
 **Run one phase per Claude Code session. Verify the Definition of Done before
 moving on.**
@@ -553,7 +679,7 @@ moving on.**
 ## Parallel Workstream — Not Engineering, But Gates Launch
 
 The business liability layer — operating entity (LLC/corp), Terms of Service,
-disclaimer enforceability, and tech E&O insurance — runs alongside Phases 0-8 and
+disclaimer enforceability, and tech E&O insurance — runs alongside Phases 0-9 and
 is owned by Joe with his attorneys and an insurance broker. It does not block the
 build. It must be resolved before public launch. Its only build touchpoint: the
 Phase 8 disclaimer is drafted consistently with the Terms of Service.

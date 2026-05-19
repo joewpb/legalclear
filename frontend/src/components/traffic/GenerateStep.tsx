@@ -286,7 +286,7 @@ function _ContestResultCard_unused({ r }: { r: any }) {
         Preparation tips
       </h4>
       <ul style={{ paddingLeft: 16, margin: 0 }}>
-        {r.hearing_preparation_tips.map((t) => (
+        {r.hearing_preparation_tips.map((t: string) => (
           <li key={t}>{t}</li>
         ))}
       </ul>

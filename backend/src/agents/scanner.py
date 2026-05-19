@@ -28,6 +28,7 @@ from typing import Any
 
 from anthropic import Anthropic
 
+from src.agents.case_context import empty_case_context
 from src.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -54,6 +55,80 @@ Output ONLY a JSON array. Each finding:
 }
 
 Do not invent findings. If a category has no issues, omit it. If the documents are too short or lack context to analyze, return an empty array.
+"""
+
+CASE_CONTEXT_PROMPT = """You are analyzing a police report and any supplementary documents.
+
+Extract ONLY stated facts. Do NOT assess whether any action was lawful or unlawful.
+Do NOT draw legal conclusions. Quote statute numbers verbatim if they appear in the
+document; never generate or infer them. Leave the "derived" group with all null/empty
+defaults — do not populate it.
+
+Return a single JSON object with this exact structure:
+{
+  "routing": {
+    "userRole": "<one of: suspect | personOfInterest | victim | complainant | witness | involvedDriver | citationHolder | juvenile | other | unclear>",
+    "reportType": "<one of: arrestReport | incidentReport | crashReport | citation | juvenileReport | unknown>",
+    "routingConfidence": <float 0-1>
+  },
+  "document": {
+    "agency": "<string or null>",
+    "reportNumber": "<string or null>",
+    "reportDate": "<string or null>",
+    "extractionConfidence": <float 0-1>
+  },
+  "incident": {
+    "incidentDateTime": "<string or null>",
+    "incidentLocation": "<string or null>",
+    "incidentType": "<string or null>",
+    "charges": ["<charge string>"],
+    "statuteReferences": ["<verbatim statute citation from document>"]
+  },
+  "rightsEvents": {
+    "arrestMade": <boolean>,
+    "searchOccurred": <boolean>,
+    "searchContext": "<string describing what was searched and the stated basis, or null>",
+    "mirandaMentioned": <boolean>,
+    "custodialIndicators": ["<indicator string>"],
+    "statementsAttributed": <boolean>
+  },
+  "people": {
+    "officers": [{"name": "<string or null>", "badge": "<string or null>", "role": "<string or null>"}],
+    "otherPartiesCount": <integer>
+  },
+  "discrepancies": [
+    {
+      "type": "<one of: temporal | spatial | missingMiranda | probableCauseGap | inconsistentAccounts>",
+      "detail": "<string>",
+      "sourceLocation": "<string or null>",
+      "confidence": <float 0-1>
+    }
+  ],
+  "sensitivity": {
+    "domesticViolence": <boolean>,
+    "sexualOffense": <boolean>,
+    "juvenileInvolved": <boolean>
+  },
+  "derived": {
+    "timelineStage": null,
+    "deadlines": [],
+    "questionsForCounsel": [],
+    "collateralConsequenceFlags": []
+  }
+}
+
+Role detection:
+- "suspect" / "personOfInterest": named as arrestee, defendant, or suspect
+- "victim" / "complainant": identified as the person harmed or who made the complaint
+- "witness": present only as an observer
+- "involvedDriver": driver in a crash report who is not a suspect
+- "citationHolder": received a traffic citation without arrest
+- "juvenile": document identifies the subject as a minor
+- "other": present but does not fit categories above
+- "unclear": role cannot be determined from the document — PREFER this over a
+  confident wrong answer; set routingConfidence below 0.5
+
+For unknown fields use: null (strings), false (booleans), [] (arrays), 0 (numbers).
 """
 
 # Model: source spec calls for claude-sonnet-4-6 (same family confirmed
@@ -147,3 +222,68 @@ async def scan_documents(extracted_texts: list[dict]) -> dict:
         )
         meta["error"] = type(e).__name__
         return {"findings": [], "meta": meta}
+
+
+def _parse_case_context_obj(raw: str) -> dict | None:
+    """Parse the model's case-context response into a dict. Retry once."""
+    cleaned = _strip_fences(raw)
+    try:
+        data = json.loads(cleaned)
+    except json.JSONDecodeError:
+        start = cleaned.find("{")
+        end = cleaned.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            try:
+                data = json.loads(cleaned[start : end + 1])
+            except json.JSONDecodeError:
+                return None
+        else:
+            return None
+    if not isinstance(data, dict):
+        return None
+    return data
+
+
+async def extract_case_context(extracted_texts: list[dict]) -> dict:
+    """Run the CaseContext extraction prompt against the same document list.
+
+    Returns a CaseContext-shaped dict on success; falls back to
+    empty_case_context() on ANY exception, missing API key, empty text,
+    or unparseable JSON — never raises, never returns 500.
+    """
+    if not extracted_texts or not any(d.get("text") for d in extracted_texts):
+        return empty_case_context()
+
+    combined = "\n\n---\n\n".join(
+        f"[FILE: {d.get('filename', 'unknown')}]\n{(d.get('text') or '')[:30000]}"
+        for d in extracted_texts
+    )
+
+    try:
+        client = Anthropic(
+            api_key=settings.ANTHROPIC_API_KEY,
+            max_retries=2,
+            timeout=60.0,
+        )
+        msg = client.messages.create(
+            model=_MODEL,
+            max_tokens=2000,
+            system=[
+                {
+                    "type": "text",
+                    "text": CASE_CONTEXT_PROMPT,
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ],
+            messages=[{"role": "user", "content": combined}],
+        )
+        raw = msg.content[0].text if msg.content else ""
+        parsed = _parse_case_context_obj(raw)
+        return parsed if parsed is not None else empty_case_context()
+    except Exception as e:  # noqa: BLE001 — fail-soft contract
+        logger.warning(
+            "CaseContext extraction failed (%s); returning empty context.\n%s",
+            type(e).__name__,
+            traceback.format_exc(),
+        )
+        return empty_case_context()

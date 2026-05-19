@@ -21,12 +21,12 @@ import FilingPacket from "./pages/FilingPacket"; // Phase 23
 // "do not touch existing FastAPI routes / existing pages" rule.
 // The /expungement route still points at the multi-state ExpungementPage
 // for now; Phase 17 replaces it with the FL-only ExpungementFL.tsx.
-// @ts-expect-error — pre-existing .jsx with no types; allowJs covers it
-import UploadFlow from "./pages/UploadFlow";
-// @ts-expect-error — pre-existing .jsx with no types
-import ResultsPage from "./pages/ResultsPage";
-// @ts-expect-error — pre-existing .jsx with no types
-import PaywallPage from "./pages/PaywallPage";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const UploadFlow = require("./pages/UploadFlow").default;
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const ResultsPage = require("./pages/ResultsPage").default;
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const PaywallPage = require("./pages/PaywallPage").default;
 
 export default function App() {
   return (

@@ -29,7 +29,7 @@ from typing import List
 
 from fastapi import APIRouter, File, UploadFile
 
-from src.agents.scanner import scan_documents
+from src.agents.scanner import extract_case_context, scan_documents
 from src.ingestion import ingest_document
 
 router = APIRouter(prefix="/api/police-report")
@@ -59,7 +59,9 @@ async def analyze_report(files: List[UploadFile] = File(...)):
             extracted.append({"filename": getattr(f, "filename", "upload.pdf") or "upload.pdf", "text": ""})
 
     result = await scan_documents(extracted)
+    case_context = await extract_case_context(extracted)
     return {
         "findings": result["findings"],
         "documents_analyzed": result["meta"]["documents_analyzed"],
+        "case_context": case_context,
     }

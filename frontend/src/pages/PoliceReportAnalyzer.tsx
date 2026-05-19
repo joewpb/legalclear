@@ -2,13 +2,16 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import UploadInterface from "../components/policereport/UploadInterface";
 import FindingsList from "../components/policereport/FindingsList";
+import CaseContextBanner from "../components/policereport/CaseContextBanner";
 import type { Finding } from "../components/policereport/FindingCard";
+import type { CaseContext } from "../components/policereport/types";
 
 const API_URL = (import.meta as any).env?.VITE_API_URL || "http://localhost:8001";
 
 type AnalyzeResponse = {
   findings: Finding[];
   documents_analyzed: number;
+  case_context: CaseContext;
 };
 
 export default function PoliceReportAnalyzer() {
@@ -64,6 +67,7 @@ export default function PoliceReportAnalyzer() {
 
         {result && (
           <>
+            <CaseContextBanner caseContext={result.case_context} />
             <FindingsList
               findings={result.findings}
               documentsAnalyzed={result.documents_analyzed}
