@@ -144,6 +144,18 @@ async def stripe_webhook(request: Request):
 
     return {"status": "success"}
 
+@app.delete("/api/documents/{document_id}", dependencies=[Depends(verify_api_key)])
+async def delete_document(document_id: str, session_id: str):
+    """On-demand document delete. Scoped to the caller's session — the
+    backend never deletes a document that doesn't belong to the session."""
+    deleted = db.delete_document(document_id, session_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="Document not found or does not belong to this session."
+        )
+    return {"deleted": document_id}
+
 @app.post("/user", dependencies=[Depends(verify_api_key)])
 async def create_user(email: str, lang: str = "en"):
     return db.get_or_create_user(email, lang)

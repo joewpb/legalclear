@@ -212,6 +212,21 @@ class DatabaseManager:
             self.logger.error(f"get_document failed for {document_id}: {e}")
             return None
 
+    def delete_document(self, document_id: str, session_id: str) -> bool:
+        """Delete a document, but only if it belongs to the given session."""
+        if self.client is None:
+            return False
+        try:
+            result = (self.client.table("documents")
+                      .delete()
+                      .eq("id", document_id)
+                      .eq("session_id", session_id)
+                      .execute())
+            return len(result.data) > 0
+        except Exception as e:
+            self.logger.error(f"delete_document failed for {document_id}: {e}")
+            return False
+
     def get_user_documents(
             self, user_id: str,
             limit: int = 20) -> list:
