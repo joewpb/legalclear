@@ -119,8 +119,7 @@ Document text:
                 repr(e),
                 traceback.format_exc()
             )
-            return {"error": True, "message": str(e),
-                    "exception_type": type(e).__name__,
+            return {"error": True, "message": "An error occurred. Please try again.",
                     "disclaimer": get_disclaimer(
                         lang, "standard")}
 
@@ -194,6 +193,4 @@ Document text:
                 "confidence": "low",
                 "disclaimer": get_disclaimer(lang, "short"),
                 "language": lang,
-                "error": str(e),
-                "exception_type": type(e).__name__
             }

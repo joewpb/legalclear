@@ -108,8 +108,7 @@ Document text:
             )
             return {
                 "error": True,
-                "message": str(e),
-                "exception_type": type(e).__name__,
+                "message": "An error occurred. Please try again.",
                 "disclaimer": get_disclaimer(
                     lang, "standard"),
                 "language": lang
@@ -204,6 +203,4 @@ Document text:
                 "confidence": "low",
                 "disclaimer": get_disclaimer(lang, "short"),
                 "language": lang,
-                "error": str(e),
-                "exception_type": type(e).__name__
             }
