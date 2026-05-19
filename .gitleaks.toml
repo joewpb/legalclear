@@ -1,0 +1,13 @@
+# Gitleaks configuration for LegalClear
+# Allowlisted commits contained real credentials in backend/.env.example
+# that were rotated and removed from tracking on 2026-05-19 (commit 49c143a).
+
+[allowlist]
+  description = "Historical .env.example exposure — credentials rotated 2026-05-19"
+  commits = [
+    "0e42d1e",
+    "b87d805",
+    "d26d102",
+    "166c025",
+    "08d906a",
+  ]
