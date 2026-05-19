@@ -1,0 +1,101 @@
+{
+  "_note": "Verified law source registry for Phase 3. Every source here has been manually confirmed as a legitimate, robots.txt-compliant, official government source. Do not add sources without verification.",
+  "statutes": {
+    "florida_statutes": {
+      "name": "Florida Statutes",
+      "publisher": "Florida Legislature",
+      "base_url": "https://www.leg.state.fl.us/statutes/",
+      "bulk_xml_index": "https://www.leg.state.fl.us/statutes/download/",
+      "bulk_xml_pattern": "https://www.leg.state.fl.us/statutes/download/statutes/2025/{xml_file}",
+      "robots_txt": "https://www.leg.state.fl.us/robots.txt",
+      "robots_status": "VERIFIED_ALLOWED",
+      "robots_note": "leg.state.fl.us permits bulk download access. Confirmed 2026-05-19.",
+      "refresh_cadence": "annual",
+      "refresh_timing": "After legislative session ends (typically June 1). Run ingest_statutes.py.",
+      "priority_chapters": {
+        "83": "LANDLORD AND TENANT",
+        "47": "PROCESS AND SERVICE OF PROCESS",
+        "34": "COUNTY COURTS",
+        "38": "JUDGES — GENERAL PROVISIONS",
+        "55": "JUDGMENTS",
+        "56": "EXECUTIONS",
+        "57": "COSTS",
+        "61": "DISSOLUTION OF MARRIAGE",
+        "63": "ADOPTION",
+        "68": "CIVIL ACTIONS BY AND AGAINST THE STATE",
+        "69": "ACTIONS",
+        "79": "HABEAS CORPUS",
+        "86": "DECLARATORY JUDGMENTS",
+        "110": "STATE EMPLOYMENT"
+      }
+    }
+  },
+  "court_rules": {
+    "civil_procedure": {
+      "name": "Florida Rules of Civil Procedure",
+      "citation_prefix": "Fla. R. Civ. P.",
+      "source_url": "https://www.flcourts.gov/Resources-Services/Court-Improvement/Rules/Florida-Rules-of-Civil-Procedure",
+      "robots_status": "VERIFY_BEFORE_DOWNLOAD",
+      "robots_note": "flcourts.gov CDN disallows automated crawl. Download rules PDF via browser.",
+      "acquisition_method": "browser_download"
+    },
+    "family_law": {
+      "name": "Florida Family Law Rules of Procedure",
+      "citation_prefix": "Fla. Fam. L. R. P.",
+      "source_url": "https://www.flcourts.gov/Resources-Services/Court-Improvement/Rules/Florida-Family-Law-Rules-of-Procedure",
+      "robots_status": "VERIFY_BEFORE_DOWNLOAD",
+      "acquisition_method": "browser_download"
+    },
+    "small_claims": {
+      "name": "Florida Small Claims Rules",
+      "citation_prefix": "Fla. Sm. Cl. R.",
+      "source_url": "https://www.flcourts.gov/Resources-Services/Court-Improvement/Rules/Florida-Small-Claims-Rules",
+      "robots_status": "VERIFY_BEFORE_DOWNLOAD",
+      "acquisition_method": "browser_download"
+    },
+    "probate": {
+      "name": "Florida Probate Rules",
+      "citation_prefix": "Fla. Prob. R.",
+      "source_url": "https://www.flcourts.gov/Resources-Services/Court-Improvement/Rules/Florida-Probate-Rules",
+      "robots_status": "VERIFY_BEFORE_DOWNLOAD",
+      "acquisition_method": "browser_download"
+    },
+    "general_practice": {
+      "name": "Florida Rules of General Practice and Judicial Administration",
+      "citation_prefix": "Fla. R. Gen. Prac. & Jud. Admin.",
+      "source_url": "https://www.flcourts.gov/Resources-Services/Court-Improvement/Rules/Florida-Rules-of-General-Practice-and-Judicial-Administration",
+      "robots_status": "VERIFY_BEFORE_DOWNLOAD",
+      "acquisition_method": "browser_download",
+      "key_rules": {
+        "2.514": "Computation of Time",
+        "2.516": "Service of Pleadings and Papers"
+      }
+    },
+    "appellate": {
+      "name": "Florida Rules of Appellate Procedure",
+      "citation_prefix": "Fla. R. App. P.",
+      "source_url": "https://www.flcourts.gov/Resources-Services/Court-Improvement/Rules/Florida-Rules-of-Appellate-Procedure",
+      "robots_status": "VERIFY_BEFORE_DOWNLOAD",
+      "acquisition_method": "browser_download"
+    }
+  },
+  "local_administrative_orders": {
+    "circuit_19": {
+      "circuit": 19,
+      "counties": ["Martin", "St. Lucie", "Indian River", "Okeechobee"],
+      "court_name": "Nineteenth Judicial Circuit of Florida",
+      "ao_source_url": "https://www.19thcircuit.org/administrative-orders",
+      "robots_status": "VERIFY_BEFORE_SCRAPE",
+      "acquisition_method": "browser_review",
+      "priority": "HIGH",
+      "note": "Stuart (Martin County) is the founding service area. Start here."
+    }
+  },
+  "court_closures": {
+    "statewide_holidays": {
+      "source": "Fla. Stat. § 110.117",
+      "seeded_years": ["2026"],
+      "note": "Seed next year's holidays before December 31 each year."
+    }
+  }
+}
