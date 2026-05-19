@@ -56,6 +56,7 @@ from src.api.routers.traffic import router as traffic_router  # noqa: E402
 from src.api.routers.police_report import router as police_report_router  # noqa: E402
 from src.api.routers.case_law import router as case_law_router  # noqa: E402
 from src.api.routers.packet import router as packet_router  # noqa: E402
+from src.api.routers.forms import router as forms_router  # noqa: E402
 app.include_router(small_claims_router)
 app.include_router(expungement_router)
 app.include_router(landlord_router)
@@ -63,6 +64,7 @@ app.include_router(traffic_router)
 app.include_router(police_report_router)
 app.include_router(case_law_router)
 app.include_router(packet_router)
+app.include_router(forms_router)
 
 def verify_api_key(x_api_key: str = Header(default="")):
     if x_api_key != settings.API_KEY:
