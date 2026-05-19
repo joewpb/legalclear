@@ -1,0 +1,40 @@
+name: Deadline Eval
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "backend/deadline/**"
+      - "backend/triage/**"
+      - "backend/evals/**"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "backend/deadline/**"
+      - "backend/triage/**"
+      - "backend/evals/**"
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run deadline eval (fast mode — no LLM)
+        run: uv run python -m evals.run_all
