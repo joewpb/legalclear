@@ -10,11 +10,11 @@ other agent operating in this repo. Portable on purpose — no tool-specific syn
 Pay-per-use legal document analysis. A user uploads a contract, lease, or court
 form; an agent pipeline classifies it, explains it in plain language, walks the
 user through form fields, scans for risky clauses, and exports a structured
-report. Part B adds a Small Claims filing wizard with a paid Filing Packet,
+report. Includes a Small Claims filing wizard with a paid Filing Packet,
 Florida courts integration, a filing walkthrough, and a tracking page.
 
-This is a phased build. The phase system is the project. See
-`phases/LEDGER.md` for current state and `phases/PHASE_SPECS.md` for specs.
+**v1 shipped 2026-05-15.** All 24 phases (0–23) complete and deployed.
+See `phases/LEDGER.md` for full build state.
 
 ---
 
@@ -37,15 +37,13 @@ it is a build failure, not a warning.
 
 ## 3. Build rules — phase discipline
 
-- Execute phases in strict numeric order. **Never skip. Never reorder.**
-- Complete each phase fully before starting the next.
-- Run the phase's verification command at the end of every phase.
+- **v1 is complete. All phases 0–23 are deployed. Do not rebuild any phase.**
+- If extending the build, execute new phases in strict numeric order.
+- Run each phase's verification command before marking it complete.
 - Fix all failing assertions before proceeding.
 - If a phase's verification fails more than twice, print
   `PHASE N BLOCKED — <error summary>` and halt. Do not continue.
 - Only print `PHASE N COMPLETE` when every assertion passes.
-- Part A (phases 0–14) is already built and deployed. **Verify only — never
-  rebuild Part A.** Part B (phases 15–23) is the build target.
 
 ---
 
@@ -70,9 +68,9 @@ it is a build failure, not a warning.
   ledger, agent memory, and the actual repo disagree, **the repo wins.**
   Re-verify and correct the ledger.
 - `phases/PHASE_SPECS.md` — goal, verification command, and pass criteria per
-  phase. Part A entries are verify-only. Part B entries are full build specs.
-- The `phase-orchestrator` agent drives this. Launch a build session with
-  `claude --agent phase-orchestrator`.
+  phase.
+- The `phase-orchestrator` agent owns the phase sequence. Use it for any
+  future phase work or verification runs.
 
 ---
 
