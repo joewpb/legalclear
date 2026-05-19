@@ -32,3 +32,9 @@ mobile/dist/
 # Phase 23 generated packet artifacts (PDFs + ZIPs created at runtime
 # by backend/src/services/packet_builder.py — never commit user output).
 backend/storage/
+
+# Scratch / upload artifacts — never commit
+*.zip
+dummy.pdf
+doc.txt
+files*/

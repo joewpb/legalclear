@@ -7,47 +7,78 @@ other agent operating in this repo. Portable on purpose — no tool-specific syn
 
 ## 1. What LegalClear is
 
-Pay-per-use legal document analysis. A user uploads a contract, lease, or court
-form; an agent pipeline classifies it, explains it in plain language, walks the
-user through form fields, scans for risky clauses, and exports a structured
-report. Includes a Small Claims filing wizard with a paid Filing Packet,
-Florida courts integration, a filing walkthrough, and a tracking page.
+Florida legal-information platform for self-represented (pro se) users. A user
+uploads a court document; an agent pipeline classifies it, extracts deadlines,
+explains it in plain language, surfaces the relevant court forms, and schedules
+reminders. The product also includes a Small Claims filing wizard, an Eviction
+defense flow, a Traffic citation wizard, a Police Report Analyzer, and FL Case
+Law Lookup.
 
 **v1 shipped 2026-05-15.** All 24 phases (0–23) complete and deployed.
-See `phases/LEDGER.md` for full build state.
+**v2 build in progress.** See `phases/BUILD_PLAN.md` for the v2 phase sequence
+and `phases/LEDGER.md` for v1 state.
 
 ---
 
-## 2. Stack and ports — hard constraints
+## 2. Core Principles — apply to every phase
 
-| Component        | Value                                    |
-|------------------|------------------------------------------|
-| Backend          | FastAPI — **port 8001**                  |
-| Frontend         | React — **port 3000**                    |
-| Mobile           | React Native                             |
-| Database         | Supabase (production DB — not SQLite)    |
-| Payments         | Stripe                                   |
-| Python env/pkgs  | `uv` — for everything, no exceptions     |
-| Deploy           | Railway                                  |
+1. The product produces **legal information**, never **legal advice**. It
+   translates, surfaces options, explains consequences. It never selects a
+   course of action for the user.
+2. **LLMs extract. Deterministic code computes.** No model does date arithmetic.
+3. Every deadline carries a full `computation_trace` with rule citations.
+4. No "done" claim without fresh test/verification evidence.
+5. **"Unknown" is a valid, first-class output.** A confident wrong answer is a
+   liability.
+6. **Backend is the security boundary.** The backend uses the service-role key,
+   which bypasses RLS. Every backend query reading user data must be explicitly
+   scoped to the authenticated user. RLS is the second line of defense.
+7. **Language-parameterized from day one.** Every user-facing output accepts a
+   language parameter. English ships first; Spanish must not require
+   re-architecture.
+8. **Respect source robots.txt and terms.** `flcourts.gov` and its file CDN
+   disallow automated crawling. Form acquisition is a one-time human/browser-
+   assisted harvest plus a lightweight change-detection check.
+9. **A served form is never knowingly stale.** A form whose change-detection
+   status is unresolved is gated, not served silently.
+
+---
+
+## 3. Stack and ports — hard constraints
+
+| Component        | Value                                              |
+|------------------|----------------------------------------------------|
+| Backend          | FastAPI — **port 8001**                            |
+| Frontend         | React — **port 3000**                              |
+| Mobile           | Expo / React Native                                |
+| Database         | Supabase — project `miedifclpqewnixxkahs` (us-west-2) |
+| Payments         | Stripe                                             |
+| Python env/pkgs  | `uv` — for everything, no exceptions               |
+| Deploy           | Railway                                            |
 
 **Never use port 8000 for the LegalClear app.** Port 8000 is reserved and using
 it is a build failure, not a warning.
 
+Architecture: backend-only. The client talks only to the Railway backend; the
+backend is the only thing that talks to Supabase and holds the service-role key.
+
 ---
 
-## 3. Build rules — phase discipline
+## 4. Build rules — phase discipline
 
 - **v1 is complete. All phases 0–23 are deployed. Do not rebuild any phase.**
-- If extending the build, execute new phases in strict numeric order.
-- Run each phase's verification command before marking it complete.
+- v2 phases (BUILD_PLAN.md) are executed one per session, in strict order.
+- Run each phase's Definition of Done verification before marking it complete.
 - Fix all failing assertions before proceeding.
 - If a phase's verification fails more than twice, print
   `PHASE N BLOCKED — <error summary>` and halt. Do not continue.
 - Only print `PHASE N COMPLETE` when every assertion passes.
+- Never run untested migrations against production. Always use a Supabase
+  development branch first.
 
 ---
 
-## 4. Code style
+## 5. Code style
 
 **Python**
 - PEP 8. Type hints on all function signatures.
@@ -56,37 +87,38 @@ it is a build failure, not a warning.
 - JSON parsing: always strip markdown fences before `json.loads()`.
   Retry once on a JSON parse failure before raising.
 
-**JavaScript / React**
+**JavaScript / TypeScript / React**
 - Functional components, hooks.
 - No secrets in client code. All keys server-side.
+- New files use `.tsx` / `.ts`. Legacy `.jsx` files are not migrated unless
+  the phase explicitly requires it.
 
 ---
 
-## 5. The phase system
+## 6. The phase system
 
-- `phases/LEDGER.md` — the single source of truth for phase status. If the
-  ledger, agent memory, and the actual repo disagree, **the repo wins.**
-  Re-verify and correct the ledger.
-- `phases/PHASE_SPECS.md` — goal, verification command, and pass criteria per
-  phase.
-- The `phase-orchestrator` agent owns the phase sequence. Use it for any
-  future phase work or verification runs.
+- `phases/BUILD_PLAN.md` — v2 phase sequence (Phases 0–8). One phase per
+  session. Verify the Definition of Done before moving on.
+- `phases/LEDGER.md` — v1 build state (Phases 0–23 complete). Source of truth
+  for v1; if ledger and repo disagree, **the repo wins**.
+- The `phase-orchestrator` agent owns the v1 phase sequence. Use it for any
+  v1 verification runs.
 
 ---
 
-## 6. Deploy targets
+## 7. Deploy targets
 
-| Surface  | Build               | Railway service     |
-|----------|---------------------|---------------------|
-| Backend  | `uv sync` → push    | `zesty-delight`     |
+| Surface  | Build                  | Railway service     |
+|----------|------------------------|---------------------|
+| Backend  | `uv sync` → push       | `zesty-delight`     |
 | Frontend | `npm run build` → push | `appealing-victory` |
 
-Stripe must show the **"LegalClear Filing Packet"** product at **$35.00**.
+Stripe product: **"LegalClear Filing Packet"** at **$35.00**.
 Languages live: `en`, `es`.
 
 ---
 
-## 7. Hard fails
+## 8. Hard fails
 
 These abort the build immediately:
 
@@ -94,3 +126,6 @@ These abort the build immediately:
 - Mode B automation present anywhere in `backend/src/`.
 - A `PHASE N COMPLETE` printed while any assertion for phase N failed.
 - Touching `/api/upload` — the upload flow exists and is correct. Leave it.
+- Running a migration directly against production without verifying on a branch.
+- Any LLM call that outputs a computed deadline date (extraction only; dates
+  are computed by deterministic code).
