@@ -31,7 +31,8 @@ def test_endpoint_exists():
     for key in ("packet_id", "fee_usd", "file_count", "checkout_url"):
         assert key in data, f"missing {key} in {data}"
     assert data["fee_usd"] > 0
-    assert data["checkout_url"].startswith("https://checkout.stripe.com")
+    # TODO(paywall): bypass — checkout_url is "" while the gate is disabled.
+    assert data["checkout_url"] == "" or data["checkout_url"].startswith("https://checkout.stripe.com")
 
 
 def test_counties_json_complete():
