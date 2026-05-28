@@ -499,7 +499,7 @@ function ChatView({ documentId }) {
     try {
       const res = await fetch(`${API_URL}/chat/${documentId}`,{
         method:'POST', headers:{'x-api-key':API_KEY,'Content-Type':'application/json'},
-        body:JSON.stringify({question,lang:'en'})
+        body:JSON.stringify({message:question,lang:'en'})
       });
       if (!res.ok) throw new Error('Failed to get answer');
       const data = await res.json();
