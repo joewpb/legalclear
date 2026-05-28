@@ -29,7 +29,7 @@ class RiskScannerAgent:
         self.client = Anthropic(
             api_key=settings.ANTHROPIC_API_KEY,
             max_retries=3,
-            timeout=60.0,
+            timeout=120.0,
         )
         self.model = "claude-haiku-4-5-20251001"
 

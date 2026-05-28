@@ -197,7 +197,7 @@ async def scan_documents(extracted_texts: list[dict]) -> dict:
         client = Anthropic(
             api_key=settings.ANTHROPIC_API_KEY,
             max_retries=2,
-            timeout=60.0,
+            timeout=120.0,
         )
         msg = client.messages.create(
             model=_MODEL,
@@ -263,7 +263,7 @@ async def extract_case_context(extracted_texts: list[dict]) -> dict:
         client = Anthropic(
             api_key=settings.ANTHROPIC_API_KEY,
             max_retries=2,
-            timeout=60.0,
+            timeout=120.0,
         )
         msg = client.messages.create(
             model=_MODEL,
