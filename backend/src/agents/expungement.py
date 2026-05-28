@@ -37,7 +37,7 @@ class ExpungementAgent:
         self.client = Anthropic(
             api_key=settings.ANTHROPIC_API_KEY,
             max_retries=3,
-            timeout=60.0,
+            timeout=120.0,
         )
         self.guide_model = "claude-sonnet-4-6"
         self.eligibility_model = "claude-haiku-4-5-20251001"
@@ -96,7 +96,7 @@ Document text:
         try:
             response = self.client.messages.create(
                 model=self.guide_model,
-                max_tokens=4096,
+                max_tokens=8192,
                 system=[{
                     "type": "text",
                     "text": GUIDE_SYSTEM_PROMPT,

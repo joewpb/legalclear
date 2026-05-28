@@ -27,7 +27,7 @@ class FormGuideAgent:
         self.client = Anthropic(
             api_key=settings.ANTHROPIC_API_KEY,
             max_retries=3,
-            timeout=60.0,
+            timeout=120.0,
         )
         self.model = "claude-sonnet-4-6"
         self._load_forms_library()
@@ -92,7 +92,7 @@ Document text:
         try:
             response = self.client.messages.create(
                 model=self.model,
-                max_tokens=4096,
+                max_tokens=8192,
                 system=[{
                     "type": "text",
                     "text": SYSTEM_PROMPT,
