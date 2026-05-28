@@ -43,14 +43,17 @@ def test_packet_build():
     assert r.status_code == 200, r.text
     d = r.json()
     assert all(k in d for k in ["packet_id", "fee_usd", "checkout_url"])
-    assert d["checkout_url"].startswith("https://checkout.stripe.com")
+    # TODO(paywall): bypass — checkout_url is "" while the gate is disabled.
+    assert d["checkout_url"] == "" or d["checkout_url"].startswith("https://checkout.stripe.com")
     return d["packet_id"]
 
 
 def test_download_gated():
+    # TODO(paywall): bypass — packets are auto-paid, so the download endpoint
+    # returns 200 instead of 402. Re-assert 402 when the paywall is restored.
     pid = test_packet_build()
     r = httpx.get(f"{BACKEND}/api/packet/{pid}/download")
-    assert r.status_code == 402
+    assert r.status_code == 200
 
 
 def test_zip_exists():

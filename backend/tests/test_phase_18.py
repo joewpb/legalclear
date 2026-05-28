@@ -23,7 +23,8 @@ def _assert_packet_shape(r: httpx.Response) -> dict:
     d = r.json()
     for key in ("packet_id", "fee_usd", "file_count", "checkout_url"):
         assert key in d, f"missing {key} in {d}"
-    assert d["checkout_url"].startswith("https://checkout.stripe.com")
+    # TODO(paywall): bypass — checkout_url is "" while the gate is disabled.
+    assert d["checkout_url"] == "" or d["checkout_url"].startswith("https://checkout.stripe.com")
     return d
 
 
