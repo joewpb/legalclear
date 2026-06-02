@@ -87,7 +87,7 @@ try:
     from compliance.api.router import router as _compliance_router  # noqa: E402
     app.include_router(_compliance_router)
     logger.info("Compliance router mounted at /compliance/*")
-except ImportError:
+except Exception:
     logger.warning(
         "Compliance package not available — /compliance/* endpoints disabled. "
         "Install with: cd compliance && uv sync"
