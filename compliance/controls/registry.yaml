@@ -1,0 +1,1423 @@
+# LegalClear Unified Control Registry
+# Version uses semantic versioning. Bump minor on control additions; patch on citation fixes.
+# All jurisdiction citations reference primary sources only (statute/article numbers).
+# DO NOT add secondary commentary or interpretive notes to jurisdiction_mappings.
+version: "0.1.0"
+generated: "2026-06-02"
+
+controls:
+
+  # ── DATA GOVERNANCE ──────────────────────────────────────────────────────────
+
+  - control_id: CTRL-001
+    title: "Training and Validation Data Quality"
+    description: >
+      AI models used by LegalClear are trained and validated on data that is
+      accurate, representative, complete, and relevant to the intended use case.
+      Data quality criteria are documented and enforced before any model version
+      is deployed or updated.
+    category: data_governance
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 10(2) — training, validation, and testing data sets meet quality criteria of suitability for intended purpose, completeness, and sufficiency"
+        - "Article 10(3) — data sets are relevant, sufficiently representative, and to the best extent possible free of errors and complete"
+      nist_ai_rmf:
+        - "MAP 2.3 — AI system categorization in terms of risk to people, organizations, and society"
+        - "MEASURE 2.5 — AI system performance or assurance criteria are measured qualitatively and/or quantitatively and compared to established criteria"
+        - "MEASURE 2.6 — AI system to be deployed is demonstrated to be valid and reliable through explainability"
+      colorado_caia:
+        - "C.R.S. § 6-1-1703(1)(a) — developer must disclose known limitations of the high-risk AI system"
+        - "C.R.S. § 6-1-1705(1)(a) — impact assessment includes description of data used to train the system"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7026 — businesses must document the data used to train ADMT systems"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(1)(a) — data protection assessment must include assessment of processing activities with respect to accuracy of personal data"
+    evidence_requirements:
+      - "training_data_card.md"
+      - "validation_dataset_manifest.json"
+      - "data_quality_gate_report.json"
+    automation_status: semi_automated
+    owner_role: ml_engineer
+
+  - control_id: CTRL-002
+    title: "Data Retention and Deletion Policy"
+    description: >
+      Personal data processed by LegalClear is retained only as long as necessary
+      for its processing purpose and is automatically deleted according to a
+      documented schedule. Retention periods are enforced via database-level
+      scheduled jobs.
+    category: data_governance
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 12(2) — logs are automatically generated and retained for period appropriate to intended purpose"
+      nist_ai_rmf:
+        - "GOVERN 1.6 — policies for AI development and deployment include data management policies"
+        - "MANAGE 2.4 — mechanisms for tracking identified AI risks over time are in place"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(1)(b) — impact assessment includes description of measures taken to mitigate risks"
+      california_admt:
+        - "Cal. Civ. Code § 1798.100(a)(3) — right to delete personal information"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1716(1)(c) — consumer right to delete personal data"
+        - "Fla. Stat. § 501.1719(1)(b) — data protection assessment includes retention periods"
+    evidence_requirements:
+      - "data_retention_policy.md"
+      - "retention_cron_config.json"
+    automation_status: automated
+    owner_role: dpo
+
+  - control_id: CTRL-003
+    title: "Sensitive Data Handling and Consent"
+    description: >
+      Sensitive personal data (health, financial, legal history, criminal record,
+      immigration status) is processed only where strictly necessary for the
+      stated purpose and with explicit user consent where required. Processing
+      of special-category data is minimized.
+    category: data_governance
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 10(5) — special categories of personal data processed only where strictly necessary, subject to appropriate safeguards"
+      nist_ai_rmf:
+        - "MEASURE 2.9 — privacy risk of the AI system—trained models or its dataset—is evaluated and mitigated"
+        - "GOVERN 1.6 — policies for AI development and deployment include privacy policies"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(1)(a) — impact assessment describes data including sensitive data categories"
+      california_admt:
+        - "Cal. Civ. Code § 1798.121 — consumers have right to limit use of sensitive personal information"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1718(1) — processing of sensitive data requires opt-in consent"
+        - "Fla. Stat. § 501.1718(3) — sensitive data includes health, financial, biometric, immigration status, criminal history, and religion"
+    evidence_requirements:
+      - "sensitive_data_inventory.md"
+      - "consent_mechanism_review.md"
+    automation_status: semi_automated
+    owner_role: dpo
+
+  - control_id: CTRL-004
+    title: "Children's Data Protection"
+    description: >
+      Data relating to users identified as minors (under 18) receives heightened
+      protection. The platform escalates all interactions involving minor children
+      to an attorney referral and does not perform automated decisions affecting
+      minors. Florida FDBR §501.1735 and COPPA provisions are enforced.
+    category: data_governance
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 10(5) — special categories of personal data processed only where strictly necessary"
+        - "Article 14(5) — human oversight measures specifically address risks to health, safety, and fundamental rights"
+      nist_ai_rmf:
+        - "MAP 3.1 — potential impacts to individuals, including vulnerable groups, are evaluated and documented"
+        - "MEASURE 2.9 — privacy risk is evaluated and mitigated for vulnerable populations"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(1)(a) — impact assessment includes description of safeguards for vulnerable consumers"
+      california_admt:
+        - "Cal. Civ. Code § 1798.121 — sensitive personal information includes data relating to minors"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1735(1) — controllers may not process personal data of known minors under 18 for targeted advertising or profiling"
+        - "Fla. Stat. § 501.1735(2) — opt-in consent required for sale or processing of minors' data"
+        - "Fla. Stat. § 501.1735(3) — age verification or parental consent mechanisms required"
+    evidence_requirements:
+      - "children_data_impact_assessment.md"
+      - "minor_escalation_test_report.json"
+    automation_status: automated
+    owner_role: dpo
+
+  - control_id: CTRL-005
+    title: "Data Minimization"
+    description: >
+      LegalClear collects only personal data that is adequate, relevant, and
+      limited to what is necessary for the stated processing purpose. Document
+      text is not retained beyond the session unless the user explicitly opts in.
+    category: data_governance
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 10(3) — data sets relevant, representative, and to the best extent possible limited to what is necessary"
+      nist_ai_rmf:
+        - "MEASURE 2.9 — privacy risk evaluated; data minimization is a standard privacy measure"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(1)(b) — impact assessment includes mitigation measures for data processing risks"
+      california_admt:
+        - "Cal. Civ. Code § 1798.100(a)(1) — consumers have right to know what personal information is collected"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(1)(a) — data protection assessment must include necessity and proportionality of processing"
+    evidence_requirements:
+      - "data_minimization_review.md"
+      - "data_flow_diagram.md"
+    automation_status: manual
+    owner_role: dpo
+
+  - control_id: CTRL-006
+    title: "Data Provenance and Lineage Documentation"
+    description: >
+      The origin, collection method, and transformation history of all data used
+      to train, validate, or test AI models is documented. This documentation is
+      maintained alongside model versioning and reviewed before any model update.
+    category: data_governance
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 10(2)(b) — data collection processes documented"
+        - "Article 10(2)(c) — data selection criteria documented"
+        - "Article 11 — technical documentation (Annex IV) includes training methodologies and data sets used"
+        - "Annex IV, point 2(c) — training data, validation data, test data specifications"
+      nist_ai_rmf:
+        - "MAP 2.3 — AI system categorization includes provenance of training data"
+        - "MEASURE 1.1 — approaches and metrics for measurement of AI risks include data provenance"
+      colorado_caia:
+        - "C.R.S. § 6-1-1703(1)(a) — developer discloses known limitations attributable to data"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7026 — documentation of data sources and data used in ADMT"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(1)(a) — data protection assessment includes description of data processing activities"
+    evidence_requirements:
+      - "data_provenance_registry.json"
+      - "model_card.md"
+    automation_status: manual
+    owner_role: ml_engineer
+
+  # ── TRANSPARENCY ─────────────────────────────────────────────────────────────
+
+  - control_id: CTRL-007
+    title: "AI System Identity Disclosure"
+    description: >
+      Users interacting with LegalClear are informed that they are interacting
+      with an AI system before any AI-generated output is presented. This
+      disclosure is persistent, prominently placed, and not suppressible.
+    category: transparency
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 50(1) — providers of AI systems that interact with natural persons must ensure persons are informed they are interacting with an AI system"
+        - "Article 13(1) — high-risk AI systems are sufficiently transparent so deployers can assess compliance"
+      nist_ai_rmf:
+        - "MEASURE 2.13 — effectiveness of the deployed AI system in terms of societal benefits is measured; AI identity disclosure is foundational"
+        - "GOVERN 1.1 — policies include transparency requirements"
+      colorado_caia:
+        - "C.R.S. § 6-1-1706(1) — deployer must provide clear and conspicuous disclosure to consumer before consequential decision"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7022(a) — pre-use notice must inform consumer that ADMT will be used"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1717(1)(c) — consumer right to opt-out of profiling; disclosure required for opt-out to be meaningful"
+    evidence_requirements:
+      - "transparency_notice.md"
+      - "ui_disclosure_screenshot.png"
+    automation_status: automated
+    owner_role: product_manager
+
+  - control_id: CTRL-008
+    title: "Automated Decision Notification"
+    description: >
+      Users are notified when an automated decision—document classification,
+      deadline computation, risk rating, or escalation routing—has been applied
+      to their submission. The notification identifies the type of automated
+      decision and its basis.
+    category: transparency
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 13(3)(b) — instructions for use include the characteristics, capabilities, and limitations of the high-risk AI system"
+        - "Article 26(6) — deployers must inform affected natural persons of exposure to high-risk AI system"
+      nist_ai_rmf:
+        - "MEASURE 2.13 — effectiveness of AI transparency is measured and documented"
+      colorado_caia:
+        - "C.R.S. § 6-1-1706(1) — clear and conspicuous notice before consequential decision is made"
+        - "C.R.S. § 6-1-1706(2) — notice must include statement that AI was used and description of type of decision"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7022(a) — pre-use notice identifying that ADMT will be used and purpose"
+        - "Cal. Code Regs. tit. 11, § 7022(b) — notice includes description of the ADMT used"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1716(1)(e) — right to know when automated processing is used for consequential decisions"
+    evidence_requirements:
+      - "decision_notification_design.md"
+      - "notification_ui_test_report.json"
+    automation_status: automated
+    owner_role: product_manager
+
+  - control_id: CTRL-009
+    title: "AI Capability Limitations Disclosure"
+    description: >
+      The known limitations of each AI model used by LegalClear—including
+      accuracy bounds, in-scope document types, language coverage, and
+      jurisdictions covered—are disclosed in user-facing documentation and
+      surfaced in the UI before analysis.
+    category: transparency
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 13(3)(b)(ii) — instructions for use include performance levels in terms of accuracy, robustness, and cybersecurity"
+        - "Article 13(3)(b)(iii) — instructions for use include known or foreseeable circumstances or limitations of use"
+        - "Article 13(3)(b)(iv) — technical capabilities and limitations regarding the accuracy, robustness, and cybersecurity"
+      nist_ai_rmf:
+        - "MAP 1.6 — AI risk assessment includes identification of limitations"
+        - "MEASURE 2.5 — performance criteria documented and limitations identified"
+      colorado_caia:
+        - "C.R.S. § 6-1-1703(1)(a) — developer discloses known material limitations of the AI system"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7022(b) — notice includes known limitations and expected error rates of ADMT"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(1)(a) — data protection assessment includes necessity and proportionality, implying awareness of limitations"
+    evidence_requirements:
+      - "capability_limitations_document.md"
+      - "model_card.md"
+    automation_status: manual
+    owner_role: ml_engineer
+
+  - control_id: CTRL-010
+    title: "Mandatory Disclaimer on All User-Facing Outputs"
+    description: >
+      Every output delivered to a user by any LegalClear agent or API endpoint
+      includes a disclaimer distinguishing legal information from legal advice.
+      Disclaimer text is reviewed by a licensed attorney before any deployment.
+      Disclaimer cannot be suppressed by UI code.
+    category: transparency
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 13(1) — high-risk AI systems are sufficiently transparent that deployers can interpret the system's output"
+        - "Article 50(1) — disclosure that system is AI-generated is mandatory"
+      nist_ai_rmf:
+        - "GOVERN 1.1 — policies include output disclaimer requirements"
+        - "MEASURE 2.13 — AI transparency effectiveness is measured"
+      colorado_caia:
+        - "C.R.S. § 6-1-1706(1) — notice to consumers of automated decision"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7022(a) — pre-use notice of ADMT use"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1717(1)(c) — consumers must be informed of profiling-for-decisions to exercise opt-out right"
+    evidence_requirements:
+      - "disclaimer_review.md"
+      - "disclaimer_implementation_test.json"
+    automation_status: automated
+    owner_role: legal_counsel
+
+  - control_id: CTRL-011
+    title: "Bilingual Access — English and Spanish"
+    description: >
+      All user-facing outputs, disclaimers, escalation messages, attorney
+      referral links, and notifications are available in both English and
+      Spanish. Language parity is verified by an independent review before
+      each major release.
+    category: transparency
+    risk_tier: limited
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 13(2) — instructions for use must be provided in a language easily understood by the intended deployers and users"
+      nist_ai_rmf:
+        - "MAP 3.1 — impacts to individuals, including non-English speakers, are evaluated"
+        - "GOVERN 1.4 — organizational culture of risk management includes equity and accessibility considerations"
+      colorado_caia:
+        - "C.R.S. § 6-1-1706(1) — notice must be clear and conspicuous; language accessibility required for meaningful notice"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7022(a) — notice must be in plain language accessible to consumers"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1716(1) — consumer rights must be meaningfully accessible; language access implied"
+    evidence_requirements:
+      - "language_coverage_audit.md"
+      - "spanish_translation_review.md"
+    automation_status: semi_automated
+    owner_role: product_manager
+
+  - control_id: CTRL-012
+    title: "Processing Purpose Disclosure"
+    description: >
+      Users are informed of the specific purposes for which their document data
+      will be processed before upload. Purpose limitations are enforced: data
+      collected for document analysis is not used for model training without
+      separate consent.
+    category: transparency
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 13(3)(a) — instructions for use include intended purpose of the high-risk AI system"
+      nist_ai_rmf:
+        - "GOVERN 1.6 — policies for AI deployment include purpose specification"
+        - "MAP 1.1 — context established for AI risk assessment includes intended use"
+      colorado_caia:
+        - "C.R.S. § 6-1-1704(2)(a) — deployer implements use limitation policy governing the intended uses"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7022(b)(2) — notice includes the purpose of the automated decision-making"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(1)(a) — data protection assessment specifies purposes of processing"
+    evidence_requirements:
+      - "privacy_notice.md"
+      - "purpose_limitation_policy.md"
+    automation_status: manual
+    owner_role: dpo
+
+  - control_id: CTRL-013
+    title: "Instructions for Use — Technical Documentation"
+    description: >
+      LegalClear maintains instructions for use addressing: intended purpose,
+      performance levels, known limitations, human oversight provisions,
+      input data specifications, and circumstances under which the system
+      should not be used. Documented in a model card for each AI component.
+    category: transparency
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 13(2) — instructions for use accompany the high-risk AI system"
+        - "Article 13(3) — instructions include provider identity, characteristics, capabilities, limitations, and performance"
+        - "Article 11 — technical documentation (Annex IV) maintained throughout system lifecycle"
+        - "Annex IV, point 1 — general description including intended purpose, version, and deployment context"
+      nist_ai_rmf:
+        - "GOVERN 1.2 — accountability structures and documentation in place"
+        - "MAP 4.1 — risk assessment results documented and available to relevant teams"
+      colorado_caia:
+        - "C.R.S. § 6-1-1703(1)(a) — developer provides documentation sufficient for deployer compliance"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7022 — pre-use notice and documentation requirements"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(1) — data protection assessment serves as system documentation"
+    evidence_requirements:
+      - "model_card.md"
+      - "instructions_for_use.md"
+    automation_status: manual
+    owner_role: ml_engineer
+
+  # ── HUMAN OVERSIGHT ───────────────────────────────────────────────────────────
+
+  - control_id: CTRL-014
+    title: "Criminal and Expungement Matter Hard Block"
+    description: >
+      The system unconditionally escalates any document classified as criminal
+      or expungement-related to an attorney referral. No automated analysis,
+      deadline computation, or risk rating is performed. This block cannot be
+      overridden by configuration or user input.
+    category: human_oversight
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 14(1) — high-risk AI systems designed and developed to be effectively overseen by natural persons"
+        - "Article 14(4)(c) — natural persons able to decide, in specific situation, not to use the AI system output"
+        - "Article 14(5) — specific human oversight measures for AI systems posing particular risks to fundamental rights"
+      nist_ai_rmf:
+        - "MANAGE 1.1 — risk treatment plans include procedures to override or escalate AI outputs"
+        - "MANAGE 3.1 — responses to identified risks are planned and prepared"
+      colorado_caia:
+        - "C.R.S. § 6-1-1708 — consumers have right to appeal consequential decision; hard block prevents adverse automated decision"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7024(a) — human review available for significant adverse decisions"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1717(1)(c) — profiling for decisions that produce legal effects requires opt-out; hard block avoids the issue"
+    evidence_requirements:
+      - "escalation_policy.md"
+      - "criminal_block_unit_test_report.json"
+    automation_status: automated
+    owner_role: ml_engineer
+
+  - control_id: CTRL-015
+    title: "Classification Confidence Threshold Enforcement"
+    description: >
+      Automated deadline computation is blocked when document classification
+      confidence falls below 0.70. Below-threshold results trigger a human
+      review flag visible to the user, with an explanation of why auto-computation
+      was withheld. The threshold value is documented and justified.
+    category: human_oversight
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 14(4)(b) — human oversight allows detection and intervention when AI system does not perform as intended"
+        - "Article 15(1) — high-risk AI systems achieve appropriate level of accuracy, robustness, and cybersecurity"
+      nist_ai_rmf:
+        - "MEASURE 2.5 — performance meets established criteria; below-threshold action defined"
+        - "MANAGE 1.3 — responses to identified risks implemented; low-confidence response is escalation"
+      colorado_caia:
+        - "C.R.S. § 6-1-1707(1)(b) — consumers may seek explanation when AI produces a consequential decision"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7024 — human review for significant adverse decisions; low-confidence gate enables this"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1716(1)(e) — consumer right to meaningful information about automated processing"
+    evidence_requirements:
+      - "confidence_threshold_justification.md"
+      - "confidence_calibration_report.json"
+    automation_status: automated
+    owner_role: ml_engineer
+
+  - control_id: CTRL-016
+    title: "Attorney Referral for High-Stakes Situations"
+    description: >
+      The escalation engine evaluates five triggers (criminal matter, unknown
+      document type, minor children, fatal deadline with low confidence, imminent
+      deadline within 72 hours) and surfaces attorney referral links with
+      jurisdiction-appropriate resources whenever any trigger fires.
+    category: human_oversight
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 14(4) — human oversight measures enable detection and correction of errors before consequential use"
+        - "Article 14(5) — specific measures for AI systems posing risks to health, safety, and fundamental rights"
+      nist_ai_rmf:
+        - "MANAGE 1.1 — risk treatment plans include attorney referral for high-stakes outputs"
+        - "GOVERN 1.4 — culture of responsible AI includes escalation pathways"
+      colorado_caia:
+        - "C.R.S. § 6-1-1708 — opportunity to appeal; referral facilitates meaningful appeal"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7024(a) — human review pathway for adverse significant decisions"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1717(1)(c) — opt-out from profiling for consequential decisions; referral is the alternative pathway"
+    evidence_requirements:
+      - "escalation_policy.md"
+      - "referral_links_review.md"
+      - "escalation_trigger_test_report.json"
+    automation_status: automated
+    owner_role: legal_counsel
+
+  - control_id: CTRL-017
+    title: "Fatal Deadline and Low-Confidence Escalation Gate"
+    description: >
+      When a deadline classified as fatal severity is extracted with confidence
+      below 90%, automated display of that deadline is suppressed and an
+      attorney referral is surfaced. The 90% threshold is documented and
+      reviewed quarterly against eval results.
+    category: human_oversight
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 9(2)(b) — risk management measures include risks arising from human-AI interaction under intended conditions"
+        - "Article 14(4)(a) — human oversight allows full understanding of the high-risk AI system's output"
+      nist_ai_rmf:
+        - "MEASURE 2.5 — AI system performance or assurance criteria are measured; fatal-deadline confidence is a key criterion"
+        - "MANAGE 1.3 — responses to identified risks implemented"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(1)(b) — impact assessment includes measures taken to mitigate risks to consumers"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7024 — human review required for significant adverse decisions"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1716(1)(e) — consumer right to meaningful information about automated processing logic"
+    evidence_requirements:
+      - "fatal_deadline_escalation_policy.md"
+      - "fatal_deadline_escalation_test.json"
+    automation_status: automated
+    owner_role: ml_engineer
+
+  - control_id: CTRL-018
+    title: "Human Override and Opt-Out Capability"
+    description: >
+      Users can decline AI analysis, dismiss recommendations, and request
+      attorney-only pathways at any point in the workflow. The system does not
+      penalize users who opt out of automated processing. Override actions
+      are logged.
+    category: human_oversight
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 14(4)(c) — natural persons able to decide, in specific situation, not to use or disregard the output of the high-risk AI system"
+      nist_ai_rmf:
+        - "GOVERN 1.4 — organizational culture values human agency in AI interactions"
+        - "MANAGE 1.1 — risk treatment plans include user opt-out mechanisms"
+      colorado_caia:
+        - "C.R.S. § 6-1-1707(1)(c) — consumer may opt out of the processing of their personal data for profiling in furtherance of consequential decisions"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7023(a) — consumers have right to opt out of ADMT"
+        - "Cal. Code Regs. tit. 11, § 7025(a) — consumers have right to opt out of profiling"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1717(1)(c) — consumers have right to opt out of processing for profiling in furtherance of decisions producing legal or similarly significant effects"
+    evidence_requirements:
+      - "human_override_design.md"
+      - "opt_out_implementation_test.json"
+    automation_status: semi_automated
+    owner_role: product_manager
+
+  # ── RISK MANAGEMENT ───────────────────────────────────────────────────────────
+
+  - control_id: CTRL-019
+    title: "Pre-Deployment Risk Assessment"
+    description: >
+      A documented risk assessment is completed before deploying any new AI
+      feature, model update, or significant change to automated decision logic.
+      Assessment covers: intended use, likely misuse, affected populations,
+      severity of potential harms, and mitigation measures.
+    category: risk_management
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 9(1) — high-risk AI system providers establish, implement, document, and maintain a risk management system"
+        - "Article 9(2) — risk management system identifies and analyzes known and foreseeable risks"
+        - "Article 9(4) — risk management measures are adopted for each identified risk"
+      nist_ai_rmf:
+        - "MAP 1.6 — AI risk assessments document potential costs, sources of risk, and expected benefits"
+        - "MAP 5.1 — likelihood and magnitude of each identified impact are evaluated and documented"
+        - "MANAGE 1.1 — risk treatment plan developed to address identified and prioritized AI risks"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(1) — impact assessment required before deploying high-risk AI system"
+        - "C.R.S. § 6-1-1705(2) — impact assessment completed annually and before material change"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7027 — annual audit of ADMT systems"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(1) — data protection assessment required before processing that presents heightened risk"
+    evidence_requirements:
+      - "risk_assessment_v1.md"
+      - "risk_assessment_checklist.json"
+    automation_status: manual
+    owner_role: security_lead
+
+  - control_id: CTRL-020
+    title: "Unauthorized Practice of Law Prevention"
+    description: >
+      All AI-generated outputs are reviewed against a documented UPL policy
+      to ensure outputs constitute legal information, not legal advice. An
+      automated phrase auditor flags directive language for attorney review.
+      No output selects a course of action for the user.
+    category: risk_management
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 9(2)(a) — risk identification includes risks to fundamental rights and to persons affected"
+        - "Article 9(4) — risk management measures adopted for each identified risk"
+      nist_ai_rmf:
+        - "MAP 3.5 — risks to users, deployers, and the public are evaluated and documented"
+        - "GOVERN 1.1 — policies address risk of AI outputs exceeding intended scope"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(1)(b) — impact assessment includes UPL risks as risks to consumers"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7021 — general rules for ADMT include purpose limitation"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(1)(a) — data protection assessment includes necessity and proportionality of automated processing"
+    evidence_requirements:
+      - "upl_policy.md"
+      - "upl_risk_phrase_audit.json"
+      - "disclaimer_review.md"
+    automation_status: semi_automated
+    owner_role: legal_counsel
+
+  - control_id: CTRL-021
+    title: "Legal Information vs. Legal Advice Distinction"
+    description: >
+      The platform is architected to produce legal information only. LLMs
+      explain consequences; deterministic code computes dates. No model
+      output constitutes a recommendation, selection of course of action,
+      or legal opinion. This distinction is enforced architecturally and
+      reviewed in each model prompt before deployment.
+    category: risk_management
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 13(3)(b)(iii) — instructions for use include known or foreseeable limitations, including circumstances where system should not be used"
+        - "Article 9(2)(a) — risk identification includes foreseeable misuse"
+      nist_ai_rmf:
+        - "MAP 1.5 — organizational risk tolerances are determined; exceeding legal-information scope is beyond tolerance"
+        - "GOVERN 1.6 — policies for AI deployment include output scope constraints"
+      colorado_caia:
+        - "C.R.S. § 6-1-1703(1)(a) — developer discloses known limitations, including scope constraints"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7022(b)(2) — notice includes purpose and limitations of ADMT"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(1)(a) — assessment includes proportionality of processing purpose"
+    evidence_requirements:
+      - "upl_policy.md"
+      - "prompt_review_checklist.json"
+    automation_status: semi_automated
+    owner_role: legal_counsel
+
+  - control_id: CTRL-022
+    title: "Document Type Risk Tiering"
+    description: >
+      Document types are classified into STANDARD, ELEVATED, and CRIMINAL tiers.
+      Each tier triggers a distinct escalation response. The tier classification
+      is reviewed annually against case law and regulatory changes affecting
+      the categories of legal matter LegalClear handles.
+    category: risk_management
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 9(2)(b) — risk identification covers risks arising from reasonably foreseeable misuse"
+        - "Article 9(4) — risk management measures adopted for each identified risk level"
+      nist_ai_rmf:
+        - "MAP 2.3 — AI system categorization in terms of risk to people and organizations"
+        - "MANAGE 1.1 — risk treatment plans differentiated by risk level"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(1)(a) — impact assessment categorizes risk by document type"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7021 — general rules for ADMT reflect tiered risk approach"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1718(3) — sensitive data categories define elevated risk tier"
+    evidence_requirements:
+      - "risk_tier_classification.md"
+      - "tier_review_log.json"
+    automation_status: semi_automated
+    owner_role: legal_counsel
+
+  - control_id: CTRL-023
+    title: "72-Hour Deadline Urgency Protocol"
+    description: >
+      When a computed deadline falls within 72 hours of the current time,
+      the system automatically upgrades the escalation to 'immediate' urgency
+      and surfaces the urgent disclaimer variant with attorney referral links.
+      This threshold is documented and justified against Florida practice.
+    category: risk_management
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 9(4) — risk management measures include specific measures for time-sensitive risks"
+        - "Article 14(5) — specific human oversight measures where AI poses particular risk to fundamental rights"
+      nist_ai_rmf:
+        - "MANAGE 1.3 — responses to identified risks are implemented; urgency triggers are a response mechanism"
+        - "MAP 5.1 — magnitude and likelihood of harm evaluated; imminence is a key dimension"
+      colorado_caia:
+        - "C.R.S. § 6-1-1706(2)(b) — notice before consequential decision; urgency protocol gives time for user action"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7022(a) — pre-use notice must be timely for users to act on it"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1716(1)(e) — consumer right to information about automated processing affecting them"
+    evidence_requirements:
+      - "deadline_urgency_policy.md"
+      - "urgency_trigger_test.json"
+    automation_status: automated
+    owner_role: ml_engineer
+
+  - control_id: CTRL-024
+    title: "Automated Decision Impact Assessment"
+    description: >
+      A formal impact assessment is completed and documented for each category
+      of automated decision made by LegalClear: document classification,
+      deadline computation, risk rating, escalation routing, and expungement
+      eligibility assessment. Assessments are reviewed before significant
+      model updates.
+    category: risk_management
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 9(2) — risk management identifies and analyzes known and foreseeable risks to health, safety, or fundamental rights"
+        - "Article 11 — technical documentation includes information about system performance across all relevant population groups"
+      nist_ai_rmf:
+        - "MAP 3.1 — potential benefits and impacts of intended AI system deployment are documented"
+        - "MAP 3.5 — risks to third parties, users, deployers, or the public are evaluated"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705 — impact assessment required for each consequential decision type"
+        - "C.R.S. § 6-1-1705(1)(a) — assessment describes known harmful or discriminatory impacts"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7027 — annual audit assesses accuracy, fairness, and bias of ADMT"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(1) — data protection assessment for processing presenting heightened risk of harm"
+    evidence_requirements:
+      - "impact_assessment.md"
+      - "impact_assessment_checklist.json"
+    automation_status: manual
+    owner_role: dpo
+
+  # ── TECHNICAL ROBUSTNESS ──────────────────────────────────────────────────────
+
+  - control_id: CTRL-025
+    title: "LLM-Deterministic Pipeline Separation"
+    description: >
+      The deadline computation pipeline enforces a hard architectural split:
+      LLMs extract trigger events (event type, trigger date, service method)
+      in Stage 1; deterministic Python code performs all calendar arithmetic
+      in Stage 2 using the Florida Rules. No model ever outputs a computed date.
+      This invariant is enforced by code review gates and automated tests.
+    category: technical_robustness
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 9(6) — testing procedures ensure AI system performs consistently across all conditions"
+        - "Article 15(1) — high-risk AI systems achieve appropriate level of accuracy, robustness, and cybersecurity"
+        - "Article 15(4) — technical measures prevent propagation of errors; pipeline separation is such a measure"
+      nist_ai_rmf:
+        - "MEASURE 2.1 — test sets assess AI system performance under adversarial and expected conditions"
+        - "MEASURE 2.7 — AI system performance evaluated across relevant contexts"
+        - "MANAGE 2.2 — mechanisms to sustain AI risk management include architectural constraints"
+      colorado_caia:
+        - "C.R.S. § 6-1-1703(1)(a) — developer discloses architectural constraints as known limitations"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7026 — documentation of how ADMT is designed including architectural decisions"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(1)(a) — data protection assessment includes technical measures ensuring accuracy"
+    evidence_requirements:
+      - "architecture_document.md"
+      - "pipeline_separation_test_report.json"
+    automation_status: automated
+    owner_role: ml_engineer
+
+  - control_id: CTRL-026
+    title: "Deadline Computation Trace with Rule Citations"
+    description: >
+      Every computed deadline carries a computation_trace field containing:
+      the rule applied, the governing statute citation, inputs used, calendar
+      arithmetic steps, and any modifiers applied. Traces are stored in the
+      database and included in API responses.
+    category: technical_robustness
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 12(1) — high-risk AI systems automatically generate logs enabling post-hoc assessment"
+        - "Article 12(2) — logging capabilities ensure traceability of AI system output throughout lifecycle"
+        - "Article 13(3)(b) — instructions for use include system capabilities and how to interpret output"
+      nist_ai_rmf:
+        - "MEASURE 2.13 — AI transparency effectiveness is measured; computation trace is the evidence"
+        - "MANAGE 2.4 — mechanisms for tracking identified AI risks include output provenance"
+      colorado_caia:
+        - "C.R.S. § 6-1-1707(1)(b) — consumer right to explanation of consequential decision includes computational basis"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7024(b) — human review must have access to information used in ADMT decision"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1716(1)(e) — consumer right to know the reasoning behind automated processing decisions"
+    evidence_requirements:
+      - "deadline_trace_example.json"
+      - "trace_storage_test_report.json"
+    automation_status: automated
+    owner_role: ml_engineer
+
+  - control_id: CTRL-027
+    title: "Input Validation and Sanitization"
+    description: >
+      All document uploads are validated for file type, size, and content
+      before processing. Text extracted from documents is sanitized before
+      being passed to any AI model. Validation failures return structured
+      error responses and are logged.
+    category: technical_robustness
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 15(3) — technical robustness measures against attempts to alter use or performance of the system"
+        - "Article 9(4) — risk management measures include input validation"
+      nist_ai_rmf:
+        - "MEASURE 2.1 — test sets include adversarial inputs"
+        - "MANAGE 1.3 — responses to identified risks include input validation controls"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(1)(b) — mitigation measures include technical controls on input processing"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7026 — documentation includes data validation requirements"
+      florida_fdbr:
+        - "Fla. Stat. § 501.171(1)(a) — reasonable safeguards to protect personal data; input validation is such a safeguard"
+    evidence_requirements:
+      - "input_validation_test.json"
+      - "file_type_allowlist.json"
+    automation_status: automated
+    owner_role: security_lead
+
+  - control_id: CTRL-028
+    title: "AI Failure Fallback Behavior"
+    description: >
+      When any AI agent fails—API timeout, model error, malformed response—
+      the system returns a safe fallback response with a disclaimer and attorney
+      referral, rather than crashing or returning partial results. Failure events
+      are logged with full context.
+    category: technical_robustness
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 15(3) — high-risk AI systems resilient with regard to errors; fail-safe fallback required"
+        - "Article 9(4) — risk management measures include identification of safe operating conditions"
+      nist_ai_rmf:
+        - "MANAGE 1.1 — risk treatment plans include fallback procedures for AI system failure"
+        - "MANAGE 3.1 — responses to identified risks planned and prepared in advance"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(1)(b) — impact assessment includes fallback measures for system failure"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7021 — ADMT systems must not be used in ways that result in discriminatory outcomes; failure without fallback could cause discrimination"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(1)(b) — data protection assessment includes technical and organizational measures"
+    evidence_requirements:
+      - "fallback_behavior_test.json"
+      - "error_handling_review.md"
+    automation_status: automated
+    owner_role: ml_engineer
+
+  - control_id: CTRL-029
+    title: "Model Version Pinning and Change Management"
+    description: >
+      Specific model versions are pinned in the backend configuration. Any
+      change to a model version triggers a re-run of the eval harness and
+      a review of the computation trace outputs before deployment.
+    category: technical_robustness
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 16(g) — providers take corrective actions and keep records; version control enables this"
+        - "Article 9(6) — testing procedures conducted before deployment; version change triggers new testing"
+        - "Article 72(1) — post-market monitoring includes tracking of model changes"
+      nist_ai_rmf:
+        - "GOVERN 1.6 — policies include model change management"
+        - "MEASURE 3.1 — AI risks tracked over operational lifetime including at model updates"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(2) — impact assessment required before material change to AI system"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7027 — annual audit and audit after material change to ADMT"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(2) — data protection assessments updated for material changes"
+    evidence_requirements:
+      - "model_version_registry.json"
+      - "model_change_review_log.json"
+    automation_status: semi_automated
+    owner_role: ml_engineer
+
+  # ── RECORD KEEPING ────────────────────────────────────────────────────────────
+
+  - control_id: CTRL-030
+    title: "Automated Decision Audit Log"
+    description: >
+      Every automated decision—document classification, confidence score,
+      escalation result, deadline computation, risk rating—is logged with
+      a timestamp, session ID, model version, and input fingerprint.
+      Logs are immutable and retained for 7 years to support audit.
+    category: record_keeping
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 12(1) — high-risk AI systems automatically generate event logs"
+        - "Article 12(2) — logs retained for period appropriate to intended purpose, minimum 6 months for deployer"
+        - "Article 16(d) — providers keep logs automatically generated by the system"
+      nist_ai_rmf:
+        - "MEASURE 3.1 — AI risks and outputs tracked over operational lifetime"
+        - "MANAGE 2.4 — mechanisms for tracking AI risks over time include audit logs"
+      colorado_caia:
+        - "C.R.S. § 6-1-1707(1)(b) — consumer right to explanation requires records of decisions"
+        - "C.R.S. § 6-1-1705(3) — impact assessment records retained for minimum 3 years"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7027(b) — audit records retained for minimum 3 years"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1716(1)(e) — consumer right to information about automated processing requires records"
+    evidence_requirements:
+      - "audit_log_schema.json"
+      - "sample_audit_log.json"
+      - "log_retention_policy.md"
+    automation_status: automated
+    owner_role: security_lead
+
+  - control_id: CTRL-031
+    title: "Computation Trace Persistence"
+    description: >
+      Deadline computation traces—containing rule citation, inputs, and all
+      arithmetic steps—are persisted in the database alongside the deadline
+      record. Traces are accessible to users via the API and included in
+      compliance reports.
+    category: record_keeping
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 12(1) — logs enable post-hoc assessment and verification of functioning of the system"
+        - "Article 12(2) — logging captures events relevant to identifying risks"
+      nist_ai_rmf:
+        - "MEASURE 2.13 — AI transparency includes explainability of outputs"
+        - "MANAGE 2.4 — tracking mechanisms enable post-incident analysis"
+      colorado_caia:
+        - "C.R.S. § 6-1-1707(1)(b) — consumer right to explanation of consequential decision requires trace records"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7024(b)(1) — human review has access to information used in ADMT decision"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1716(1)(e) — consumer right to meaningful information about automated logic"
+    evidence_requirements:
+      - "trace_persistence_test_report.json"
+      - "trace_schema.json"
+    automation_status: automated
+    owner_role: ml_engineer
+
+  - control_id: CTRL-032
+    title: "Usage Statistics and Performance Telemetry"
+    description: >
+      The platform logs usage statistics per document category, jurisdiction,
+      language, and processing time. These statistics enable monitoring of
+      model performance in production, detection of distribution shift,
+      and population-level fairness analysis.
+    category: record_keeping
+    risk_tier: limited
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 72(1) — providers establish and document a post-market monitoring system"
+        - "Article 72(3) — post-market monitoring plan is part of technical documentation"
+      nist_ai_rmf:
+        - "MEASURE 3.1 — approaches for tracking AI risks over operational lifetime in place"
+        - "MANAGE 2.4 — mechanisms for tracking identified risks over time"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(2) — impact assessment completed annually based on operational data"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7027 — annual audit uses operational data"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(2) — data protection assessments updated to reflect changes in processing"
+    evidence_requirements:
+      - "usage_stats_schema.json"
+      - "telemetry_dashboard_spec.md"
+    automation_status: automated
+    owner_role: ml_engineer
+
+  - control_id: CTRL-033
+    title: "Post-Market Monitoring Plan"
+    description: >
+      A documented plan for ongoing monitoring of AI system performance in
+      production is maintained, including: KPIs to track, review cadence,
+      escalation thresholds for performance degradation, and responsible
+      parties. Plan is reviewed quarterly.
+    category: record_keeping
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 72(1) — providers establish and implement post-market monitoring system"
+        - "Article 72(3) — post-market monitoring plan included in technical documentation"
+        - "Article 72(4) — providers report serious incidents to national authorities"
+      nist_ai_rmf:
+        - "MANAGE 2.2 — mechanisms to sustain AI risk management over lifespan of system"
+        - "MANAGE 2.4 — mechanisms for tracking identified AI risks over time"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(2) — impact assessment required annually or before material change"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7027(a) — annual audit of ADMT systems"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(2) — data protection assessments updated to reflect operational changes"
+    evidence_requirements:
+      - "monitoring_plan.md"
+      - "monitoring_kpi_dashboard.json"
+    automation_status: semi_automated
+    owner_role: ml_engineer
+
+  - control_id: CTRL-034
+    title: "Evidence Artifact Retention Policy"
+    description: >
+      Compliance evidence artifacts—risk assessments, eval reports, audit logs,
+      disclaimer reviews, model cards—are retained for a minimum of 7 years.
+      Artifacts are content-addressed (SHA-256) to detect tampering.
+      Retention policy is documented and enforced.
+    category: record_keeping
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 11 — technical documentation maintained throughout lifecycle of high-risk AI system and kept for 10 years after system placed on market"
+        - "Article 12(2) — logs retained for period commensurate with intended purpose"
+      nist_ai_rmf:
+        - "GOVERN 1.2 — accountability structures include record retention"
+        - "MANAGE 4.1 — post-incident analysis requires access to historical evidence"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(3) — impact assessment and related records retained for minimum 3 years"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7027(b) — audit records retained for minimum 3 years"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(3) — data protection assessments retained and available to Attorney General upon request"
+    evidence_requirements:
+      - "evidence_retention_policy.md"
+      - "artifact_manifest.json"
+    automation_status: automated
+    owner_role: dpo
+
+  # ── ACCURACY AND BIAS ─────────────────────────────────────────────────────────
+
+  - control_id: CTRL-035
+    title: "Document Classification Accuracy Benchmark"
+    description: >
+      An automated evaluation harness runs against a locked 50-document
+      ground-truth set covering all 13 document types. Classification accuracy
+      is measured for each document type and must meet documented thresholds
+      before deployment. Eval results are stored as compliance evidence.
+    category: accuracy_bias
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 15(1) — high-risk AI systems achieve appropriate level of accuracy"
+        - "Article 15(2) — levels of accuracy and accuracy metrics reported in instructions for use"
+        - "Article 9(6) — testing procedures ensure AI system meets requirements before deployment"
+      nist_ai_rmf:
+        - "MEASURE 2.5 — AI system performance criteria are measured and compared to established criteria"
+        - "MEASURE 2.7 — AI system performance evaluated across all relevant contexts"
+        - "MANAGE 1.1 — risk treatment includes minimum accuracy thresholds"
+      colorado_caia:
+        - "C.R.S. § 6-1-1703(1)(a) — developer discloses known accuracy limitations"
+        - "C.R.S. § 6-1-1705(1)(a) — impact assessment includes known errors or limitations"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7027(a)(1) — annual audit assesses accuracy of ADMT"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(1)(a) — data protection assessment includes accuracy of personal data processed"
+    evidence_requirements:
+      - "eval_report.json"
+      - "accuracy_threshold_policy.md"
+    automation_status: automated
+    owner_role: ml_engineer
+
+  - control_id: CTRL-036
+    title: "Evaluation Ground Truth Integrity"
+    description: >
+      The evaluation ground truth dataset is version-controlled and locked.
+      Modifications to ground truth to improve passing rates are prohibited.
+      Any change to the ground truth requires a documented justification
+      reviewed by the legal counsel and ML engineer, and is logged in the
+      eval change log.
+    category: accuracy_bias
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 9(6) — testing procedures are designed to prevent the AI system from meeting requirements through inappropriate means"
+        - "Article 15(1) — accuracy requirements must be genuinely met"
+      nist_ai_rmf:
+        - "MEASURE 3.3 — internal experts not involved in primary development assess AI risks"
+        - "GOVERN 1.4 — culture of responsible AI includes integrity of evaluation"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(1)(a) — impact assessment accurately describes known limitations"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7027(a)(1) — audit results must accurately reflect system performance"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(1)(a) — data protection assessment must accurately reflect processing activities"
+    evidence_requirements:
+      - "ground_truth_lock_policy.md"
+      - "eval_change_log.json"
+    automation_status: automated
+    owner_role: ml_engineer
+
+  - control_id: CTRL-037
+    title: "Confidence Score Calibration"
+    description: >
+      Model-reported confidence scores are calibrated against empirical accuracy
+      rates. The relationship between reported confidence and actual accuracy
+      is measured quarterly. Thresholds (0.70 for computation, 0.90 for fatal
+      deadlines) are adjusted based on calibration results.
+    category: accuracy_bias
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 15(1) — AI system achieves appropriate level of accuracy; calibrated confidence is part of accuracy"
+        - "Article 9(2)(b) — risk identification includes risks arising from interaction under intended conditions"
+      nist_ai_rmf:
+        - "MEASURE 2.5 — AI system performance criteria are measured; confidence calibration is key"
+        - "MEASURE 1.1 — measurement approaches for AI risks include calibration"
+      colorado_caia:
+        - "C.R.S. § 6-1-1703(1)(a) — developer discloses limitations including confidence calibration"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7027(a)(2) — audit assesses fairness and bias, including confidence disparities"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(1)(a) — assessment includes accuracy of automated processing"
+    evidence_requirements:
+      - "confidence_calibration_report.json"
+      - "calibration_methodology.md"
+    automation_status: semi_automated
+    owner_role: ml_engineer
+
+  - control_id: CTRL-038
+    title: "Language Parity Assessment"
+    description: >
+      English and Spanish outputs are evaluated for quality parity on a
+      representative sample of test documents. Disparities in escalation rate,
+      disclaimer completeness, or accuracy between EN and ES are investigated
+      and corrected before each major release.
+    category: accuracy_bias
+    risk_tier: limited
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 10(4) — data sets account for characteristics specific to geographic or linguistic setting"
+        - "Article 15(1) — accuracy requirement applies to all intended use contexts including language variants"
+      nist_ai_rmf:
+        - "MEASURE 2.6 — AI system evaluated for representation across heterogeneous populations including language groups"
+        - "MAP 3.1 — impacts to individuals including language minority groups are documented"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(1)(a) — known harmful or discriminatory impacts by demographic group including language"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7027(a)(2) — audit assesses fairness, including across language groups"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1716(1) — consumer rights must be meaningfully accessible to all consumers"
+    evidence_requirements:
+      - "language_parity_audit.md"
+      - "en_es_accuracy_comparison.json"
+    automation_status: semi_automated
+    owner_role: ml_engineer
+
+  - control_id: CTRL-039
+    title: "Demographic Fairness Monitoring"
+    description: >
+      The platform monitors for disparate impact of automated decisions across
+      demographic groups (to the extent demographic data is available or
+      inferable from jurisdiction metadata). Fairness metrics are included in
+      the annual impact assessment.
+    category: accuracy_bias
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 10(2)(f) — data governance includes examination in view of possible biases"
+        - "Article 9(7) — risk management considers foreseeable impact on persons protected by EU fundamental rights law"
+      nist_ai_rmf:
+        - "MEASURE 2.6 — AI system evaluated for representation of heterogeneous populations including demographic bias"
+        - "MEASURE 2.11 — fairness and bias of AI system outputs are evaluated and documented"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(1)(a) — impact assessment includes known harmful or discriminatory impacts on protected classes"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7027(a)(2) — audit assesses fairness and absence of bias across demographic groups"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(1)(a) — data protection assessment includes risks to rights and freedoms of consumers"
+    evidence_requirements:
+      - "fairness_assessment.md"
+      - "demographic_impact_analysis.json"
+    automation_status: semi_automated
+    owner_role: dpo
+
+  - control_id: CTRL-040
+    title: "Periodic Re-Evaluation Schedule"
+    description: >
+      AI model performance is re-evaluated quarterly using the full eval
+      harness. Results are compared against historical baselines. Significant
+      degradation triggers a review and potential rollback. Re-evaluation
+      results are stored as compliance evidence.
+    category: accuracy_bias
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 72(1) — post-market monitoring system enables timely detection of performance issues"
+        - "Article 9(6) — testing procedures include periodic re-evaluation"
+      nist_ai_rmf:
+        - "MEASURE 3.1 — AI risks tracked over operational lifetime through periodic re-evaluation"
+        - "MANAGE 2.2 — mechanisms sustain AI risk management over lifespan"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(2) — impact assessment conducted annually"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7027(a) — annual audit of ADMT systems"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(2) — data protection assessments updated at least annually"
+    evidence_requirements:
+      - "re_evaluation_schedule.md"
+      - "latest_eval_report.json"
+      - "historical_accuracy_trend.json"
+    automation_status: semi_automated
+    owner_role: ml_engineer
+
+  # ── SECURITY ──────────────────────────────────────────────────────────────────
+
+  - control_id: CTRL-041
+    title: "API Key Management and Authentication"
+    description: >
+      All backend API endpoints require a valid API key. Keys are stored as
+      environment variables, never hardcoded. The default key is not deployed
+      to production. Key rotation is documented and can be executed without
+      service downtime.
+    category: security
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 15(3) — technical robustness measures against unauthorized third-party access"
+        - "Article 15(5) — cybersecurity measures commensurate with risk"
+      nist_ai_rmf:
+        - "GOVERN 1.6 — policies for AI deployment include security requirements"
+        - "MANAGE 1.3 — responses to identified security risks are implemented"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(1)(b) — mitigation measures include security controls protecting consumer data"
+      california_admt:
+        - "Cal. Civ. Code § 1798.150 — security breach notification; API key security prevents breaches"
+      florida_fdbr:
+        - "Fla. Stat. § 501.171(2) — controller shall implement and maintain reasonable security procedures and practices"
+    evidence_requirements:
+      - "api_security_review.md"
+      - "key_rotation_procedure.md"
+    automation_status: semi_automated
+    owner_role: security_lead
+
+  - control_id: CTRL-042
+    title: "Continuous Secret Scanning via CI"
+    description: >
+      A gitleaks secret scanner runs on every push and pull request in the
+      CI pipeline. Any detected secret causes the build to fail. Custom
+      patterns for API keys, service credentials, and Stripe secrets are
+      maintained in .gitleaks.toml.
+    category: security
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 15(5) — cybersecurity measures include prevention of unauthorized access to training data and model parameters"
+      nist_ai_rmf:
+        - "GOVERN 1.6 — policies for AI development include secret management"
+        - "MANAGE 1.3 — responses to security risks include automated detection controls"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(1)(b) — technical mitigation measures include secret scanning"
+      california_admt:
+        - "Cal. Civ. Code § 1798.150(a)(1) — security breach prevention; secret scanning is a preventative control"
+      florida_fdbr:
+        - "Fla. Stat. § 501.171(2) — reasonable security procedures include automated scanning"
+    evidence_requirements:
+      - "gitleaks_config.json"
+      - "latest_secret_scan_report.json"
+    automation_status: automated
+    owner_role: security_lead
+
+  - control_id: CTRL-043
+    title: "Database Service-Role Key Isolation"
+    description: >
+      The Supabase service-role key—which bypasses row-level security—is held
+      exclusively by the backend service and never exposed to client code,
+      environment logs, or CI artifacts. All client-facing code uses the
+      anon key. Backend queries are explicitly scoped to the authenticated user.
+    category: security
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 15(3) — technical measures prevent unauthorized access to system components"
+        - "Article 15(5) — cybersecurity measures commensurate with risk; service-key isolation is foundational"
+      nist_ai_rmf:
+        - "GOVERN 1.6 — policies include database access controls"
+        - "MANAGE 1.3 — responses to security risks include key isolation"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(1)(b) — mitigation measures include access controls"
+      california_admt:
+        - "Cal. Civ. Code § 1798.150(a)(1) — data security measures include access control"
+      florida_fdbr:
+        - "Fla. Stat. § 501.171(2) — reasonable security procedures include access controls for systems holding personal data"
+    evidence_requirements:
+      - "key_isolation_architecture.md"
+      - "database_access_review.md"
+    automation_status: semi_automated
+    owner_role: security_lead
+
+  - control_id: CTRL-044
+    title: "Row-Level Security Enforcement"
+    description: >
+      Supabase RLS policies are enabled on all tables containing personal data.
+      RLS is the second line of defense—backend queries are explicitly scoped
+      to the authenticated user as the first line. RLS policies are reviewed
+      after every schema migration.
+    category: security
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 15(3) — technical measures ensure that only authorized persons have access to training data and AI system outputs"
+      nist_ai_rmf:
+        - "GOVERN 1.6 — policies include database security requirements"
+        - "MANAGE 1.3 — security risk responses include row-level access controls"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(1)(b) — mitigation measures include data isolation controls"
+      california_admt:
+        - "Cal. Civ. Code § 1798.150(a)(1) — security measures include access control at data level"
+      florida_fdbr:
+        - "Fla. Stat. § 501.171(2) — reasonable security procedures include database-level access controls"
+    evidence_requirements:
+      - "rls_policy_audit.sql"
+      - "rls_test_report.json"
+    automation_status: semi_automated
+    owner_role: security_lead
+
+  - control_id: CTRL-045
+    title: "Webhook Signature Verification"
+    description: >
+      All incoming Stripe webhooks are verified using Stripe's signature
+      validation before any action is taken. Invalid signatures result in
+      immediate rejection (HTTP 400) with no state change. Webhook secret
+      is stored as an environment variable.
+    category: security
+    risk_tier: limited
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 15(3) — technical robustness measures against attempts to alter system behavior"
+      nist_ai_rmf:
+        - "MANAGE 1.3 — responses to security risks include webhook integrity verification"
+      colorado_caia:
+        - "C.R.S. § 6-1-1705(1)(b) — technical mitigation measures include webhook security"
+      california_admt:
+        - "Cal. Civ. Code § 1798.150(a)(1) — security measures include API integrity controls"
+      florida_fdbr:
+        - "Fla. Stat. § 501.171(2) — reasonable security procedures include transaction integrity verification"
+    evidence_requirements:
+      - "webhook_security_test.json"
+      - "webhook_signature_review.md"
+    automation_status: automated
+    owner_role: security_lead
+
+  # ── INCIDENT RESPONSE ─────────────────────────────────────────────────────────
+
+  - control_id: CTRL-046
+    title: "Incident Detection and Classification"
+    description: >
+      The platform has documented procedures for detecting, classifying, and
+      responding to AI incidents: performance degradation, model drift,
+      UPL violations, data breaches, and unauthorized access. Incident
+      severity is classified into P0–P3 tiers with defined response times.
+    category: incident_response
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 72(4) — providers report serious incidents to national competent authorities"
+        - "Article 16(h) — providers notify national authorities and deployers of serious incidents"
+        - "Article 9(4) — risk management measures include incident response"
+      nist_ai_rmf:
+        - "MANAGE 4.1 — processes for post-incident analysis established in advance"
+        - "MANAGE 1.1 — risk treatment plans include incident response"
+      colorado_caia:
+        - "C.R.S. § 6-1-1704(2)(c) — deployer must notify developer of incidents affecting high-risk AI system"
+      california_admt:
+        - "Cal. Civ. Code § 1798.150(a) — security breach notification; incident detection enables timely notification"
+      florida_fdbr:
+        - "Fla. Stat. § 501.171(3) — security breach notification within 30 days of determination of breach"
+    evidence_requirements:
+      - "incident_response_plan.md"
+      - "incident_severity_matrix.json"
+    automation_status: manual
+    owner_role: security_lead
+
+  - control_id: CTRL-047
+    title: "User Notification of Material System Changes"
+    description: >
+      Users are notified of material changes to AI system behavior—including
+      model updates that change accuracy characteristics, new document types
+      processed, or changes to escalation logic—before the change takes effect
+      or as soon as practicable after deployment.
+    category: incident_response
+    risk_tier: limited
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 16(g) — providers take corrective actions and inform deployers of changes"
+        - "Article 72(1) — post-market monitoring includes notifying deployers of significant issues"
+      nist_ai_rmf:
+        - "MANAGE 2.2 — mechanisms to sustain AI risk management include user communication"
+        - "GOVERN 1.4 — culture of responsible AI includes transparency about changes"
+      colorado_caia:
+        - "C.R.S. § 6-1-1704(2)(a) — deployer implements policy for notifying consumers of material changes"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7022(a) — pre-use notice updated for material changes to ADMT"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(2) — data protection assessments updated to reflect material changes"
+    evidence_requirements:
+      - "change_notification_policy.md"
+      - "user_communication_log.json"
+    automation_status: manual
+    owner_role: product_manager
+
+  - control_id: CTRL-048
+    title: "Model Rollback Procedure"
+    description: >
+      A documented, tested rollback procedure exists for reverting to a previous
+      model version in response to performance degradation, safety incident,
+      or compliance finding. Rollback can be executed within one business day
+      without data loss.
+    category: incident_response
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 9(4) — risk management measures include identification of risk management measures for risks arising from system failure"
+        - "Article 16(g) — providers take corrective actions including recall or disabling of system"
+      nist_ai_rmf:
+        - "MANAGE 1.1 — risk treatment plans include rollback procedures"
+        - "MANAGE 3.1 — responses to identified risks prepared and tested in advance"
+      colorado_caia:
+        - "C.R.S. § 6-1-1703(1)(b) — developer cooperates with deployer to remedy harmful system behavior"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7021 — ADMT must be withdrawable when causing harm"
+      florida_fdbr:
+        - "Fla. Stat. § 501.1719(1)(b) — data protection assessment includes technical measures for risk mitigation"
+    evidence_requirements:
+      - "rollback_procedure.md"
+      - "rollback_test_report.json"
+    automation_status: semi_automated
+    owner_role: ml_engineer
+
+  - control_id: CTRL-049
+    title: "Post-Incident Review Process"
+    description: >
+      Every P0 or P1 incident triggers a post-incident review within 5 business
+      days. The review produces a written report covering: timeline, root cause,
+      impact assessment, corrective actions, and prevention measures.
+      Reports are retained as compliance evidence.
+    category: incident_response
+    risk_tier: high
+    jurisdiction_mappings:
+      eu_ai_act:
+        - "Article 72(4) — serious incident reports to national competent authorities include investigation and corrective actions"
+        - "Article 16(g) — corrective actions documented and recorded"
+      nist_ai_rmf:
+        - "MANAGE 4.1 — post-deployment incident analysis processes established"
+        - "GOVERN 1.2 — accountability structures include post-incident accountability"
+      colorado_caia:
+        - "C.R.S. § 6-1-1704(2)(c) — deployer notifies developer; developer must respond to reports"
+        - "C.R.S. § 6-1-1705(2) — impact assessment updated after material incident"
+      california_admt:
+        - "Cal. Code Regs. tit. 11, § 7027(b) — audit records must include remediation of audit findings"
+      florida_fdbr:
+        - "Fla. Stat. § 501.171(3) — incident investigation and notification requirements"
+        - "Fla. Stat. § 501.1719(3) — data protection assessment made available to regulators upon request"
+    evidence_requirements:
+      - "incident_review_template.md"
+      - "post_incident_review_log.json"
+    automation_status: manual
+    owner_role: security_lead

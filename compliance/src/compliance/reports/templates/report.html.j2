@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LegalClear Compliance Report — {{ jurisdiction_name }}</title>
+  <style>
+    body { font-family: Georgia, 'Times New Roman', serif; font-size: 11pt; color: #1a1a1a; max-width: 900px; margin: 0 auto; padding: 2rem; line-height: 1.5; }
+    h1 { font-size: 18pt; border-bottom: 2px solid #1a1a1a; padding-bottom: 0.5rem; }
+    h2 { font-size: 14pt; border-bottom: 1px solid #999; margin-top: 2rem; }
+    h3 { font-size: 12pt; color: #333; margin-top: 1.5rem; }
+    h4 { font-size: 11pt; margin-top: 1rem; color: #444; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 10pt; }
+    th { background: #f0f0f0; text-align: left; padding: 0.4rem 0.6rem; border: 1px solid #ccc; }
+    td { padding: 0.4rem 0.6rem; border: 1px solid #ccc; vertical-align: top; }
+    tr:nth-child(even) td { background: #fafafa; }
+    code { font-family: 'Courier New', monospace; font-size: 9pt; background: #f4f4f4; padding: 0.1em 0.3em; border-radius: 2px; }
+    .meta-block { background: #f9f9f9; border: 1px solid #ddd; padding: 1rem; margin: 1rem 0; font-size: 10pt; }
+    .missing { color: #c00; font-weight: bold; }
+    .present { color: #060; }
+    .auto-satisfied { background: #e8f5e9; }
+    .independent { background: #fff8e1; }
+    blockquote { border-left: 3px solid #999; margin: 1rem 0; padding: 0 1rem; color: #555; }
+    .ctrl-block { page-break-inside: avoid; margin-bottom: 2rem; padding: 1rem; border: 1px solid #e0e0e0; border-radius: 4px; }
+    @media print { body { max-width: 100%; } .ctrl-block { page-break-inside: avoid; } }
+    .footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #ccc; font-size: 9pt; color: #666; }
+  </style>
+</head>
+<body>
+
+<h1>LegalClear AI Governance Compliance Report</h1>
+
+<div class="meta-block">
+  <strong>Jurisdiction:</strong> {{ jurisdiction_name }}<br>
+  <strong>Registry Version:</strong> {{ registry_version }}<br>
+  <strong>Generated:</strong> {{ generated_at }}<br>
+  <strong>Registry SHA-256:</strong> <code>{{ registry_sha256 }}</code>
+</div>
+
+<h2>Summary</h2>
+<table>
+  <tr><th>Metric</th><th>Count</th></tr>
+  <tr><td>Total controls in registry</td><td>{{ total_controls }}</td></tr>
+  <tr><td>Applicable to this jurisdiction</td><td>{{ applicable_count }}</td></tr>
+  <tr><td>Auto-satisfied via EU AI Act compliance</td><td>{{ auto_satisfied_count }}</td></tr>
+  <tr><td>Requiring independent verification</td><td>{{ independent_verification_count }}</td></tr>
+</table>
+
+{% if jurisdiction_key != "eu_ai_act" and auto_satisfied_count > 0 %}
+<blockquote>
+  <strong>Auto-satisfaction note:</strong> Controls marked <em>Auto-satisfied</em>
+  have EU AI Act references in addition to {{ jurisdiction_name }} references.
+  Evidence demonstrating compliance with the cited EU AI Act articles is sufficient
+  to satisfy the {{ jurisdiction_name }} version of these controls.
+</blockquote>
+{% endif %}
+
+<h2>Controls by Category</h2>
+
+{% for category, controls in controls_by_category.items() %}
+<h3>{{ category | replace("_", " ") | title }}</h3>
+
+{% for ctrl in controls %}
+<div class="ctrl-block {{ 'auto-satisfied' if ctrl.auto_satisfied_by_eu else 'independent' }}">
+  <h4>{{ ctrl.control_id }} — {{ ctrl.title }}</h4>
+  <table>
+    <tr><th>Risk Tier</th><td>{{ ctrl.risk_tier }}</td><th>Automation</th><td>{{ ctrl.automation_status }}</td></tr>
+    <tr><th>Owner Role</th><td>{{ ctrl.owner_role }}</td><th>EU Auto-Satisfied</th><td>{{ "✓ Yes" if ctrl.auto_satisfied_by_eu else "✗ No" }}</td></tr>
+  </table>
+
+  <p><strong>Description:</strong> {{ ctrl.description }}</p>
+
+  <p><strong>Applicable References:</strong></p>
+  <ul>
+    {% for ref in ctrl.applicable_references %}
+    <li>{{ ref }}</li>
+    {% endfor %}
+  </ul>
+
+  {% if ctrl.auto_satisfied_by_eu and ctrl.eu_ai_act_references %}
+  <p><strong>EU AI Act References (basis for auto-satisfaction):</strong></p>
+  <ul>
+    {% for ref in ctrl.eu_ai_act_references %}
+    <li>{{ ref }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  <p><strong>Evidence Requirements:</strong></p>
+  <table>
+    <tr><th>Artifact</th><th>SHA-256</th><th>Status</th></tr>
+    {% for filename, sha256 in ctrl.evidence_hashes.items() %}
+    <tr>
+      <td><code>{{ filename }}</code></td>
+      <td>{% if sha256 %}<code>{{ sha256[:24] }}…</code>{% else %}—{% endif %}</td>
+      <td>{% if sha256 %}<span class="present">✓ Present</span>{% else %}<span class="missing">⚠ Missing</span>{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endfor %}
+{% endfor %}
+
+<h2>Evidence Index</h2>
+{% if evidence_artifacts %}
+<table>
+  <tr><th>SHA-256 (first 24)</th><th>Filename</th><th>Controls</th><th>Submitted</th></tr>
+  {% for artifact in evidence_artifacts %}
+  <tr>
+    <td><code>{{ artifact.sha256[:24] }}…</code></td>
+    <td><code>{{ artifact.filename }}</code></td>
+    <td>{{ artifact.control_ids | join(", ") }}</td>
+    <td>{{ artifact.created_at.strftime("%Y-%m-%d") }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p><em>No evidence artifacts have been submitted yet.</em></p>
+{% endif %}
+
+<div class="footer">
+  <p>This report was generated by the LegalClear Compliance Framework.</p>
+  <p>All jurisdiction citations reference primary sources only (statute and article numbers).</p>
+  <p>Generated: {{ generated_at }}</p>
+</div>
+
+</body>
+</html>

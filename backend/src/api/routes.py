@@ -76,6 +76,23 @@ app.include_router(triage_router)
 app.include_router(reminders_router)
 app.include_router(analysis_router)
 
+# Compliance framework router — mounted if package is installed.
+# Install: cd compliance && uv sync; set PYTHONPATH=compliance/src.
+try:
+    import sys as _sys
+    from pathlib import Path as _Path
+    _compliance_src = _Path(__file__).parents[4] / "compliance" / "src"
+    if _compliance_src.exists() and str(_compliance_src) not in _sys.path:
+        _sys.path.insert(0, str(_compliance_src))
+    from compliance.api.router import router as _compliance_router  # noqa: E402
+    app.include_router(_compliance_router)
+    logger.info("Compliance router mounted at /compliance/*")
+except ImportError:
+    logger.warning(
+        "Compliance package not available — /compliance/* endpoints disabled. "
+        "Install with: cd compliance && uv sync"
+    )
+
 def verify_api_key(x_api_key: str = Header(default="")):
     if x_api_key != settings.API_KEY:
         raise HTTPException(status_code=401, detail="Invalid API Key")
