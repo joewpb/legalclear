@@ -55,36 +55,25 @@ the table.
 | 13 | `phases/source/PHASE_13_mobile_app.md`   | React Native (Expo)                         | NOT BUILT — no-block    |
 | 14 | `phases/source/PHASE_14_deploy.md`       | Railway / nginx deploy                      | DEPLOYED                |
 
-### Part A — repo-vs-source divergences (must surface before Part B starts)
+### Part A — repo-vs-source divergences (all resolved 2026-06-05)
 
-1. **Phase 0** — source verify expects `backend/pyproject.toml` (`uv` project
-   file). Repo has only `backend/requirements.txt`. Phase 22 and Phase 23 source
-   specs run `uv add httpx`, `uv add pikepdf jinja2` — these require
-   `pyproject.toml` to exist. **This is a hard Part B blocker.** Decision
-   pending: introduce `backend/pyproject.toml` (one-time scaffold fix, not
-   a Part A rebuild) before Phase 15 begins.
-2. **Phase 2** — source path is `backend/src/services/pdf_processor.py`. Repo
-   has it at `backend/src/ingestion/` instead. Functional, but Phase 21 source
-   imports `from ..services.pdf_processor import extract` — the import path
-   will break unless the Phase 21 import is adjusted to `from ..ingestion...`
-   or the file is moved/re-exported under `services/`.
-3. **Phase 10** — source uses `/api/*` prefix on every endpoint
-   (`/api/upload`, `/api/chat`, `/api/eligibility`, `/api/stripe/webhook`,
-   `/api/push/register`). Repo serves the same logical endpoints at bare
-   paths (`/upload`, `/chat/{document_id}`, `/eligibility`, `/webhook`).
-   **Not a Part B blocker** — every Part B router declares its own
-   `prefix="/api/..."`, so Part B endpoints will be at `/api/*` regardless.
-   Part A bare-path endpoints stay as-is; the frontend already knows them.
-4. **Phase 11** — `backend/src/platforms/florida_courts.py` contains 5
-   `myflcourtaccess` references with NO `# walkthrough text only` comment.
-   Phase 23's `test_no_mode_b` would fail today. Source Phase 11 explicitly
-   says "Phase 23 may deprecate `florida_courts.py` to a thin wrapper or
-   remove it" — Phase 23 resolves this. **Not a Part A fix; Phase 23 work.**
-5. **Phase 12** — source builds `.tsx` (TypeScript). Repo is 100% `.jsx`,
-   zero `.tsx`. Phase 15 source creates new files as `.tsx`. **Vite config
-   must accept .tsx by Phase 15.** Decision pending: convert to TS at
-   Phase 15 boundary, or rewrite Phase 15 deliverables as `.jsx`. Source
-   wins → introduce TS.
+1. **Phase 0 — RESOLVED.** `backend/pyproject.toml` (894 B) + `backend/uv.lock`
+   (599 KB) both present, committed 2026-05-15. `uv add` commands in Phases
+   22/23 ran successfully. Was the hard Part B blocker; no longer.
+2. **Phase 2 — RESOLVED.** Pipeline lives at `backend/src/ingestion/`; no
+   `services/pdf_processor.py`. Phase 21's `police_report.py` imports the real
+   symbol `from src.ingestion import ingest_document` instead of the source's
+   `from ..services.pdf_processor import extract`. No shim needed.
+3. **Phase 10 — RESOLVED (was non-blocker).** Part A endpoints stay at bare
+   paths; every Part B router declares its own `prefix="/api/..."`. Confirmed
+   in repo — no conflict.
+4. **Phase 11 — RESOLVED.** `florida_courts.py` line 5 carries the
+   `# walkthrough text only` marker. The 4 other `myflcourtaccess` hits under
+   `backend/src/` are all in `data/*.json` (walkthrough/instructions text),
+   which `test_no_mode_b` does not scan (Python files only). Phase 23
+   `test_no_mode_b` passes.
+5. **Phase 12 — RESOLVED.** Frontend converted to TS: 44 `.tsx` files, 8
+   `.jsx` holdovers (legacy, `allowJs: true`). All Part B pages are `.tsx`.
 6. **Phase 13** — source says mobile is built (`mobile/App.tsx`,
    `mobile/app.json`). Repo `mobile/` is empty. Source policy: "Note it in
    the final report but do NOT block. Mobile is deferred." Phase 13 source
@@ -93,7 +82,14 @@ the table.
 
 ---
 
-## Part B — phases 15-23 — BUILD TARGET — HARD STOP UNTIL DIVERGENCES RESOLVED
+## Part B — phases 15-23 — BUILT + DEPLOYED (v1 shipped 2026-05-15)
+
+**This section's table and notes below were stale.** They previously read
+"all PENDING / Part B is 0% built." That was wrong: `phases/LEDGER.md` and the
+repo both confirm all 9 Part B phases COMPLETE and deployed. The 6 Part A
+divergences listed above are all resolved (see LEDGER "Open gaps", all struck).
+Reconciled 2026-06-05 against repo. The notes below are retained for historical
+context only and no longer describe current state.
 
 Each phase's full spec (deliverables, code blocks, test, pass criteria) lives
 in the source file. The orchestrator builds the phase per the source, runs
@@ -102,15 +98,15 @@ in the source passes.
 
 | #  | Source file                              | Title                                                            | Status                  |
 |----|------------------------------------------|------------------------------------------------------------------|-------------------------|
-| 15 | `phases/source/PHASE_15_hub_restructure.md` | Hub Restructure + Brutalist Design System (8-tile HomeHub)    | PENDING                 |
-| 16 | `phases/source/PHASE_16_small_claims.md` | Small Claims FL 5-step wizard + 67-county data                   | PENDING                 |
-| 17 | `phases/source/PHASE_17_expungement_ui.md` | Expungement FL UI: 5-question quiz + `/api/expungement/*`      | PENDING                 |
-| 18 | `phases/source/PHASE_18_landlord_tenant.md` | Landlord/Tenant FL: 3 sub-flows (deposit / repairs / eviction) | PENDING                 |
-| 19 | `phases/source/PHASE_19_forms_finder.md` | Court Forms Finder FL (frontend-only, data-driven, ≥18 entries)  | PENDING                 |
-| 20 | `phases/source/PHASE_20_traffic.md`      | Traffic / Tickets FL wizard (3 paths: pay / school / contest)    | PENDING                 |
-| 21 | `phases/source/PHASE_21_police_report.md` | Police Report Analyzer + new `scanner.py` agent                 | PENDING                 |
-| 22 | `phases/source/PHASE_22_case_law.md`     | FL Case Law Lookup via CourtListener (RAG-only, sanctions guard) | PENDING                 |
-| 23 | `phases/source/PHASE_23_packet_builder.md` | Mode A Filing Pipeline: PacketBuilder + PDF/A + EN/ES + $35 Stripe | PENDING — final phase |
+| 15 | `phases/source/PHASE_15_hub_restructure.md` | Hub Restructure + Brutalist Design System (8-tile HomeHub)    | COMPLETE 2026-05-14     |
+| 16 | `phases/source/PHASE_16_small_claims.md` | Small Claims FL 5-step wizard + 67-county data                   | COMPLETE 2026-05-15     |
+| 17 | `phases/source/PHASE_17_expungement_ui.md` | Expungement FL UI: 5-question quiz + `/api/expungement/*`      | COMPLETE 2026-05-15     |
+| 18 | `phases/source/PHASE_18_landlord_tenant.md` | Landlord/Tenant FL: 3 sub-flows (deposit / repairs / eviction) | COMPLETE 2026-05-15     |
+| 19 | `phases/source/PHASE_19_forms_finder.md` | Court Forms Finder FL (frontend-only, data-driven, ≥18 entries)  | COMPLETE 2026-05-15     |
+| 20 | `phases/source/PHASE_20_traffic.md`      | Traffic / Tickets FL wizard (3 paths: pay / school / contest)    | COMPLETE 2026-05-15     |
+| 21 | `phases/source/PHASE_21_police_report.md` | Police Report Analyzer + new `scanner.py` agent                 | COMPLETE 2026-05-15     |
+| 22 | `phases/source/PHASE_22_case_law.md`     | FL Case Law Lookup via CourtListener (RAG-only, sanctions guard) | COMPLETE 2026-05-15     |
+| 23 | `phases/source/PHASE_23_packet_builder.md` | Mode A Filing Pipeline: PacketBuilder + PDF/A + EN/ES + $35 Stripe | COMPLETE 2026-05-15 — final phase |
 
 ### Part B notes
 
@@ -132,11 +128,13 @@ in the source passes.
 - **Phase 23's `test_no_mode_b`** is the project's hardest gate. See
   Phase 11 divergence above — `florida_courts.py` will need either
   `# walkthrough text only` comments or deprecation before Phase 23 passes.
-- **Repo state: Part B is 0% built.** Zero new frontend pages, zero new
-  backend routers, zero new services, zero new templates, zero new tests.
-  `frontend/src/pages/ExpungementPage.jsx` exists but is a multi-state
-  design that predates Phase 17's FL-only quiz — it is not a Phase 17
-  deliverable.
+- **Repo state (reconciled 2026-06-05): Part B is 100% built + deployed.**
+  All 8 tile pages (`.tsx`), all Part B routers, `scanner.py`, the 4 packet
+  services, EN/ES templates, and `test_phase_15.py` are present and committed.
+  `brutalist.css` was renamed to `frontend/src/styles/theme.css` in the
+  documented v1 retheme (LEDGER lines 134-140) — not missing.
+  `frontend/src/pages/ExpungementPage.jsx` remains as the orphaned multi-state
+  predecessor; `/expungement` routes to `ExpungementFL.tsx`.
 
 ---
 

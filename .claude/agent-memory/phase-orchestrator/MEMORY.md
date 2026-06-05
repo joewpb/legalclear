@@ -17,3 +17,4 @@ this file is for context not derivable from those.
 - [Backend uvicorn target](backend-uvicorn-target.md) — verification tests need `uvicorn src.api.routes:app`, NOT `main:app` (Phase 10 split entrypoint from app module)
 - [Phase 23 shipped](phase-23-shipped.md) — tile-generate response shape changed by design (now `{packet_id, fee_usd, file_count, checkout_url}`); packet store is in-memory with Supabase mirror best-effort
 - [Railway installs from requirements.txt](railway-deploy-deps.md) — every `uv add` must be mirrored into `backend/requirements.txt`; Playwright also needs apt deps + `playwright install` step
+- [PHASE_SPECS.md was stale](phase-specs-stale-reconciled.md) — claimed 15-23 PENDING / 0% built; reconciled to COMPLETE vs repo 2026-06-05; do NOT rebuild Part B if a task arrives framed as PENDING
