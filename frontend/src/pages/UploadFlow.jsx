@@ -37,57 +37,74 @@ export default function UploadFlow() {
   const handleUpload = async () => {
     if (!file) return;
     setIsProcessing(true);
-    
+
+    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8001";
+    const apiKey = import.meta.env.VITE_API_KEY || 'testkey123';
+
+    // Abort controller so we can enforce a client-side timeout on the
+    // analysis step (LLM pipeline can legitimately take 60-90 s).
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120000);
+
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8001";
       const arrayBuffer = await file.arrayBuffer();
-      
+
       const uploadRes = await fetch(`${apiUrl}/upload`, {
         method: 'POST',
         headers: {
-          'x-api-key': 'testkey123',
+          'x-api-key': apiKey,
           'user-id': 'proto_user_001',
           'email': 'proto@example.com',
           'filename': encodeURIComponent(file.name),
           'lang': 'en',
           'Content-Type': 'application/octet-stream'
         },
-        body: arrayBuffer
+        body: arrayBuffer,
+        signal: controller.signal,
       });
-      
+
       if (!uploadRes.ok) throw new Error("Upload failed: " + uploadRes.statusText);
       const uploadData = await uploadRes.json();
-      
+
       if (uploadData.error) throw new Error(uploadData.message || "Upload failed");
-      
+
       const sessionId = uploadData.session_id;
       const documentId = uploadData.document_id;
-      if (sessionId) {
-        const processRes = await fetch(`${apiUrl}/process/${sessionId}?lang=en`, {
-          method: 'POST',
-          headers: { 'X-API-Key': import.meta.env.VITE_API_KEY || 'testkey123' }
-        });
 
-        if (processRes.status === 402) {
-          const paywallData = await processRes.json();
-          setIsProcessing(false);
-          navigate(`/pay/${documentId}`, { state: paywallData });
-          return;
-        }
-
-        if (!processRes.ok) {
-          const errorBody = await processRes.json().catch(() => ({}));
-          throw new Error(
-            errorBody.detail || `Processing failed (status ${processRes.status})`
-          );
-        }
+      if (!sessionId || !documentId) {
+        throw new Error("Server did not return a session — please try again.");
       }
 
+      const processRes = await fetch(`${apiUrl}/process/${sessionId}?lang=en`, {
+        method: 'POST',
+        headers: { 'X-API-Key': apiKey },
+        signal: controller.signal,
+      });
+
+      if (processRes.status === 402) {
+        const paywallData = await processRes.json();
+        setIsProcessing(false);
+        navigate(`/pay/${documentId}`, { state: paywallData });
+        return;
+      }
+
+      if (!processRes.ok) {
+        const errorBody = await processRes.json().catch(() => ({}));
+        throw new Error(
+          errorBody.detail || `Processing failed (status ${processRes.status})`
+        );
+      }
+
+      clearTimeout(timeoutId);
       setIsProcessing(false);
       navigate(`/results/${documentId}`);
     } catch (err) {
+      clearTimeout(timeoutId);
+      const msg = err.name === 'AbortError'
+        ? "Analysis timed out after 2 minutes. The server may be busy — please try again."
+        : err.message;
       console.error(err);
-      alert("Error analyzing file: " + err.message);
+      alert("Error: " + msg);
       setIsProcessing(false);
     }
   };
@@ -126,6 +143,7 @@ export default function UploadFlow() {
                 </div>
                 <div className="text-xl font-medium text-white">Analyzing Legal Text...</div>
                 <p className="text-primary/80">Running AI Classifiers & Risk Scanners</p>
+                <p className="text-gray-500 text-sm">This usually takes 30–90 seconds. Please don't close this tab.</p>
               </div>
             ) : file ? (
               <div className="flex flex-col items-center space-y-6">

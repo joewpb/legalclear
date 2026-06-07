@@ -56,6 +56,21 @@ export default function ResultsPage() {
     </div>
   );
 
+  // Document exists but analysis hasn't finished yet.
+  if (docData?.status === 'processing') return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center space-y-4 max-w-md px-4">
+        <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto" />
+        <p className="text-white text-lg font-semibold">Analysis in progress</p>
+        <p className="text-gray-400 text-sm">The AI is still processing this document. Refresh in 30 seconds or go back and re-upload if this persists.</p>
+        <div className="flex gap-4 justify-center">
+          <button onClick={() => window.location.reload()} className="btn-secondary py-2 px-6">Refresh</button>
+          <Link to="/upload" className="btn-primary">Upload again</Link>
+        </div>
+      </div>
+    </div>
+  );
+
   const explanation = docData?.explanation || {};
   const classification = docData?.classification || {};
   const riskScan = docData?.risk_scan || {};

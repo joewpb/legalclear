@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, Header, Request, Background
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
+import asyncio
 import logging
 import traceback
 import uuid as _uuid
@@ -274,16 +275,25 @@ async def process_document(session_id: str, background_tasks: BackgroundTasks, l
         doc = {"text": document_text}
         classification = await classifier.classify(doc)
 
-        explanation = await explainer.explain(doc, classification, lang)
-        risk_scan = await risk_scanner.scan(doc, classification, lang)
+        # Run explanation and risk scan concurrently — both only depend on
+        # classification which is already resolved at this point.
+        explanation, risk_scan = await asyncio.gather(
+            explainer.explain(doc, classification, lang),
+            risk_scanner.scan(doc, classification, lang),
+        )
 
-        form_results = {}
-        if classification.get("document_category") in FORM_CATEGORIES:
-            form_results = await form_guide.guide(doc, classification, lang)
+        async def _noop() -> dict:
+            return {}
 
-        exp_results = {}
-        if classification.get("document_category") == "expungement_petition":
-            exp_results = await expungement.guide(doc, classification, lang)
+        doc_category = classification.get("document_category")
+        form_results, exp_results = await asyncio.gather(
+            form_guide.guide(doc, classification, lang)
+            if doc_category in FORM_CATEGORIES
+            else _noop(),
+            expungement.guide(doc, classification, lang)
+            if doc_category == "expungement_petition"
+            else _noop(),
+        )
 
         escalation = escalation_router.route(classification, lang)
 
