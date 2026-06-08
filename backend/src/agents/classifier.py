@@ -1,7 +1,7 @@
 import json
 import logging
 import traceback
-from anthropic import Anthropic
+from anthropic import AsyncAnthropic
 from src.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ VALID_CATEGORIES = [
 class ClassifierAgent:
 
     def __init__(self):
-        self.client = Anthropic(
+        self.client = AsyncAnthropic(
             api_key=settings.ANTHROPIC_API_KEY,
             max_retries=3,
             timeout=60.0,
@@ -79,7 +79,7 @@ Document text:
 
         for attempt in range(2):
             try:
-                response = self.client.messages.create(
+                response = await self.client.messages.create(
                     model=self.model,
                     max_tokens=1024,
                     system=[{

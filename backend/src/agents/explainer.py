@@ -1,7 +1,7 @@
 import json
 import logging
 import traceback
-from anthropic import Anthropic
+from anthropic import AsyncAnthropic
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 
@@ -25,7 +25,7 @@ SYSTEM_PROMPT = (
 class ExplainerAgent:
 
     def __init__(self):
-        self.client = Anthropic(
+        self.client = AsyncAnthropic(
             api_key=settings.ANTHROPIC_API_KEY,
             max_retries=3,
             timeout=120.0,
@@ -76,7 +76,7 @@ Document text:
 {document.get("text", "")[:80000]}"""
 
         try:
-            response = self.client.messages.create(
+            response = await self.client.messages.create(
                 model=self.model,
                 max_tokens=8192,
                 system=[{
@@ -162,7 +162,7 @@ Document text:
         })
 
         try:
-            response = self.client.messages.create(
+            response = await self.client.messages.create(
                 model=self.model,
                 max_tokens=1024,
                 system=[{
