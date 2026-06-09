@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation, useParams, Link } from 'react-router-dom';
 import {
   AlertOctagon, CheckCircle2, AlertTriangle, FileText,
@@ -6,9 +6,19 @@ import {
   Home, Upload, BarChart2, Bell, Loader2, Scale,
   BookOpen, MapPin, ExternalLink
 } from 'lucide-react';
+import SeverityBadge from '../components/SeverityBadge';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
 const API_KEY = import.meta.env.VITE_API_KEY || 'testkey123';
+
+async function fetchDeadlines(documentId) {
+  const res = await fetch(`${API_URL}/api/deadline/${documentId}/deadlines`, {
+    headers: { 'x-api-key': API_KEY },
+  });
+  if (!res.ok) throw new Error(`${res.status}`);
+  const data = await res.json();
+  return data.deadlines || [];
+}
 
 export default function ResultsPage() {
   const location = useLocation();
@@ -22,6 +32,11 @@ export default function ResultsPage() {
   const [docData, setDocData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [deadlines, setDeadlines] = useState(null);
+  const [dlState, setDlState] = useState('idle'); // idle | loading | computing | ready | error
+  const [dlError, setDlError] = useState(null);
+  const postAttemptedRef = useRef(false);
 
   useEffect(() => {
     if (!document_id) {
@@ -37,6 +52,39 @@ export default function ResultsPage() {
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
   }, [document_id]);
+
+  // Compute-on-demand: GET deadlines; if none and not yet attempted, POST analyze
+  // once (guarded by postAttemptedRef so a second POST never fires this session),
+  // then GET again. The deterministic backend owns every date — the UI only renders.
+  const loadDeadlines = async () => {
+    setDlError(null);
+    setDlState('loading');
+    try {
+      let rows = await fetchDeadlines(document_id);
+      if (rows.length === 0 && !postAttemptedRef.current) {
+        postAttemptedRef.current = true;
+        setDlState('computing');
+        const res = await fetch(`${API_URL}/api/deadline/analyze/${document_id}`, {
+          method: 'POST',
+          headers: { 'x-api-key': API_KEY },
+        });
+        if (!res.ok) throw new Error(`${res.status}`);
+        rows = await fetchDeadlines(document_id);
+      }
+      rows = [...rows].sort((a, b) =>
+        String(a.due_date).localeCompare(String(b.due_date)));
+      setDeadlines(rows);
+      setDlState('ready');
+    } catch (err) {
+      setDlError(err.message);
+      setDlState('error'); // fail closed — never fabricate or estimate a date
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'deadlines' && dlState === 'idle') loadDeadlines();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
@@ -131,6 +179,7 @@ export default function ResultsPage() {
             <div className="lg:col-span-1 space-y-2">
               <TabButton active={activeTab === 'summary'} onClick={() => setActiveTab('summary')} icon={<FileText />} label="Summary & Rights" />
               <TabButton active={activeTab === 'risk'} onClick={() => setActiveTab('risk')} icon={<ShieldAlert />} label="Risk Scanner" alertCount={riskScan.red_count || 0} />
+              <TabButton active={activeTab === 'deadlines'} onClick={() => setActiveTab('deadlines')} icon={<Bell />} label="Deadlines" />
               {showFormGuide && <TabButton active={activeTab === 'form'} onClick={() => setActiveTab('form')} icon={<FileCheck />} label="Form Guide" />}
               {showExpungement && <TabButton active={activeTab === 'expungement'} onClick={() => setActiveTab('expungement')} icon={<BookOpen />} label="Expungement" />}
               {showFlorida && <TabButton active={activeTab === 'florida'} onClick={() => setActiveTab('florida')} icon={<MapPin />} label="File in Florida" />}
@@ -141,6 +190,7 @@ export default function ResultsPage() {
               <div className="bg-zinc-900/50 backdrop-blur-sm border border-white/5 hover:border-blue-500/50 transition-colors duration-500 min-h-[500px] rounded-2xl p-6 md:p-8 shadow-2xl">
                 {activeTab === 'summary' && <SummaryView explanation={explanation} escalation={escalation} />}
                 {activeTab === 'risk' && <RiskView riskScan={riskScan} />}
+                {activeTab === 'deadlines' && <DeadlinesView deadlines={deadlines} state={dlState} error={dlError} onRetry={loadDeadlines} />}
                 {activeTab === 'form' && <FormGuideView formGuide={formGuide} />}
                 {activeTab === 'expungement' && <ExpungementView expungement={expungement} />}
                 {activeTab === 'florida' && <FloridaFilingView classification={classification} />}
@@ -237,6 +287,84 @@ function SummaryView({ explanation, escalation }) {
             </a>
           ))}</div>
         </div>
+      )}
+    </div>
+  );
+}
+
+function DeadlinesView({ deadlines, state, error, onRetry }) {
+  if (state === 'loading' || state === 'computing') {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-4 text-gray-400 animate-slide-up">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        <p>{state === 'computing' ? 'Computing deadlines from this document…' : 'Loading deadlines…'}</p>
+      </div>
+    );
+  }
+  if (state === 'error') {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-4 text-center animate-slide-up">
+        <AlertOctagon className="w-10 h-10 text-red-400" />
+        <p className="text-red-400">Couldn't load deadlines{error ? ` (status ${error})` : ''}.</p>
+        <button onClick={onRetry} className="btn-secondary py-2 px-6">Retry</button>
+      </div>
+    );
+  }
+  if (!deadlines || deadlines.length === 0) {
+    return <div className="text-gray-400 text-center py-12">No deadlines detected in this document.</div>;
+  }
+  return (
+    <div className="space-y-6 animate-slide-up">
+      <div>
+        <h2 className="text-2xl font-bold mb-2 font-display">Deadlines</h2>
+        <p className="text-gray-400 text-sm">Computed by the deterministic deadline engine under the Florida Rules. Always verify against the cited rule.</p>
+      </div>
+      {deadlines.map((d) => <DeadlineCard key={d.id} d={d} />)}
+    </div>
+  );
+}
+
+function DeadlineCard({ d }) {
+  const isFatal = (d.severity || '').toLowerCase() === 'fatal';
+  const trace = Array.isArray(d.computation_trace) ? d.computation_trace : [];
+  const confidenceLabel = typeof d.confidence === 'number'
+    ? `${Math.round(d.confidence * 100)}%` : '—';
+  return (
+    <div className={`p-6 rounded-xl border relative overflow-hidden transition-all hover:bg-zinc-800/50 ${isFatal ? 'border-red-500/40 bg-red-500/5' : 'border-white/5 bg-zinc-800/30'}`}>
+      {isFatal && <div className="absolute top-0 left-0 w-1 h-full bg-red-500" />}
+      <div className="flex items-start justify-between gap-4 mb-3">
+        <div>
+          <div className={`text-3xl font-bold font-display ${isFatal ? 'text-red-400' : 'text-white'}`}>{d.due_date}</div>
+          <div className="text-gray-300 mt-1">{d.label}</div>
+        </div>
+        <div className="shrink-0 flex items-center gap-2">
+          {isFatal && <AlertOctagon className="w-5 h-5 text-red-400" />}
+          <SeverityBadge severity={d.severity} />
+        </div>
+      </div>
+      {d.governing_rule && <div className="mono text-xs text-gray-400 mb-3">{d.governing_rule}</div>}
+      {d.consequence_if_missed && (
+        <p className="text-gray-300 text-sm mb-3"><strong className="text-white">If missed: </strong>{d.consequence_if_missed}</p>
+      )}
+      {d.escalation_recommended && (
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-sm font-medium mb-3">⚠ Consult an attorney</div>
+      )}
+      <div className="text-gray-400 text-sm">Confidence: {confidenceLabel}</div>
+      {isFatal && typeof d.confidence === 'number' && d.confidence < 0.9 && (
+        <div className="mt-2 text-yellow-400 text-sm">Unverified — confirm against the cited rule.</div>
+      )}
+      {trace.length > 0 && (
+        <details className="mt-4">
+          <summary className="cursor-pointer text-blue-400 hover:text-blue-300 text-sm select-none">Show how this was computed</summary>
+          <ol className="mt-3 space-y-2 border-l-2 border-white/10 pl-4">
+            {trace.map((s, i) => (
+              <li key={s.step ?? i} className="text-sm text-gray-300">
+                <span className="text-gray-500 mr-2">{s.step ?? i + 1}.</span>{s.action}
+                {s.rule && <div className="mono text-xs text-gray-500 mt-0.5">{s.rule}</div>}
+              </li>
+            ))}
+          </ol>
+        </details>
       )}
     </div>
   );
