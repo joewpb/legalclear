@@ -45,7 +45,7 @@ async def list_forms(category: Optional[str] = None):
         q = db.client.table("court_forms").select(
             "form_number,title,category,court_revision_date,"
             "situation_tags,plain_language_summary,source_page_url,status"
-        ).eq("status", "active")
+        ).in_("status", ["published", "active"])
         if category:
             q = q.eq("category", category)
         result = q.order("form_number").execute()
@@ -94,7 +94,7 @@ async def download_form(form_number: str):
             }
         )
 
-    if status != "active":
+    if status not in ("published", "active"):
         raise HTTPException(
             status_code=404,
             detail="Form is not yet available for download."

@@ -38,3 +38,19 @@ backend/storage/
 dummy.pdf
 doc.txt
 files*/
+# Phase 10 form library — raw form data lives in Supabase storage + DB, not git.
+# Keep the pipeline code + lightweight audit artifacts; ignore the 135MB payload.
+forms/*.pdf
+forms/circuits/
+forms/text/
+# Large harvest dumps (regenerable; out of history)
+forms/index.json
+forms/full_catalog.json
+forms/form_fields.json
+forms/circuit_forms_catalog.json
+forms/circuit_scan.json
+forms/downloads.json
+# stray duplicate of forms/forms_manifest.json
+/forms_manifest.json
+# unrelated local scratch
+screenshots/
