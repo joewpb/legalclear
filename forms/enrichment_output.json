@@ -1,0 +1,1526 @@
+[
+  {
+    "form_number": "12.900(b)",
+    "plain_language_summary": "This form is used by an attorney to notify the court and other parties that the attorney is making a limited appearance on behalf of a client, with the client's consent. The attorney specifies the particular hearings or issues for which the limited representation applies. The form includes the client's consent and a certificate of service.",
+    "situation_tags": [
+      "limited appearance",
+      "attorney representation",
+      "consent",
+      "family law",
+      "notice",
+      "limited scope representation",
+      "court form"
+    ],
+    "title": "Notice of and Consent to Limited Appearance"
+  },
+  {
+    "form_number": "12.900(d)",
+    "plain_language_summary": "This form is used by an attorney to end a limited appearance in a Florida family law case. The attorney files the form with the circuit court and serves a copy on the opposing party or their attorney. It certifies that the proceeding or matter for which the attorney appeared has concluded.",
+    "situation_tags": [
+      "family law",
+      "termination of limited appearance",
+      "attorney",
+      "limited appearance",
+      "civil procedure"
+    ],
+    "title": "Termination of Limited Appearance"
+  },
+  {
+    "form_number": "12.900(e)",
+    "plain_language_summary": "This form is used by a petitioner or respondent to acknowledge that an attorney assisted in preparing a petition, pleading, or motion in a Florida family law case. It includes a certificate of service to document that the form was served on the other party or their attorney.",
+    "situation_tags": [
+      "family law",
+      "attorney assistance",
+      "acknowledgment of assistance",
+      "pleading preparation",
+      "certificate of service"
+    ],
+    "title": "ACKNOWLEDGMENT OF ASSISTANCE BY ATTORNEY"
+  },
+  {
+    "form_number": "12.900(f)",
+    "plain_language_summary": "This form is a signature block for an attorney to use when making a limited appearance in a Florida family law case. It allows the attorney to specify the exact matter or proceeding for which they are representing a party. The form must be filed with any other document when the attorney appears for a limited purpose only.",
+    "situation_tags": [
+      "family law",
+      "limited appearance",
+      "attorney",
+      "signature block",
+      "representation",
+      "court forms",
+      "Florida"
+    ],
+    "title": "Signature Block for Attorney Making Limited Appearance"
+  },
+  {
+    "form_number": "12.900(g)",
+    "plain_language_summary": "This form establishes an agreement between an attorney and a client for limited representation in a family law matter. It defines the specific matters or proceedings covered, the responsibilities of each party, and the conditions under which the attorney may withdraw. The form is not a substitute for a Notice of Limited Appearance.",
+    "situation_tags": [
+      "limited_representation",
+      "attorney_client_agreement",
+      "family_law",
+      "scope_of_representation",
+      "florida"
+    ],
+    "title": "AGREEMENT LIMITING REPRESENTATION"
+  },
+  {
+    "form_number": "12.900(h)",
+    "plain_language_summary": "This form is used by parties in a family law case to notify the court in writing of any related cases, as defined by court rules. It helps the court identify other proceedings involving the same parties or issues for case management. The completed form must be filed with the clerk and served on the other party.",
+    "situation_tags": [
+      "family law",
+      "related cases",
+      "notice",
+      "disclosure",
+      "procedural",
+      "court filing"
+    ],
+    "title": "Notice of Related Cases"
+  },
+  {
+    "form_number": "12.901(b)(1)",
+    "plain_language_summary": "This form is used to start a divorce case when the couple has dependent or minor children together. It asks the court to end the marriage and make decisions about parenting time, time-sharing, and child support. The form is filed with the circuit court in the appropriate county.",
+    "situation_tags": [
+      "dissolution of marriage",
+      "divorce",
+      "dependent children",
+      "minor children",
+      "parenting plan",
+      "time-sharing",
+      "child support",
+      "family law"
+    ],
+    "title": "Petition for Dissolution of Marriage with Dependent or Minor Child(ren)"
+  },
+  {
+    "form_number": "12.901(b)(3)",
+    "plain_language_summary": "This form is a petition for divorce when the couple has no minor or dependent children, no marital property or debts, and neither spouse is seeking spousal support. It is used to start a dissolution of marriage case in Florida. The petitioner must have lived in Florida for at least six months before filing.",
+    "situation_tags": [
+      "dissolution of marriage",
+      "divorce",
+      "no children",
+      "no property",
+      "no alimony",
+      "no spousal support",
+      "simple divorce"
+    ],
+    "title": "Petition for Dissolution of Marriage with No Dependent or Minor Child(ren) or Property"
+  },
+  {
+    "form_number": "12.930(a)",
+    "plain_language_summary": "This form is a notice filed with the court to inform that a party is serving standard family law interrogatories on the opposing party. It identifies whether the interrogatories are for original/enforcement or modification proceedings and specifies which questions are being asked. The form is used in conjunction with the standard family law interrogatory forms 12.930(b) and (c).",
+    "situation_tags": [
+      "family law",
+      "discovery",
+      "interrogatories",
+      "notice of service",
+      "dissolution of marriage",
+      "standard interrogatories"
+    ],
+    "title": "Notice of Service of Standard Family Law Interrogatories"
+  },
+  {
+    "form_number": "12.902(c)",
+    "plain_language_summary": "This form is a detailed financial affidavit used in Florida family law cases when an individual's gross annual income is $50,000 or more. It requires the party to disclose their income, expenses, assets, liabilities, and other financial information. The completed form must be filed with the court and served on the other party.",
+    "situation_tags": [
+      "financial affidavit",
+      "family law",
+      "income disclosure",
+      "expenses",
+      "assets",
+      "liabilities",
+      "discovery",
+      "divorce"
+    ],
+    "title": "Family Law Financial Affidavit (Long Form)"
+  },
+  {
+    "form_number": "12.902(d)",
+    "plain_language_summary": "This form is an affidavit required in any Florida family law case involving minor children, even if custody is not disputed. It collects information about the child's residence and custody history to determine proper jurisdiction under the UCCJEA. The form must be notarized and filed with the court.",
+    "situation_tags": [
+      "child custody",
+      "jurisdiction",
+      "UCCJEA",
+      "affidavit",
+      "family law",
+      "parenting plan",
+      "time-sharing"
+    ],
+    "title": "Uniform Child Custody Jurisdiction and Enforcement Act (UCCJEA) Affidavit"
+  },
+  {
+    "form_number": "12.902(e)",
+    "plain_language_summary": "This is a worksheet for calculating child support based on Florida's child support guidelines. It is used in family law cases where child support is requested. The form requires income information from both parties to determine the support amount.",
+    "situation_tags": [
+      "child support",
+      "guidelines",
+      "worksheet",
+      "family law",
+      "financial",
+      "dissolution of marriage",
+      "paternity"
+    ],
+    "title": "Child Support Guidelines Worksheet (06/25)"
+  },
+  {
+    "form_number": "12.902(i)",
+    "plain_language_summary": "This form is an affidavit used to corroborate residency in a dissolution of marriage proceeding in Florida. A person other than the parties signs the affidavit to confirm that the petitioner has lived in Florida for at least six months before filing. The affidavit must be notarized and filed with the clerk of the circuit court.",
+    "situation_tags": [
+      "affidavit of corroborating witness",
+      "residency requirement",
+      "dissolution of marriage",
+      "divorce",
+      "florida residency",
+      "corroboration",
+      "family law"
+    ],
+    "title": "Affidavit of Corroborating Witness"
+  },
+  {
+    "form_number": "12.902(j)",
+    "plain_language_summary": "This form is used by parties in family law cases, including paternity, child support, and dissolution of marriage, to provide their Social Security number. The form is required by Florida statutes and is filed with the clerk of court. Social Security numbers are confidential under court rules, and a separate notice of confidential information must be filed.",
+    "situation_tags": [
+      "family law",
+      "social security number",
+      "notice",
+      "paternity",
+      "child support",
+      "dissolution of marriage",
+      "confidential information"
+    ],
+    "title": "Notice of Social Security Number"
+  },
+  {
+    "form_number": "12.903(a)",
+    "plain_language_summary": "This form is used by a respondent who has been served with a petition for dissolution of marriage and does not wish to contest it or appear at a hearing. By filing this form, the respondent admits the allegations, waives notice and appearance, and requests a copy of the final judgment. The form must be signed before a notary and filed with the clerk.",
+    "situation_tags": [
+      "dissolution of marriage",
+      "answer",
+      "waiver",
+      "request for copy",
+      "family law",
+      "uncontested divorce"
+    ],
+    "title": "ANSWER, WAIVER, AND REQUEST FOR COPY OF FINAL JUDGMENT OF DISSOLUTION OF MARRIAGE"
+  },
+  {
+    "form_number": "12.903(b)",
+    "plain_language_summary": "This form is used by a respondent to admit or deny allegations in a petition for dissolution of marriage without filing a counterpetition. It applies to cases with or without minor children. The respondent must file this form within 20 days of receiving the petition.",
+    "situation_tags": [
+      "dissolution of marriage",
+      "divorce",
+      "answer to petition",
+      "family law",
+      "respondent",
+      "admit or deny"
+    ],
+    "title": "Answer to Petition for Dissolution of Marriage"
+  },
+  {
+    "form_number": "12.903(c)(1)",
+    "plain_language_summary": "This form is used to respond to a supplemental petition for modification of a parenting plan, time-sharing schedule, child support, or alimony. It allows the respondent to admit or deny each allegation without filing a counterpetition. The form must be signed before a notary public or deputy clerk and filed with the clerk of court within 20 days of receiving the supplemental petition.",
+    "situation_tags": [
+      "answer to supplemental petition",
+      "modification",
+      "parenting plan",
+      "time-sharing",
+      "child support",
+      "alimony",
+      "family law",
+      "responsive pleading"
+    ],
+    "title": "Answer to Supplemental Petition"
+  },
+  {
+    "form_number": "12.903(c)(2)",
+    "plain_language_summary": "This form is used by a respondent to admit or deny allegations in a petition for dissolution of marriage with property but no dependent or minor children, and to file a counterpetition requesting additional relief from the court. It serves both as an answer and a counterpetition in one document, allowing the respondent to present their own requests.",
+    "situation_tags": [
+      "dissolution of marriage",
+      "divorce",
+      "response to petition",
+      "counterpetition",
+      "no children",
+      "property division",
+      "family law",
+      "uncontested divorce",
+      "contested divorce"
+    ],
+    "title": "ANSWER TO PETITION AND COUNTERPETITION FOR DISSOLUTION OF MARRIAGE WITH PROPERTY BUT NO DEPENDENT OR MINOR CHILD(REN)"
+  },
+  {
+    "form_number": "12.903(c)(3)",
+    "plain_language_summary": "This form is used to respond to a petition for dissolution of marriage when there are no dependent or minor children and no property issues. It includes an answer to admit or deny allegations in the petition, and a counterpetition to ask the court for additional relief, such as restoring a former name. The form is part of the Florida Supreme Court approved family law forms.",
+    "situation_tags": [
+      "dissolution of marriage",
+      "divorce",
+      "answer",
+      "counterpetition",
+      "no children",
+      "no property",
+      "uncontested",
+      "contested",
+      "family law"
+    ],
+    "title": "ANSWER TO PETITION AND COUNTERPETITION FOR DISSOLUTION OF MARRIAGE WITH NO DEPENDENT OR MINOR CHILD(REN) OR PROPERTY"
+  },
+  {
+    "form_number": "12.903(d)",
+    "plain_language_summary": "This form is used by a petitioner to respond to a respondent's counterpetition in a family law case. The petitioner admits or denies the allegations contained in the counterpetition. The form must be signed before a notary or deputy clerk and filed with the court.",
+    "situation_tags": [
+      "family law",
+      "counterpetition",
+      "answer",
+      "petitioner",
+      "respondent"
+    ],
+    "title": "Answer to Counterpetition"
+  },
+  {
+    "form_number": "12.905(a)",
+    "plain_language_summary": "This form is used to ask a court to change an existing order about parental responsibility, visitation, or a parenting plan and time-sharing schedule. The person filing must show that there has been a significant, unexpected change in circumstances and that the change would be best for the child. The form must be signed in front of a notary or deputy clerk and filed in the county where the original order was made.",
+    "situation_tags": [
+      "modification of parenting plan",
+      "parental responsibility modification",
+      "visitation modification",
+      "time-sharing modification",
+      "change of circumstances",
+      "best interest of child",
+      "family law",
+      "supplemental petition"
+    ],
+    "title": "Supplemental Petition to Modify Parental Responsibility, Visitation or Parenting Plan/Time–Sharing Schedule and Other Relief"
+  },
+  {
+    "form_number": "12.905(b)",
+    "plain_language_summary": "This form is used to request a change to an existing court-ordered child support obligation. The petitioner must show that there has been a substantial change in circumstances and that the modification is in the best interests of the children. The form must be filed in the county where the original order was entered and served on the other party according to proper procedures.",
+    "situation_tags": [
+      "modification of child support",
+      "child support",
+      "supplemental petition",
+      "family law",
+      "substantial change",
+      "court order",
+      "parenting",
+      "financial"
+    ],
+    "title": "Supplemental Petition for Modification of Child Support"
+  },
+  {
+    "form_number": "12.905(c)",
+    "plain_language_summary": "This form is used to request a court to change an existing alimony order due to a substantial change in circumstances. It applies to temporary, permanent periodic, durational, and rehabilitative alimony, but not to lump sum or bridge-the-gap alimony. The person filing the form must serve the other party personally and follow court procedures.",
+    "situation_tags": [
+      "modification of alimony",
+      "alimony modification",
+      "family law",
+      "support modification",
+      "change in circumstances",
+      "dissolution of marriage",
+      "spousal support"
+    ],
+    "title": "Supplemental Petition for Modification of Alimony"
+  },
+  {
+    "form_number": "12.911(a)",
+    "plain_language_summary": "This form is used to compel a witness to appear and testify at a family law hearing or trial. It is issued by the clerk of the circuit court and must be signed by both the clerk and the party requesting the subpoena. It also serves to notify other parties of the subpoenaed witnesses as required by Florida family law rules.",
+    "situation_tags": [
+      "family law",
+      "subpoena",
+      "witness",
+      "trial",
+      "hearing",
+      "clerk",
+      "florida"
+    ],
+    "title": "Subpoena for Hearing or Trial (Issued by Clerk)"
+  },
+  {
+    "form_number": "12.911(b)",
+    "plain_language_summary": "This form is a subpoena used by an attorney to require a witness to appear and testify at a family law hearing or trial. It also serves to notify the other parties of the subpoenaed witnesses as required by court rules. The form includes the subpoena commands, date and location, and a certificate of service. It must be served according to Florida law.",
+    "situation_tags": [
+      "family law",
+      "subpoena",
+      "witness",
+      "hearing",
+      "trial",
+      "attorney-issued",
+      "civil procedure"
+    ],
+    "title": "Subpoena for Hearing or Trial (Issued by Attorney)"
+  },
+  {
+    "form_number": "12.911(c)",
+    "plain_language_summary": "This form is a subpoena used in Florida family law cases to require a witness to appear at a hearing or trial and bring specified documents or items. It is issued by the clerk of the circuit court. The party issuing the subpoena must serve it on the witness and give notice to other parties involved.",
+    "situation_tags": [
+      "subpoena",
+      "duces tecum",
+      "hearing",
+      "trial",
+      "witness",
+      "family law",
+      "evidence production"
+    ],
+    "title": "Subpoena Duces Tecum for Hearing or Trial (Issued by Clerk)"
+  },
+  {
+    "form_number": "12.911(d)",
+    "plain_language_summary": "This form is a subpoena duces tecum used in family law cases to require a witness to appear at a hearing or trial and to bring specified documents or items. It is issued by an attorney and must be served on the witness according to Florida law, with notice to other parties. The form also includes a certificate of service.",
+    "situation_tags": [
+      "subpoena duces tecum",
+      "family law",
+      "hearing",
+      "trial",
+      "witness",
+      "document production",
+      "attorney issued subpoena"
+    ],
+    "title": "Subpoena Duces Tecum for Hearing or Trial (Issued by Attorney)"
+  },
+  {
+    "form_number": "12.911(e)",
+    "plain_language_summary": "This form is used to require a witness to appear at a deposition in a Florida family law case. It is issued by the clerk of the circuit court and must be served on the witness and other parties. The form also notifies other parties of the subpoenaed witnesses.",
+    "situation_tags": [
+      "family law",
+      "deposition",
+      "subpoena",
+      "witness",
+      "discovery",
+      "civil procedure"
+    ],
+    "title": "Subpoena for Deposition (Issued by Clerk)"
+  },
+  {
+    "form_number": "12.912(a)",
+    "plain_language_summary": "This form is a memorandum used to request a certificate of military service or non-service from each branch of the United States military. It is typically used in family law cases to determine whether a party is on active duty, which is required under the Servicemembers Civil Relief Act. The form is sent to each military branch to obtain official verification of a person's military status.",
+    "situation_tags": [
+      "family law",
+      "military service",
+      "certificate of military service",
+      "servicemembers civil relief act",
+      "active duty verification",
+      "family law procedure"
+    ],
+    "title": "MEMORANDUM FOR CERTIFICATE OF MILITARY SERVICE (09/16)"
+  },
+  {
+    "form_number": "12.912(b)",
+    "plain_language_summary": "This form is used to provide information about the military service status of a party in a family law case who has not responded. It helps protect the rights of military members by ensuring they have notice before a default judgment is entered. The form must be notarized and filed with the clerk along with verifications of nonmilitary service from each military branch.",
+    "situation_tags": [
+      "family law",
+      "military service",
+      "default judgment",
+      "affidavit",
+      "nonresponse",
+      "service of process",
+      "civil procedure"
+    ],
+    "title": "Affidavit of Military Service"
+  },
+  {
+    "form_number": "12.913(a)(2)",
+    "plain_language_summary": "This form is an affidavit used in family law cases with minor children to document a diligent search for the legal father when constructive service (publication) is needed. It is filed with a Notice of Action to request service by publication in paternity cases that may terminate parental rights. The form includes a checklist of required search efforts.",
+    "situation_tags": [
+      "paternity",
+      "termination of parental rights",
+      "service of process",
+      "constructive service",
+      "diligent search",
+      "family law",
+      "parental rights"
+    ],
+    "title": "Affidavit of Diligent Search"
+  },
+  {
+    "form_number": "12.913(a)(3)",
+    "plain_language_summary": "This form is a notice of action used to obtain constructive service (service by publication or posting) in a stepparent adoption case. It is filed when a person whose consent is required has not executed a consent and their location is unknown. The form helps provide legal notice to that person so the adoption can proceed.",
+    "situation_tags": [
+      "termination of parental rights",
+      "stepparent adoption",
+      "notice of action",
+      "constructive service",
+      "family law",
+      "adoption",
+      "parental consent",
+      "unknown location"
+    ],
+    "title": "Notice of Action for Termination of Parental Rights and Stepparent Adoption"
+  },
+  {
+    "form_number": "12.914",
+    "plain_language_summary": "This form is used to certify that a copy of a document has been provided to the other party in a family law case. It is filed when the document being served does not already include a certificate of service. The form must be signed before a notary public or deputy clerk.",
+    "situation_tags": [
+      "family law",
+      "certificate of service",
+      "service of process",
+      "proof of service",
+      "pro se",
+      "court form"
+    ],
+    "title": "Certificate of Service"
+  },
+  {
+    "form_number": "12.915",
+    "plain_language_summary": "This form is used to inform the court and other parties of a party's current mailing address and e-mail address. It also allows designation of e-mail addresses for electronic service. The completed form must be filed with the clerk and served on other parties in the case.",
+    "situation_tags": [
+      "family law",
+      "designation of address",
+      "mailing address",
+      "e-mail address",
+      "change of address",
+      "service of process",
+      "pro se"
+    ],
+    "title": "DESIGNATION OF CURRENT MAILING AND E-MAIL ADDRESS"
+  },
+  {
+    "form_number": "12.920(a)",
+    "plain_language_summary": "This form is a motion used by a party in a family law case to request that the court refer the case or specific issues to a general magistrate, who is an attorney appointed to take testimony and recommend orders. The purpose is to reduce litigation costs and speed up the case. The form must be filed with the clerk and accompanied by an order of referral for the judge's signature.",
+    "situation_tags": [
+      "family law",
+      "dissolution of marriage",
+      "general magistrate",
+      "motion",
+      "referral",
+      "court procedures"
+    ],
+    "title": "Motion for Referral to General Magistrate"
+  },
+  {
+    "form_number": "12.921",
+    "plain_language_summary": "This form is used to notify the other party of a hearing before a child support enforcement hearing officer. It is typically used when a case involves the establishment, enforcement, or modification of child support. The form requires coordination of the hearing date and time with the hearing officer and the other party.",
+    "situation_tags": [
+      "child support",
+      "family law",
+      "hearing notice",
+      "enforcement",
+      "modification",
+      "hearing officer"
+    ],
+    "title": "Notice of Hearing (Child Support Enforcement Hearing Officer)"
+  },
+  {
+    "form_number": "12.922(a)",
+    "plain_language_summary": "This form is a motion asking the court to enter a default against a party who has failed to file or serve documents within 20 days after service of a petition. It is used in family law cases to move the case forward when the other party does not respond. Once the default is entered, the moving party can schedule a final hearing.",
+    "situation_tags": [
+      "family law",
+      "default",
+      "motion",
+      "failure to respond",
+      "litigation",
+      "procedural"
+    ],
+    "title": "Motion for Default"
+  },
+  {
+    "form_number": "12.922(c)",
+    "plain_language_summary": "This form is used to request a court to vacate a default or default judgment that was entered due to mistake, inadvertence, excusable neglect, newly discovered evidence, or fraud. It is filed in the county where the default was entered and requires a notarized signature. The filer must schedule a hearing after filing and serving the motion.",
+    "situation_tags": [
+      "motion",
+      "set aside default",
+      "set aside default judgment",
+      "default judgment",
+      "excusable neglect",
+      "fraud",
+      "family law",
+      "mistake",
+      "inadvertence",
+      "newly discovered evidence"
+    ],
+    "title": "Motion to Set Aside Default or Default Judgment"
+  },
+  {
+    "form_number": "12.923",
+    "plain_language_summary": "This form is a notice of hearing used in family law cases to inform the opposing party and the court of the date, time, and location of a scheduled court hearing. It is typically filed along with motions that require a hearing to ensure all parties are aware of the proceeding. The form provides essential details for the hearing and complies with Florida family law procedures.",
+    "situation_tags": [
+      "family law",
+      "notice",
+      "hearing",
+      "procedural",
+      "general",
+      "court hearing",
+      "notice of hearing"
+    ],
+    "title": "Notice of Hearing (General)"
+  },
+  {
+    "form_number": "12.927",
+    "plain_language_summary": "This form is used by a petitioner to voluntarily dismiss their case, or by a respondent to dismiss a counterpetition. If both a petition and counterpetition have been filed, one party's dismissal does not dismiss the other party's claim. The form must be filed with the clerk and served on all parties.",
+    "situation_tags": [
+      "family law",
+      "voluntary dismissal",
+      "termination of case",
+      "petitioner",
+      "respondent",
+      "counterpetition",
+      "civil procedure"
+    ],
+    "title": "NOTICE OF VOLUNTARY DISMISSAL"
+  },
+  {
+    "form_number": "12.928",
+    "plain_language_summary": "This form is a cover sheet that must be filed by the petitioner when opening or reopening a family court case. It collects information about the type of action and case for the clerk's reporting of judicial workload data. The form does not replace legal pleadings or other documents required by law.",
+    "situation_tags": [
+      "cover sheet",
+      "family court",
+      "case initiation",
+      "reopening case",
+      "domestic relations",
+      "juvenile",
+      "judicial workload"
+    ],
+    "title": "Cover Sheet for Family Court Cases"
+  },
+  {
+    "form_number": "12.930(b)",
+    "plain_language_summary": "This form tells the court that a party has responded to the other party's request to answer standard family law interrogatories. It identifies whether the answers are for original or enforcement proceedings or for modification proceedings. The form is filed with the clerk, but the actual answers are not filed unless admitted into evidence.",
+    "situation_tags": [
+      "family law",
+      "interrogatories",
+      "discovery",
+      "service of process",
+      "notice",
+      "divorce",
+      "dissolution of marriage"
+    ],
+    "title": "NOTICE OF SERVICE OF ANSWERS TO STANDARD FAMILY LAW INTERROGATORIES"
+  },
+  {
+    "form_number": "12.930(c)",
+    "plain_language_summary": "This form contains a set of standard written questions, called interrogatories, that one party in a family law modification case can send to the other party to obtain information. The questions are meant to supplement the financial affidavit and are used in modification proceedings only. The answering party must respond in writing under oath.",
+    "situation_tags": [
+      "family law",
+      "modification proceedings",
+      "interrogatories",
+      "discovery",
+      "dissolution of marriage modification",
+      "child support modification",
+      "parenting plan modification"
+    ],
+    "title": "Standard Family Law Interrogatories for Modification Proceedings"
+  },
+  {
+    "form_number": "12.940(e)",
+    "plain_language_summary": "This form is a court order used to dissolve a previously entered temporary injunction. It is typically issued after a hearing upon motion of either party in a family law case. The order states that the temporary injunction is no longer in effect.",
+    "situation_tags": [
+      "order dissolving temporary injunction",
+      "injunction dissolution",
+      "family law",
+      "court order",
+      "temporary injunction",
+      "florida family law form",
+      "motion hearing"
+    ],
+    "title": "Order Dissolving Temporary Injunction"
+  },
+  {
+    "form_number": "12.941(a)",
+    "plain_language_summary": "This form is used by a parent in a pending family law case to ask the court for a temporary order preventing the removal of minor children from Florida, prohibiting passport issuance, or requiring surrender of existing passports. The request can be made without notice to the other parent if an emergency exists. The form must be notarized and filed with the clerk of court.",
+    "situation_tags": [
+      "family law",
+      "divorce with kids",
+      "dissolution of marriage with dependent children",
+      "injunction",
+      "child removal",
+      "passport denial",
+      "custody",
+      "time-sharing"
+    ],
+    "title": "Verified Motion for Temporary Injunction to Prevent Removal of Minor Child(ren) and/or Denial of Passport Services"
+  },
+  {
+    "form_number": "12.941(b)",
+    "plain_language_summary": "This form is a court order that temporarily stops a parent from taking a child out of the area or getting a passport for the child. It is issued without giving the other parent advance notice when there is evidence of immediate serious harm. The order includes a date for a court hearing to decide if it should continue.",
+    "situation_tags": [
+      "family law",
+      "temporary injunction",
+      "child removal",
+      "passport denial",
+      "ex parte",
+      "minor children",
+      "child custody"
+    ],
+    "title": "Temporary Injunction to Prevent Removal of Minor Child(ren) and/or Denial of Passport Services (Ex Parte)"
+  },
+  {
+    "form_number": "12.980(m)",
+    "plain_language_summary": "This form is a court order used to extend an existing injunction for protection against domestic violence, repeat violence, dating violence, sexual violence, or stalking. It provides for either an ex parte extension or an extension after notice and hearing, and includes findings and scheduling for a full hearing if needed. The order also addresses court reporting accommodations and notice to parties about appeals.",
+    "situation_tags": [
+      "domestic violence",
+      "repeat violence",
+      "dating violence",
+      "sexual violence",
+      "stalking",
+      "injunction extension",
+      "protection order"
+    ],
+    "title": "Order Extending Injunction for Protection Against Domestic Violence, Repeat Violence, Dating Violence, Sexual Violence, or Stalking"
+  },
+  {
+    "form_number": "12.980(a)",
+    "plain_language_summary": "This form is used by a victim of domestic violence to ask the court for a protective order against the alleged abuser. It requests the court to issue an injunction to stop domestic violence, including physical harm, threats, harassment, stalking, or other abuse. The person seeking protection is the petitioner, and the person being protected against is the respondent.",
+    "situation_tags": [
+      "domestic violence",
+      "injunction for protection",
+      "protective order",
+      "family violence",
+      "abuse",
+      "stalking"
+    ],
+    "title": "Petition for Injunction for Protection Against Domestic Violence"
+  },
+  {
+    "form_number": "12.980(b)",
+    "plain_language_summary": "This form is a court order that schedules a hearing on a petition for an injunction for protection against domestic violence, repeat violence, dating violence, sexual violence, or stalking. It is issued when the court finds no immediate danger requiring a temporary injunction, but will hold a hearing to decide if a final injunction should be granted. The order requires both the petitioner and respondent to appear at the hearing.",
+    "situation_tags": [
+      "domestic violence",
+      "repeat violence",
+      "dating violence",
+      "sexual violence",
+      "stalking",
+      "injunction",
+      "hearing",
+      "court order",
+      "protective order",
+      "family law"
+    ],
+    "title": "Order Setting Hearing on Petition for Injunction for Protection Against Domestic Violence, Repeat Violence, Dating Violence, Sexual Violence, or Stalking without Issuance of an Interim Temporary Injunction"
+  },
+  {
+    "form_number": "12.980(c)(2)",
+    "plain_language_summary": "This form is a temporary court order issued without prior notice to the respondent, providing protection from domestic violence and addressing matters involving minor children. It notifies both parties of a scheduled hearing to determine whether a final injunction should be issued. The order may include provisions for time-sharing and support, and requires parties to bring financial documents if support is alleged.",
+    "situation_tags": [
+      "domestic violence",
+      "temporary injunction",
+      "protection order",
+      "minor children",
+      "family law",
+      "florida",
+      "court form"
+    ],
+    "title": "Temporary Injunction for Protection Against Domestic Violence with Minor Children"
+  },
+  {
+    "form_number": "12.980(d)(1)",
+    "plain_language_summary": "This form is a court order that temporarily protects a person from domestic violence by another person. It is used when there are no minor children involved. The order sets a hearing date for a final decision and includes instructions for both the person seeking protection and the person being restrained.",
+    "situation_tags": [
+      "domestic violence",
+      "temporary injunction",
+      "protection order",
+      "no children",
+      "family law",
+      "injunction",
+      "restraining order"
+    ],
+    "title": "Temporary Injunction for Protection Against Domestic Violence without Minor Children"
+  },
+  {
+    "form_number": "12.980(d)(2)",
+    "plain_language_summary": "This form is a court order issued after a hearing to protect a victim of domestic violence and their minor children. It sets terms such as no contact, exclusive use of the home, and provisions for child custody and parenting time. The injunction remains in effect until a specified date or further order of the court.",
+    "situation_tags": [
+      "domestic violence",
+      "protection order",
+      "injunction",
+      "minor children",
+      "custody",
+      "parenting time",
+      "family law"
+    ],
+    "title": "Final Judgment of Injunction for Protection Against Domestic Violence with Minor Children (After Notice)"
+  },
+  {
+    "form_number": "12.980(e)",
+    "plain_language_summary": "This form is a court order issued after a hearing on a petition for protection against domestic violence when there are no minor children involved. It includes the court's findings, the terms of the injunction, and specifies its duration. The order prohibits the respondent from committing acts of violence, contacting the petitioner, and other specified behaviors.",
+    "situation_tags": [
+      "domestic violence",
+      "injunction for protection",
+      "without minor children",
+      "final judgment",
+      "restraining order",
+      "protection order",
+      "victim protection"
+    ],
+    "title": "Final Judgment of Injunction for Protection Against Domestic Violence without Minor Children (After Notice)"
+  },
+  {
+    "form_number": "12.980(f)",
+    "plain_language_summary": "This form is used by an individual who has been a victim of repeat violence to ask a court for a protective order. The petitioner must describe two incidents of violence, with one occurring within the past six months. The order can prohibit the respondent from committing further violence. The form is not for domestic violence cases involving family or household members.",
+    "situation_tags": [
+      "petition for injunction",
+      "protective order",
+      "repeat violence",
+      "victim",
+      "stalking",
+      "assault",
+      "battery",
+      "sexual assault"
+    ],
+    "title": "Petition for Injunction for Protection Against Repeat Violence"
+  },
+  {
+    "form_number": "12.980(k)",
+    "plain_language_summary": "This form is a court order issued without prior notice to the respondent to provide immediate protection from repeat violence. It schedules a hearing where both parties must appear to determine if a final injunction should be granted. The order is enforceable across state lines under federal law.",
+    "situation_tags": [
+      "repeat violence",
+      "temporary injunction",
+      "protection order",
+      "injunction for protection",
+      "civil order",
+      "no contact",
+      "hearing"
+    ],
+    "title": "TEMPORARY INJUNCTION FOR PROTECTION AGAINST REPEAT VIOLENCE"
+  },
+  {
+    "form_number": "12.980(l)",
+    "plain_language_summary": "This form is used by a victim of dating violence to petition the court for a protective order, known as an injunction, to prevent further violence. It allows the petitioner to seek relief such as no contact and other protections against the respondent. The form is part of Florida family law procedure for dating violence cases.",
+    "situation_tags": [
+      "dating violence",
+      "protective order",
+      "injunction",
+      "domestic violence",
+      "petition",
+      "dating relationship",
+      "victim protection"
+    ],
+    "title": "Petition for Injunction for Protection Against Dating Violence"
+  },
+  {
+    "form_number": "12.980(m)",
+    "plain_language_summary": "This form is a temporary court order issued to protect a person from dating violence. It is granted without giving prior notice to the alleged abuser. The order sets a hearing date for both parties to appear and decide whether a final injunction should be issued. It includes instructions about court reporting and the consequences if either party fails to appear.",
+    "situation_tags": [
+      "dating violence",
+      "temporary injunction",
+      "protection order",
+      "domestic violence",
+      "injunction for protection",
+      "family law",
+      "florida circuit court"
+    ],
+    "title": "Temporary Injunction for Protection Against Dating Violence"
+  },
+  {
+    "form_number": "12.980(n)",
+    "plain_language_summary": "This form is a final judgment issued by a court after a hearing on a petition for protection against dating violence. It includes the court's findings and orders, such as prohibiting contact, establishing terms, and noting penalties for violation. The form is used to provide protection to a victim of dating violence.",
+    "situation_tags": [
+      "dating violence",
+      "injunction for protection",
+      "final judgment",
+      "protection order",
+      "dating violence protection",
+      "court order",
+      "florida family law"
+    ],
+    "title": "12.980(n), Final Judgment of Injunction for Protection Against Dating Violence (After Notice)"
+  },
+  {
+    "form_number": "12.980(p)",
+    "plain_language_summary": "This form is used by a victim of sexual violence, or a parent or legal guardian of a minor child who is a victim, to ask the court for a protective order prohibiting further sexual violence. The petitioner must have reported the incident to law enforcement and be cooperating in any criminal proceedings. It provides information about eligibility and requirements for obtaining the injunction.",
+    "situation_tags": [
+      "injunction for protection",
+      "sexual violence",
+      "protective order",
+      "victim",
+      "petition",
+      "family law",
+      "Florida",
+      "minor child"
+    ],
+    "title": "Petition for Injunction for Protection Against Sexual Violence"
+  },
+  {
+    "form_number": "12.980(q)",
+    "plain_language_summary": "This form is a temporary court order issued to protect a person from sexual violence. It is granted without prior notice to the alleged perpetrator and sets a hearing date to decide whether a final injunction should be issued. The order includes terms of protection and requires both parties to appear at the hearing.",
+    "situation_tags": [
+      "sexual violence",
+      "injunction for protection",
+      "temporary injunction",
+      "protection order",
+      "civil injunction",
+      "sexual assault"
+    ],
+    "title": "Temporary Injunction for Protection Against Sexual Violence"
+  },
+  {
+    "form_number": "12.980(r)",
+    "plain_language_summary": "This form is a court order issued after a hearing on a petition for protection against sexual violence. It states the court's findings and prohibits the respondent from committing acts of violence against the petitioner. The order includes terms, duration, and consequences for violation.",
+    "situation_tags": [
+      "sexual violence",
+      "injunction",
+      "protection order",
+      "domestic violence",
+      "final judgment",
+      "court order",
+      "safety"
+    ],
+    "title": "Final Judgment of Injunction for Protection Against Sexual Violence (After Notice)"
+  },
+  {
+    "form_number": "12.980(t)",
+    "plain_language_summary": "This form is a petition for a victim of stalking to request a court order prohibiting the stalker from further contact. It is filed by the petitioner (victim) against the respondent (stalker) and seeks a protective injunction. The form includes instructions for filing and what happens if granted.",
+    "situation_tags": [
+      "stalking",
+      "protective order",
+      "injunction",
+      "cyberstalking",
+      "victim",
+      "petitioner",
+      "respondent"
+    ],
+    "title": "PETITION FOR INJUNCTION FOR PROTECTION AGAINST STALKING"
+  },
+  {
+    "form_number": "12.980(u)",
+    "plain_language_summary": "This form is a temporary injunction issued by the court to protect a person from stalking. It sets a hearing date for the court to decide whether to issue a final injunction. The form includes the terms of protection and notices to both parties.",
+    "situation_tags": [
+      "stalking",
+      "temporary injunction",
+      "protection order",
+      "injunction against stalking",
+      "court hearing",
+      "safety"
+    ],
+    "title": "Temporary Injunction for Protection Against Stalking"
+  },
+  {
+    "form_number": "12.982(a)",
+    "plain_language_summary": "This form is used by an adult to ask a Florida circuit court to legally change his or her name. It is not for name changes related to divorce or adoption. The form requires the petitioner to undergo a criminal background check unless restoring a former name.",
+    "situation_tags": [
+      "name change",
+      "adult",
+      "legal name change",
+      "petition",
+      "circuit court",
+      "family law",
+      "non-divorce"
+    ],
+    "title": "Petition for Change of Name (Adult)"
+  },
+  {
+    "form_number": "12.995(a)",
+    "plain_language_summary": "This is a Florida Supreme Court approved form for creating a Parenting Plan in family law cases involving minor children. The form outlines time-sharing schedules, parental responsibilities, and other arrangements for the children. It must be completed and agreed upon by both parents and approved by the court.",
+    "situation_tags": [
+      "parenting plan",
+      "time-sharing",
+      "minor children",
+      "family law",
+      "dissolution of marriage",
+      "paternity",
+      "parental responsibility"
+    ],
+    "title": "Parenting Plan"
+  },
+  {
+    "form_number": "12.932",
+    "plain_language_summary": "This form is a certificate filed with the court to confirm that a party has provided the required financial disclosures to the other party in a family law case. It lists the documents that must be exchanged, such as financial affidavits and tax returns, and is used in most family law proceedings except simplified dissolution or when service is by publication.",
+    "situation_tags": [
+      "mandatory disclosure",
+      "family law",
+      "discovery",
+      "financial disclosure",
+      "procedural compliance",
+      "certificate"
+    ],
+    "title": "Certificate of Compliance with Mandatory Disclosure"
+  },
+  {
+    "form_number": "circuits/circuit10/AcceptanceOfServiceForm",
+    "plain_language_summary": "This form is used by a respondent in a court case to acknowledge receipt of court documents and waive the right to be formally served by a sheriff or process server. It allows the respondent to indicate whether they agree or disagree with the petition. The form includes a notary acknowledgment section.",
+    "situation_tags": [
+      "waiver of service",
+      "acceptance of service",
+      "pro se",
+      "civil procedure",
+      "circuit court",
+      "family law"
+    ],
+    "title": "WAIVER AND ACCEPTANCE OF SERVICE"
+  },
+  {
+    "form_number": "circuits/circuit10/MotionForIWO",
+    "plain_language_summary": "This form is a motion for a party to request that the court issue an income withholding order. It allows the court to order deductions from the respondent's income for child support, alimony, or arrears. The petitioner must provide details of the support order and the respondent's employer.",
+    "situation_tags": [
+      "motion",
+      "income withholding order",
+      "child support",
+      "alimony",
+      "arrears",
+      "payroll deduction",
+      "family law"
+    ],
+    "title": "MOTION FOR ENTRY OF INCOME WITHHOLDING ORDER"
+  },
+  {
+    "form_number": "circuits/circuit10/NoticeOfLimitationOfServicesProvided",
+    "plain_language_summary": "This form is a notice for individuals using a self-help program in a family court case. It explains that self-help personnel are not lawyers and cannot provide legal advice, and that information shared is not confidential. The form includes an acknowledgment section for the person to indicate if they can read English or need the notice read to them.",
+    "situation_tags": [
+      "self-help program",
+      "limitation of services",
+      "legal advice",
+      "family court",
+      "notice",
+      "acknowledgment",
+      "pro se"
+    ],
+    "title": "NOTICE OF LIMITATION OF SERVICES PROVIDED"
+  },
+  {
+    "form_number": "12.980(a)",
+    "plain_language_summary": "This form is used by a victim of domestic violence or someone who believes they are in imminent danger to request a court-issued protective order against the abuser. The petitioner provides details about the abuse and reasons for seeking protection. The court considers factors such as history of abuse, threats, and prior protective orders when deciding whether to grant the injunction.",
+    "situation_tags": [
+      "domestic violence",
+      "injunction for protection",
+      "restraining order",
+      "victim",
+      "family law",
+      "courts",
+      "petition"
+    ],
+    "title": "PETITION FOR INJUNCTION FOR PROTECTION AGAINST DOMESTIC VIOLENCE"
+  },
+  {
+    "form_number": "circuits/circuit19/980c2",
+    "plain_language_summary": "This is a temporary court order issued without prior notice to the respondent, protecting a petitioner from domestic violence. It includes a notice of hearing for a final injunction and sets forth temporary terms such as no contact. It is used when there are no minor children involved.",
+    "situation_tags": [
+      "domestic violence",
+      "temporary injunction",
+      "protection order",
+      "no children",
+      "civil",
+      "court order"
+    ],
+    "title": "Temporary Injunction for Protection Against Domestic Violence without Minor Children"
+  },
+  {
+    "form_number": "circuits/circuit19/980g",
+    "plain_language_summary": "This form is a supplemental affidavit for use when a petition for an injunction for protection against domestic, repeat, dating, or sexual violence, or stalking has been denied. It allows the petitioner to add new facts or clarify existing facts to support their request for protection. The form is part of the Florida Supreme Court Approved Family Law Forms.",
+    "situation_tags": [
+      "domestic violence",
+      "repeat violence",
+      "dating violence",
+      "sexual violence",
+      "stalking",
+      "injunction",
+      "affidavit",
+      "supplemental"
+    ],
+    "title": "Supplemental Affidavit in Support of Petition for Injunction for Protection Against Domestic, Repeat, Dating, or Sexual Violence, or Stalking"
+  },
+  {
+    "form_number": "circuits/circuit19/980i",
+    "plain_language_summary": "This form is used by a petitioner to request an extension of an existing injunction for protection against domestic violence, repeat violence, dating violence, sexual violence, or stalking. It must be filed before the current injunction expires. The petitioner must set a hearing and notify the other party.",
+    "situation_tags": [
+      "domestic violence",
+      "injunction extension",
+      "petitioner",
+      "violence protection",
+      "stalking",
+      "dating violence",
+      "repeat violence",
+      "sexual violence"
+    ],
+    "title": "Motion for Extension of Injunction for Protection Against Domestic, Repeat, Dating, or Sexual Violence; or Stalking"
+  },
+  {
+    "form_number": "circuits/circuit19/980j",
+    "plain_language_summary": "This form is used by a party to an existing injunction for protection to request the court to modify the terms of that injunction. The party seeking modification is called the moving party. A hearing is required for the court to consider the motion.",
+    "situation_tags": [
+      "injunction modification",
+      "domestic violence",
+      "repeat violence",
+      "dating violence",
+      "sexual violence",
+      "stalking",
+      "protection order"
+    ],
+    "title": "Motion for Modification of Injunction for Protection Against Domestic, Repeat, Dating or Sexual Violence, or Stalking"
+  },
+  {
+    "form_number": "12.980(k)",
+    "plain_language_summary": "This form is a court order temporarily protecting a person from repeat violence. It is issued without notice to the alleged perpetrator and schedules a hearing to decide whether a final injunction should be granted. Both the petitioner and respondent must appear in court on the scheduled date.",
+    "situation_tags": [
+      "repeat violence",
+      "temporary injunction",
+      "protection order",
+      "civil injunction",
+      "family law",
+      "petitioner",
+      "respondent"
+    ],
+    "title": "Temporary Injunction for Protection Against Repeat Violence"
+  },
+  {
+    "form_number": "circuits/circuit19/980n_208.28",
+    "plain_language_summary": "This form is used by a victim of dating violence to ask the court for a protective order. Dating violence includes assault, battery, stalking, and similar acts between individuals in a romantic or intimate relationship. The petitioner must have reasonable cause to believe they are in imminent danger. The form also provides for filing on behalf of a minor child.",
+    "situation_tags": [
+      "dating violence",
+      "protective order",
+      "injunction",
+      "petition",
+      "domestic violence",
+      "victim"
+    ],
+    "title": "Petition for Injunction for Protection Against Dating Violence"
+  },
+  {
+    "form_number": "12.980(o)",
+    "plain_language_summary": "This form is a temporary injunction issued by a Florida court to protect a petitioner from dating violence. It prohibits the respondent from committing acts of violence, contacting the petitioner, or approaching the petitioner's residence or workplace. The form sets a hearing date to determine whether a final injunction should be issued.",
+    "situation_tags": [
+      "dating violence",
+      "temporary injunction",
+      "domestic violence",
+      "protection order",
+      "family law",
+      "court order"
+    ],
+    "title": "Temporary Injunction for Protection Against Dating Violence"
+  },
+  {
+    "form_number": "12.980(q)",
+    "plain_language_summary": "This form is used by a victim of sexual violence or a parent/legal guardian of a minor child who is a victim to request a court order prohibiting further sexual violence. The petitioner must have reported the incident to law enforcement and be cooperating in any criminal proceeding. The injunction seeks to protect the petitioner from the respondent, who may be out of prison or about to be released.",
+    "situation_tags": [
+      "sexual violence",
+      "injunction for protection",
+      "protective order",
+      "victim",
+      "respondent",
+      "sexual battery",
+      "minor child"
+    ],
+    "title": "Petition for Injunction for Protection Against Sexual Violence"
+  },
+  {
+    "form_number": "12.980(r)",
+    "plain_language_summary": "This form is a court order that temporarily protects a person (petitioner) from sexual violence by another person (respondent). It is issued without prior notice to the respondent and schedules a hearing to decide whether a final injunction should be granted. The order is intended to be enforceable in other states under federal law.",
+    "situation_tags": [
+      "sexual violence",
+      "temporary injunction",
+      "protection order",
+      "domestic violence",
+      "injunction for protection",
+      "family law",
+      "Florida"
+    ],
+    "title": "Temporary Injunction for Protection Against Sexual Violence"
+  },
+  {
+    "form_number": "circuits/circuit5/addendum-to-petition",
+    "plain_language_summary": "This form is an addendum to a petition or complaint, used to provide additional identifying information about the petitioner and respondent, such as aliases, date of birth, physical description, addresses, phone numbers, and employer details. It supplements the initial petition in family or civil cases.",
+    "situation_tags": [
+      "petition",
+      "complaint",
+      "addendum",
+      "party information",
+      "court form",
+      "florida"
+    ],
+    "title": "ADDENDUM TO PETITION/COMPLAINT"
+  },
+  {
+    "form_number": "circuits/circuit5/designation-of-current-mailing-or-email-address-sept.-23-fillable",
+    "plain_language_summary": "This form is used to inform the court and the other party of a person's current mailing and email address(es), or any change of address. It allows the designation of a primary email address and up to two secondary email addresses for service of documents. Parties not represented by an attorney are required to designate a primary email address for service unless excused.",
+    "situation_tags": [
+      "change of address",
+      "mailing address",
+      "email address",
+      "service of documents",
+      "family law",
+      "pro se litigant",
+      "court notification"
+    ],
+    "title": "DESIGNATION OF CURRENT MAILING AND E-MAIL ADDRESS"
+  },
+  {
+    "form_number": "circuits/circuit5/motion-for-income-withholding-order",
+    "plain_language_summary": "This form is a motion filed by a party asking the court to order income withholding from an obligor's wages because the obligor has failed to pay child support or alimony on time and owes past due support. It includes a certificate of service and a sworn statement under oath. The motion is used in the Fifth Judicial Circuit of Florida.",
+    "situation_tags": [
+      "motion",
+      "income withholding",
+      "income deduction",
+      "child support enforcement",
+      "alimony enforcement",
+      "past due support",
+      "circuit court"
+    ],
+    "title": "MOTION FOR INCOME DEDUCTION/INCOME WITHHOLDING ORDER"
+  },
+  {
+    "form_number": "circuits/circuit5/motion-for-order-setting-final-hearingnon-jury-trial",
+    "plain_language_summary": "This form is a motion used in family law cases to ask the court to schedule a final hearing or non-jury trial. It is filed by a party (petitioner or respondent) and indicates whether the case is uncontested or contested, along with the estimated time needed for the hearing. The motion includes a certificate of service and requires the filer to swear to the truth of the statements.",
+    "situation_tags": [
+      "family law",
+      "motion",
+      "final hearing",
+      "non-jury trial",
+      "setting hearing",
+      "circuit court",
+      "Florida"
+    ],
+    "title": "MOTION FOR ORDER SETTING FINAL HEARING / NON-JURY TRIAL"
+  },
+  {
+    "form_number": "circuits/circuit5/motion-for-telephonic-appearance-at-mediation",
+    "plain_language_summary": "This form is a motion used by a party in a Florida circuit court case to request permission to attend a scheduled mediation conference by telephone instead of in person. It requires the party to indicate whether other parties agree and to state the reason for the request. The form also includes a certificate of service and an acknowledgment of the consequences of failure to appear.",
+    "situation_tags": [
+      "mediation",
+      "telephonic appearance",
+      "motion",
+      "civil procedure",
+      "florida circuit court",
+      "dispute resolution",
+      "court form"
+    ],
+    "title": "Motion for Telephonic Appearance at Mediation"
+  },
+  {
+    "form_number": "circuits/circuit5/motion-for-telephonic-appearance",
+    "plain_language_summary": "This form is a motion for a party to request permission to appear and testify by telephone at a scheduled hearing or conference in the Fifth Judicial Circuit of Florida. The party must indicate the type of hearing, certify whether all parties agree to the telephonic appearance, and state the reason for being unable to attend in person. If the motion is granted, the party agrees to call the court at the permitted time.",
+    "situation_tags": [
+      "motion",
+      "telephonic appearance",
+      "hearing",
+      "court appearance",
+      "florida circuit court",
+      "civil procedure",
+      "pro se"
+    ],
+    "title": "Motion for Telephonic Appearance"
+  },
+  {
+    "form_number": "circuits/circuit5/motion-to-contest-drivers-license-suspension-revocation",
+    "plain_language_summary": "This form is used by a parent to ask the court to stop or reverse the suspension or revocation of their driver's license and vehicle registration, typically related to child support enforcement. The parent must explain why they could not pay support and why their license should not be suspended or revoked. The form includes a request for a court order and a certificate of service.",
+    "situation_tags": [
+      "child support",
+      "driver's license suspension",
+      "motion to contest",
+      "family law",
+      "parenting",
+      "court order"
+    ],
+    "title": "MOTION TO CONTEST DRIVERS LICENSE SUSPENSION/REVOCATION"
+  },
+  {
+    "form_number": "circuits/circuit5/mtn-to-contest-cs-delinq-admin-packet",
+    "plain_language_summary": "This form is used to inform the court and other parties of the filer's current mailing and email addresses, or to update them if they change. It also allows a self-represented party to designate email addresses for receiving service of documents electronically. Filing this form ensures that the court and other parties have correct contact information for the case.",
+    "situation_tags": [
+      "general",
+      "address change",
+      "family law",
+      "pro se",
+      "service of process",
+      "email designation"
+    ],
+    "title": "Designation of Current Mailing and E-mail Address"
+  },
+  {
+    "form_number": "circuits/circuit5/pet-enforce-admin-cs-ord-packet",
+    "plain_language_summary": "This form is used to inform the court and other parties of a party's current mailing and e-mail address(es) or any change of address. It allows a self-represented party to designate e-mail addresses for service, making e-mail the exclusive means of service if both parties agree. The form must be filed with the clerk and served on other parties in the case.",
+    "situation_tags": [
+      "address change",
+      "mailing address",
+      "e-mail address",
+      "service of documents",
+      "family law",
+      "pro se",
+      "court form",
+      "notification"
+    ],
+    "title": "Designation of Current Mailing and E-mail Address"
+  },
+  {
+    "form_number": "12.932",
+    "plain_language_summary": "This form is used to notify the court and the other party that a party has provided the required financial information and documents in a dissolution of marriage case. It must be served within 45 days of service of the petition. The form certifies compliance with mandatory disclosure rules for both initial and temporary financial proceedings.",
+    "situation_tags": [
+      "divorce",
+      "dissolution of marriage",
+      "mandatory disclosure",
+      "financial disclosure",
+      "family law",
+      "court form",
+      "certificate of compliance"
+    ],
+    "title": "Certificate of Compliance with Mandatory Disclosure"
+  },
+  {
+    "form_number": "12.915",
+    "plain_language_summary": "This form is used to inform the court and other parties of a person's current mailing and e-mail addresses or any change of address. It allows a party not represented by an attorney to designate e-mail addresses for service. The form must be filed with the clerk and served on other parties in the case.",
+    "situation_tags": [
+      "family law",
+      "change of address",
+      "mailing address",
+      "e-mail address",
+      "service of process",
+      "self-represented litigant",
+      "Florida"
+    ],
+    "title": "Designation of Current Mailing and E-mail Address"
+  },
+  {
+    "form_number": "circuits/circuit5/pet-to-contest-ntc-intent-to-susp-dl-for-nonpymnt-packet",
+    "plain_language_summary": "This form is used to inform the court and other parties of a person's current mailing and e-mail addresses. It is also used to notify the court of any change of address during a family law case. The form allows a party to designate e-mail addresses for service of documents.",
+    "situation_tags": [
+      "family law",
+      "change of address",
+      "mailing address",
+      "email address",
+      "service of documents",
+      "designation of address"
+    ],
+    "title": "Designation of Current Mailing and E-mail Address (12.915)"
+  },
+  {
+    "form_number": "circuits/circuit5/petition-for-parenting-plan-with-time-sharing-schedule-and-support-unconnected-with-dissolution-of-marriage",
+    "plain_language_summary": "This form is a petition used to request a court order for parental responsibility, a time-sharing schedule, child support, and alimony when spouses are separated but have not filed for dissolution of marriage. It does not address property or debts. The petition is intended to establish a parenting plan and financial support for minor children and possibly spousal support.",
+    "situation_tags": [
+      "parenting plan",
+      "time-sharing schedule",
+      "child support",
+      "alimony",
+      "separation",
+      "family law petition",
+      "dependent children"
+    ],
+    "title": "Petition for Parenting Plan with Time-Sharing Schedule and Support Unconnected with Dissolution of Marriage"
+  },
+  {
+    "form_number": "circuits/circuit5/petition-to-establish-parenting-plan-with-time-sharing-schedule-with-minor-children-of-parents-who-were",
+    "plain_language_summary": "This form is a petition for a parent who was never married to the other parent to establish a parenting plan and time-sharing schedule for their minor child. It is used when paternity has already been established. The petitioner must submit this form along with other required documents to the circuit court.",
+    "situation_tags": [
+      "unmarried parents",
+      "parenting plan",
+      "time-sharing schedule",
+      "child custody",
+      "paternity established",
+      "family law",
+      "minor children"
+    ],
+    "title": "Petition to Establish Parenting Plan with Time-Sharing Schedule with Minor Child(ren) of Parents Who Were Never Married"
+  },
+  {
+    "form_number": "circuits/circuit5/pretrial-statement-dissolution-of-marriage-actions-involving-parenting-issues",
+    "plain_language_summary": "This form is a pretrial statement used in dissolution of marriage cases that involve parenting issues. It requires the parties to provide information about themselves, their income, children, proposed time-sharing schedule, child support, alimony, real estate, personal property, debts, and other relevant matters. The form helps organize issues for trial preparation.",
+    "situation_tags": [
+      "dissolution of marriage",
+      "divorce",
+      "parenting issues",
+      "pretrial statement",
+      "child support",
+      "parenting plan",
+      "family law",
+      "circuit court"
+    ],
+    "title": "Pretrial Statement Dissolution of Marriage (Actions Involving Parenting Issues)"
+  },
+  {
+    "form_number": "circuits/circuit5/pretrial-statement-dissolution-of-marriage-without-childrens-issues",
+    "plain_language_summary": "This form is a pretrial statement used in the Fifth Judicial Circuit of Florida for dissolution of marriage cases that do not involve children. It collects information about the parties, income, real and personal property, debts, and alimony issues. The form helps organize the issues that need to be resolved at trial, including property division and alimony.",
+    "situation_tags": [
+      "divorce without children",
+      "dissolution of marriage",
+      "pretrial statement",
+      "family law",
+      "property division",
+      "alimony",
+      "financial affidavit",
+      "circuit court"
+    ],
+    "title": "PRETRIAL STATEMENT DISSOLUTION OF MARRIAGE (WITHOUT CHILDREN'S ISSUES)"
+  },
+  {
+    "form_number": "circuits/circuit5/waiver-of-service-of-process",
+    "plain_language_summary": "This form is used by a respondent in a lawsuit to waive formal service of process, agreeing to accept service by mail. It acknowledges receipt of the complaint or petition and confirms that the respondent will not require personal service. The form also reminds the respondent of the obligation to file a written response within 20 days and to keep the court informed of their current address.",
+    "situation_tags": [
+      "waiver of service of process",
+      "civil litigation",
+      "family law",
+      "circuit court",
+      "respondent",
+      "florida"
+    ],
+    "title": "WAIVER OF SERVICE OF PROCESS"
+  },
+  {
+    "form_number": "12.941(c)",
+    "plain_language_summary": "This form is a court order that temporarily prohibits the removal of minor children from the court's jurisdiction and/or restricts passport services for those children. It may also require the surrender of existing passports. It is used in family law proceedings to prevent child abduction.",
+    "situation_tags": [
+      "family law",
+      "child custody",
+      "temporary injunction",
+      "removal of children",
+      "passport services",
+      "child abduction prevention",
+      "dissolution of marriage",
+      "minors"
+    ],
+    "title": "Temporary Injunction to Prevent Removal of Minor Child(ren) and/or Denial of Passport Services (After Notice)"
+  },
+  {
+    "form_number": "eviction_collier_tenant_packet",
+    "plain_language_summary": "This packet contains forms for a landlord to evict a residential tenant for non-payment of rent in Collier County, Florida. It includes a complaint for eviction, summons, default judgment, and writ of possession. The packet also outlines the steps and fees for filing an eviction case.",
+    "situation_tags": [
+      "eviction",
+      "landlord-tenant",
+      "non-payment of rent",
+      "residential eviction",
+      "Florida law",
+      "Collier County",
+      "pro se landlord"
+    ],
+    "title": "Eviction Collier Tenant Packet"
+  },
+  {
+    "form_number": "eviction_form1_notice_pay_rent",
+    "plain_language_summary": "This form is a written notice from a landlord to a tenant demanding payment of overdue rent or possession of the premises. It serves as a prerequisite to filing an eviction action for nonpayment of rent. The notice gives the tenant a deadline of three days (excluding weekends and holidays) to pay the rent or vacate.",
+    "situation_tags": [
+      "eviction",
+      "notice to pay rent",
+      "termination of lease",
+      "landlord",
+      "tenant",
+      "nonpayment of rent",
+      "florida",
+      "landlord tenant dispute"
+    ],
+    "title": "NOTICE FROM LANDLORD TO TENANT--TERMINATION"
+  },
+  {
+    "form_number": "eviction_form2_notice_noncompliance",
+    "plain_language_summary": "This form is a written notice from a landlord to a tenant that the tenant has violated a term of the rental agreement or a statutory obligation (other than failing to pay rent). It demands that the tenant fix the violation within seven days or the lease will be terminated. The form also warns that if the same or similar violation occurs within twelve months, the tenant may be evicted without an opportunity to cure.",
+    "situation_tags": [
+      "eviction",
+      "landlord",
+      "tenant",
+      "noncompliance",
+      "rental agreement",
+      "notice to cure",
+      "florida",
+      "residential lease"
+    ],
+    "title": "Notice from Landlord to Tenant of Noncompliance for Matters Other than Failure to Pay Rent"
+  },
+  {
+    "form_number": "eviction_form3_tenant_terminate",
+    "plain_language_summary": "This form is used by a tenant to notify a landlord that the tenant is terminating the rental agreement because the landlord has failed to maintain the premises as required by Florida law or the lease. It outlines the landlord's obligations under Florida Statute 83.51 and the tenant's right to terminate after giving notice. The tenant must ensure the alleged violations actually exist before sending this notice.",
+    "situation_tags": [
+      "eviction",
+      "rental agreement",
+      "termination",
+      "tenant notice",
+      "landlord obligations",
+      "maintenance",
+      "Florida law",
+      "residential lease"
+    ],
+    "title": "Notice from Tenant to Landlord - Termination for Failure of Landlord to Maintain Premises as Required by Florida Statute 83.51(1) or Material Provisions of the Rental Agreement"
+  },
+  {
+    "form_number": "eviction_form4_withhold_rent",
+    "plain_language_summary": "This form is a notice from a tenant to a landlord informing the landlord of non-compliance with maintenance obligations under Florida Statute 83.51(1) or the rental agreement. The tenant gives the landlord a seven-day opportunity to cure the violation before withholding rent or terminating the lease. It is a prerequisite for exercising the right to withhold rent or vacate due to untenantable conditions.",
+    "situation_tags": [
+      "eviction",
+      "tenant",
+      "landlord",
+      "rent withholding",
+      "maintenance",
+      "non-compliance",
+      "Florida statute 83.51",
+      "rental agreement"
+    ],
+    "title": "NOTICE FROM TENANT TO LANDLORD--WITHHOLDING RENT FOR FAILURE OF LANDLORD TO MAINTAIN PREMISES AS REQUIRED BY FLORIDA STATUTE 83.51(1) OR MATERIAL PROVISIONS OF THE RENTAL AGREEMENT"
+  },
+  {
+    "form_number": "eviction_form5_complaint_evict",
+    "plain_language_summary": "This form is used by a landlord to file a complaint to evict a tenant from rental property in Florida. The landlord alleges that the tenant failed to pay rent and did not comply with a notice to pay or vacate. The form requests a judgment for possession of the property.",
+    "situation_tags": [
+      "eviction",
+      "landlord-tenant",
+      "residential eviction",
+      "nonpayment of rent",
+      "possession",
+      "florida eviction form"
+    ],
+    "title": "COMPLAINT FOR LANDLORD TO EVICT TENANTS"
+  },
+  {
+    "form_number": "eviction_form5a_complaint_damages",
+    "plain_language_summary": "This form is used by a landlord to evict a tenant for failure to pay rent and to recover past due rent. It contains two counts: one for eviction of the tenant and one for monetary damages for unpaid rent. The form includes sections for describing the rental property, the lease agreement, the notice given to the tenant, and the amount owed.",
+    "situation_tags": [
+      "eviction",
+      "landlord",
+      "tenant",
+      "failure to pay rent",
+      "past due rent",
+      "damages",
+      "residential eviction",
+      "county court"
+    ],
+    "title": "COMPLAINT FOR LANDLORD TO EVICT TENANTS FOR FAILURE TO PAY RENT AND TO RECOVER PAST DUE RENT"
+  },
+  {
+    "form_number": "eviction_form6_complaint_noncomply",
+    "plain_language_summary": "This form is a complaint used by a landlord to initiate an eviction lawsuit against a tenant who has violated the rental agreement in a way other than failing to pay rent. It includes details of the property, the violation notice, and a demand for possession of the property. The form must be filed in the county court where the rental property is located.",
+    "situation_tags": [
+      "eviction",
+      "landlord",
+      "tenant",
+      "rental agreement violation",
+      "non-monetary breach",
+      "county court",
+      "complaint"
+    ],
+    "title": "Complaint for Landlord to Evict Tenants for Failure to Comply with Rental Agreement (Other Than Failure to Pay Rent)"
+  },
+  {
+    "form_number": "probate_further_admin_justia",
+    "plain_language_summary": "This form is used to request the court to reopen a previously closed estate for further administration when additional actions are necessary. It is filed by a person with an interest in the estate, such as a beneficiary or creditor, to address matters that were not completed during the original probate process.",
+    "situation_tags": [
+      "probate",
+      "estate administration",
+      "further administration",
+      "reopen estate",
+      "probate court",
+      "florida"
+    ],
+    "title": "PETITION FOR FURTHER ADMINISTRATION"
+  },
+  {
+    "form_number": "probate_summary_admin_c5",
+    "plain_language_summary": "This form is a petition for summary administration of an estate when the deceased person left a will. It collects information about the decedent, beneficiaries, and assets, and explains why summary administration is appropriate. The form is filed in the circuit court in the county where the decedent was domiciled.",
+    "situation_tags": [
+      "probate",
+      "estate administration",
+      "summary administration",
+      "will",
+      "testate",
+      "deceased",
+      "beneficiaries"
+    ],
+    "title": "Petition for Summary Administration with Will (Testate)"
+  },
+  {
+    "form_number": "probate_summary_admin_flcourts",
+    "plain_language_summary": "This form is a petition to the circuit court requesting summary administration of a deceased person's estate when the decedent left a will. It is used when the estate value is under $75,000 or the decedent has been dead for more than two years. The petitioner lists all beneficiaries, assets, and creditor information. The form must be filed to initiate the summary administration process.",
+    "situation_tags": [
+      "probate",
+      "estate administration",
+      "summary administration",
+      "testate estate",
+      "Florida probate",
+      "petition",
+      "will"
+    ],
+    "title": "Petition for Summary Administration (Testate)"
+  },
+  {
+    "form_number": "probate_summary_admin_will",
+    "plain_language_summary": "This form is a petition filed by a person with an interest in a deceased person's estate to request summary administration when the deceased left a will. It requires details about the deceased, beneficiaries, assets, and the will. It is used when the estate qualifies for summary administration under Florida law.",
+    "situation_tags": [
+      "probate",
+      "summary administration",
+      "will",
+      "estate",
+      "testate",
+      "florida",
+      "small estate",
+      "deceased"
+    ],
+    "title": "PETITION FOR SUMMARY ADMINISTRATION WITH WILL (TESTATE)"
+  }
+]
