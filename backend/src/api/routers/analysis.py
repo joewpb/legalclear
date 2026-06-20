@@ -79,33 +79,21 @@ async def analyze_stream(
     document_id: str,
     db: DatabaseManager = Depends(lambda: DatabaseManager())
 ):
-    """Streaming analysis endpoint — returns SSE chunks."""
-    try:
-        doc = await db.get_document(document_id)
+    doc = await db.get_document(document_id)
+
+    async def generate():
         if not doc:
-            yield f"data: {{'error': true, 'message': 'Document not found'}}\n\n"
+            yield "data: {\"error\": true, \"message\": \"Document not found\"}\n\n"
             return
+        async for chunk in explainer.explain_stream(doc.get("analysis_text", "")):
+            yield chunk
 
-        analysis_text = doc.get("analysis_text", "")
-
-        # Stream the explanation
-        async def generate():
-            async for chunk in explainer.explain_stream(analysis_text):
-                yield chunk
-
-        return StreamingResponse(
-            generate(),
-            media_type="text/event-stream",
-            headers={
-                "Cache-Control": "no-cache",
-                "Connection": "keep-alive",
-                "X-Accel-Buffering": "no"
-            }
-        )
-
-    except Exception as e:
-        logger.error(f"Stream analysis error: {e}")
-        error_msg = f"{{'error': true, 'message': '{str(e)}'}}"
-        async def error_gen():
-            yield f"data: {error_msg}\n\n"
-        return StreamingResponse(error_gen(), media_type="text/event-stream")
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        },
+    )
