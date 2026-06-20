@@ -1,3 +1,4 @@
+import asyncio
 import fitz
 import os
 
@@ -18,6 +19,7 @@ class PDFParser:
         }
 
     def extract_from_bytes(self, file_bytes: bytes) -> dict:
+        """Synchronous extraction — internal worker for executor."""
         doc = fitz.open(stream=file_bytes, filetype="pdf")
         pages = [page.get_text() for page in doc]
         raw_text = "\n".join(pages)
@@ -25,9 +27,12 @@ class PDFParser:
             "raw_text": raw_text,
             "pages": pages,
             "page_count": len(pages),
-            "file_size_kb": round(len(file_bytes) / 1024, 2),
             "extraction_method": "pdf"
         }
 
-    def estimate_token_count(self, text: str) -> int:
-        return int(len(text.split()) * 1.3)
+    async def extract_from_bytes_async(self, file_bytes: bytes) -> dict:
+        """Async wrapper — runs sync extraction off the event loop."""
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None, self.extract_from_bytes, file_bytes
+        )
