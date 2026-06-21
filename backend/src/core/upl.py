@@ -297,3 +297,16 @@ def audit_output_for_upl(text: str) -> list[str]:
         if phrase in text_lower:
             found.append(phrase)
     return found
+
+
+def apply_upl_guardrails(text: str, lang: str = "en") -> str:
+    """Apply UPL guardrails to analysis text.
+
+    Scans for phrases that may constitute legal advice and appends
+    the standard disclaimer. Returns the safe text.
+    """
+    flagged = audit_output_for_upl(text)
+    if flagged:
+        disclaimer = get_disclaimer("standard", lang)
+        return f"{text}\n\n⚠️ {disclaimer}"
+    return text
