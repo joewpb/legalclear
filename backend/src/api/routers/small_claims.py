@@ -1,24 +1,43 @@
-"""Small Claims FL router — Phase 16, wired to PacketBuilder in Phase 23.
+"""Small Claims FL router — Phase 16 (filing wizard) + Module 1 (explainer).
 
-Source: phases/source/PHASE_16_small_claims.md + PHASE_23_packet_builder.md.
+Source: phases/source/PHASE_16_small_claims.md + PHASE_23_packet_builder.md
+       + v3 Module 1 (small claims streaming explainer).
 
 Path note: source spec puts this at backend/src/api/routes/small_claims.py,
 but the repo's backend/src/api/routes.py is a file (Phase 10 divergence).
 Routers live in backend/src/api/routers/ instead. HTTP endpoint is
-identical — /api/small-claims/generate — set by the router prefix.
+identical — /api/small-claims/… — set by the router prefix.
 
 Phase 23 wiring: /generate now returns a packet_id + Stripe checkout URL
 instead of the prior scaffold JSON. The frontend ReviewStep navigates to
 /filing-packet/:packetId on receiving the response.
+
+Module 1 wiring: /explain streams a plain-English small-claims explanation
+via SSE from claude-sonnet-4-6.  The intake router feeds it entities from
+the user's situation description.
 """
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+
 from typing import Optional
 
+from fastapi import APIRouter, Body, HTTPException
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel, Field
+
+from src.agents.small_claims import SmallClaimsExplainer
 from src.api.routers.packet import build_packet_with_checkout
 from src.services.packet_builder import PacketRequest
 
 router = APIRouter(prefix="/api/small-claims")
+
+# ---------------------------------------------------------------------------
+# Singletons
+# ---------------------------------------------------------------------------
+
+_explainer = SmallClaimsExplainer()
+
+# ---------------------------------------------------------------------------
+# Phase 16 — Filing wizard (existing)
+# ---------------------------------------------------------------------------
 
 
 class SmallClaimsRequest(BaseModel):
@@ -50,3 +69,35 @@ async def generate_small_claims(req: SmallClaimsRequest):
         raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Packet build failed: {exc}")
+
+
+# ---------------------------------------------------------------------------
+# Module 1 — AI Explainer (new)
+# ---------------------------------------------------------------------------
+
+
+class ExplainRequest(BaseModel):
+    entities: dict = Field(default_factory=dict, description="Key-value pairs from the intake classifier")
+    language: str = Field(default="en", pattern="^(en|es)$")
+
+
+@router.post("/explain")
+async def explain_small_claims(payload: ExplainRequest = Body(...)):
+    """Stream a plain-English Florida small-claims explanation via SSE."""
+
+    async def _stream():
+        async for chunk in _explainer.explain_stream(
+            entities=payload.entities,
+            language=payload.language,
+        ):
+            yield chunk
+
+    return StreamingResponse(
+        _stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
