@@ -53,6 +53,7 @@ FORM_CATEGORIES = [
 from src.api.routers.intake import router as intake_router        # noqa: E402
 from src.api.routers.small_claims import router as small_claims_router  # noqa: E402
 from src.api.routers.criminal import router as criminal_router      # noqa: E402
+from src.api.routers.discovery import router as discovery_router    # noqa: E402
 from src.api.routers.expungement import router as expungement_router  # noqa: E402
 from src.api.routers.landlord import router as landlord_router  # noqa: E402
 from src.api.routers.traffic import router as traffic_router  # noqa: E402
@@ -68,6 +69,7 @@ from src.api.routers.analysis import router as analysis_router    # noqa: E402
 app.include_router(intake_router)
 app.include_router(small_claims_router)
 app.include_router(criminal_router)
+app.include_router(discovery_router)
 app.include_router(expungement_router)
 app.include_router(landlord_router)
 app.include_router(traffic_router)
