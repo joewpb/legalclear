@@ -10,6 +10,7 @@ import HomeHub from "./pages/HomeHub";
 // Part B tile pages
 import SmallClaimsFL from "./pages/SmallClaimsFL"; // Phase 16 (filing wizard)
 import SmallClaimsExplainer from "./pages/SmallClaimsExplainer"; // Module 1 (v3 explainer)
+import CriminalProcedureExplainer from "./pages/CriminalProcedureExplainer"; // Module 2 (v3 explainer)
 import ExpungementFL from "./pages/ExpungementFL"; // Phase 17
 import LandlordTenantFL from "./pages/LandlordTenantFL"; // Phase 18
 import FormsFinderFL from "./pages/FormsFinderFL"; // Phase 19
@@ -56,6 +57,9 @@ export default function App() {
 
         {/* Tile 2 — Phase 16 filing wizard (linked from explainer) */}
         <Route path="/small-claims/file" element={<SmallClaimsFL />} />
+
+        {/* v3 Module 2 — Criminal Procedure Explainer */}
+        <Route path="/criminal-procedure" element={<CriminalProcedureExplainer />} />
 
         {/* Tile 4 — Phase 18 (landing + 3 sub-flows; sub-routes handled inside) */}
         <Route path="/landlord/*" element={<LandlordTenantFL />} />
