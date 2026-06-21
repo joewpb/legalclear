@@ -20,6 +20,7 @@ from anthropic import AsyncAnthropic
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.ingestion.pdf_parser import PDFParser
+from src.agents.police_report_v2 import compute_risk_score
 
 logger = logging.getLogger(__name__)
 
@@ -55,10 +56,16 @@ SYSTEM_PROMPT = (
     "typical_timeline: string, "
     "relevant_florida_law: string, "
     "useful_documentation: string[], "
-    "watch_out_for: string[], "
+    "watch_out_for: [{ severity: 'high'|'medium'|'low', "
+    "description: string, ask_attorney: string }], "
     "typical_outcomes: string[], "
     "clarifying_questions: string[] | null, "
-    "disclaimer: string }"
+    "disclaimer: string } "
+    "Severity guide for watch_out_for: high = critical "
+    "legal risk or statutory deadline; medium = important "
+    "consideration or common pitfall; low = helpful tip. "
+    "ask_attorney: a plain-English question the user should "
+    "raise with their attorney about this warning."
 )
 
 # ---------------------------------------------------------------------------
@@ -183,6 +190,7 @@ class PropertyCasualtyExplainer:
         })
 
         try:
+            full_text = ""
             async with self.client.messages.stream(
                 model=self.model,
                 max_tokens=4096,
@@ -190,7 +198,22 @@ class PropertyCasualtyExplainer:
                 messages=[{"role": "user", "content": user_content}],
             ) as stream:
                 async for chunk in stream.text_stream:
+                    full_text += chunk
                     yield f"data: {chunk}\n\n"
+
+            # ── Post-stream: compute risk score from watch_out_for ──
+            try:
+                parsed = json.loads(self._strip_fences(full_text))
+                all_findings = [
+                    {"severity": w.get("severity", "low"), "description": w.get("description", w if isinstance(w, str) else "")}
+                    for w in parsed.get("watch_out_for", [])
+                ]
+                risk = compute_risk_score(all_findings)
+                risk["type"] = "risk_analysis"
+                yield f"data: {json.dumps(risk)}\n\n"
+            except (json.JSONDecodeError, KeyError):
+                pass
+
         except Exception:
             logger.error("PropertyCasualtyExplainer stream error:\n%s", traceback.format_exc())
             yield f"data: {json.dumps({'error': True, 'message': 'Explanation could not be generated.', 'disclaimer': get_disclaimer(language)})}\n\n"
@@ -237,6 +260,13 @@ class PropertyCasualtyExplainer:
             )
             parsed = json.loads(self._strip_fences(response.content[0].text))
             parsed["disclaimer"] = get_disclaimer(language)
+
+            # Compute deterministic risk score from watch_out_for findings
+            all_findings = [
+                {"severity": w.get("severity", "low"), "description": w.get("description", w if isinstance(w, str) else "")}
+                for w in parsed.get("watch_out_for", [])
+            ]
+            parsed["risk_analysis"] = compute_risk_score(all_findings)
             return parsed
         except Exception:
             logger.error("PropertyCasualtyExplainer error:\n%s", traceback.format_exc())

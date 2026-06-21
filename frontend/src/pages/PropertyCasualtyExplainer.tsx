@@ -16,6 +16,23 @@ import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
 // Types
 // ---------------------------------------------------------------------------
 
+interface WarningItem {
+  severity: "high" | "medium" | "low";
+  description: string;
+  ask_attorney: string;
+}
+
+interface RiskAnalysis {
+  type: "risk_analysis";
+  risk_score: number;
+  risk_level: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  high_count: number;
+  medium_count: number;
+  low_count: number;
+  risk_summary: string;
+  top_concerns: string[];
+}
+
 interface ExplainResponse {
   sub_type_identified: string;
   what_this_is: string;
@@ -23,10 +40,11 @@ interface ExplainResponse {
   typical_timeline: string;
   relevant_florida_law: string;
   useful_documentation: string[];
-  watch_out_for: string[];
+  watch_out_for: WarningItem[] | string[];
   typical_outcomes: string[];
   clarifying_questions: string[] | null;
   disclaimer: string;
+  risk_analysis?: RiskAnalysis;
 }
 
 // ---------------------------------------------------------------------------
@@ -90,6 +108,24 @@ const S = {
     padding: "12px 14px", marginBottom: 8, fontSize: 14, lineHeight: 1.5 } as React.CSSProperties,
 };
 
+function SeverityBadge({ severity }: { severity: string }) {
+  const n = (severity || "").toLowerCase();
+  const p = n === "high" ? { bg: "#C62828", fg: "#fff" } : n === "medium" ? { bg: "#F57F17", fg: "#000" } : { bg: "#6B6B66", fg: "#fff" };
+  return <span style={{ background: p.bg, color: p.fg, padding: "2px 8px", borderRadius: "var(--radius)", fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", display: "inline-block", flexShrink: 0 }}>{n}</span>;
+}
+
+function RiskScoreCard({ risk }: { risk: RiskAnalysis }) {
+  const c = risk.risk_level === "CRITICAL" ? "#B71C1C" : risk.risk_level === "HIGH" ? "#C62828" : risk.risk_level === "MEDIUM" ? "#F57F17" : "#2E7D32";
+  return <div style={{ background: "#fff", border: `2px solid ${c}`, borderRadius: "var(--radius)", padding: 16, marginBottom: 16 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8, flexWrap: "wrap" }}>
+      <span style={{ background: c, color: "#fff", padding: "4px 14px", borderRadius: "var(--radius)", fontSize: 14, fontWeight: 700, letterSpacing: "0.05em" }}>{risk.risk_level} RISK</span>
+      <span style={{ fontSize: 13, color: "var(--muted)" }}>Score: {risk.risk_score} · {risk.high_count}H / {risk.medium_count}M / {risk.low_count}L</span>
+    </div>
+    <p style={{ fontSize: 14, lineHeight: 1.6, margin: "0 0 8px" }}>{risk.risk_summary}</p>
+    {risk.top_concerns.length > 0 && <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, lineHeight: 1.5 }}>{risk.top_concerns.map((x, i) => <li key={i}>{x}</li>)}</ul>}
+  </div>;
+}
+
 function fmtSize(b: number) { return b < 1024 ? `${b} B` : b < 1048576 ? `${(b/1024).toFixed(1)} KB` : `${(b/1048576).toFixed(1)} MB`; }
 function subLabel(t: string) { return t === "insurance_bad_faith" ? "Insurance Bad Faith" : t === "premises_liability" ? "Premises Liability" : "Property & Casualty"; }
 
@@ -129,8 +165,11 @@ export default function PropertyCasualtyExplainer() {
       const reader = res.body?.getReader();
       if (!reader) throw new Error("No response body");
       let full = "";
-      for await (const c of readSSE(reader)) { full += c; setRaw(full); try { setResp(JSON.parse(full)); } catch { /* */ } }
-      try { setResp(JSON.parse(full)); } catch { setError("Could not parse explanation."); }
+      for await (const c of readSSE(reader)) {
+        try { const solo = JSON.parse(c); if (solo.type === "risk_analysis") { setResp(p => ({ ...p, risk_analysis: solo })); continue; } } catch {}
+        full += c; setRaw(full); try { setResp(JSON.parse(full)); } catch {}
+      }
+      try { setResp(p => ({ ...JSON.parse(full), risk_analysis: p.risk_analysis })); } catch { if (!full.trim()) setError("Could not parse explanation."); }
     } catch (e: any) { setError(e.message); }
     finally { setStreaming(false); }
   }, [subType, entities, language, file]);
@@ -202,10 +241,22 @@ export default function PropertyCasualtyExplainer() {
               </>
             )}
 
+            {/* ── Risk Analysis Card ── */}
+            {resp.risk_analysis && <RiskScoreCard risk={resp.risk_analysis} />}
+
             {resp.watch_out_for?.length > 0 && (
               <>
                 <h2 style={S.sTitle}>Watch Out For</h2>
-                {resp.watch_out_for.map((w, i) => <div key={i} style={S.amber}>⚠ {w}</div>)}
+                {resp.watch_out_for.map((w, i) => {
+                  const desc = typeof w === "string" ? w : w.description;
+                  const sev = typeof w === "string" ? "medium" : w.severity;
+                  const ask = typeof w === "string" ? "" : w.ask_attorney;
+                  return <div key={i} style={{ border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: 14, marginBottom: 10, background: sev === "high" ? "#FFEBEE" : sev === "medium" ? "#FFF8E1" : "#FAFAFA" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}><SeverityBadge severity={sev} /></div>
+                    <p style={{ margin: "0 0 8px", fontSize: 14, lineHeight: 1.6 }}>⚠ {desc}</p>
+                    {ask && <div style={{ border: "1px solid var(--border)", padding: 10, background: "var(--bg-elevated, #fafafa)", borderRadius: "var(--radius)" }}><p style={{ margin: "0 0 4px", fontSize: 11, color: "var(--muted)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Ask Your Attorney About</p><p style={{ margin: 0, fontSize: 13, lineHeight: 1.5 }}>{ask}</p></div>}
+                  </div>;
+                })}
               </>
             )}
 

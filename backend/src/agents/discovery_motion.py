@@ -19,6 +19,7 @@ from anthropic import AsyncAnthropic
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.ingestion.pdf_parser import PDFParser
+from src.agents.police_report_v2 import compute_risk_score
 
 logger = logging.getLogger(__name__)
 
@@ -37,16 +38,35 @@ SYSTEM_PROMPT = (
     "Analyze this motion and return: "
     "1. Plain English summary of what is being requested "
     "2. What is present and properly stated "
-    "3. What is missing vs FL Rule 3.220 standard "
-    "4. Discrepancies, vague language, or procedural gaps "
+    "3. What is missing vs FL Rule 3.220 standard — "
+    "   classify each by severity "
+    "4. Discrepancies, vague language, or procedural "
+    "   gaps — classify each by severity "
     "5. What the opposing party is likely to produce "
-    "6. What the opposing party is likely to resist producing "
+    "6. What the opposing party is likely to resist "
+    "   producing — classify each by severity "
     "Third-person framing only. Never give legal advice. "
     "Return structured JSON: "
     "{ summary: string, what_requested: string[], "
-    "what_present: string[], what_missing: string[], "
-    "discrepancies: string[], likely_production: string[], "
-    "likely_resistance: string[], disclaimer: string }"
+    "what_present: string[], "
+    "what_missing: [{ severity: 'high'|'medium'|'low', "
+    "item: string, why_important: string, "
+    "ask_attorney: string, page_ref: string | null }], "
+    "discrepancies: [{ severity: 'high'|'medium'|'low', "
+    "description: string, ask_attorney: string, "
+    "page_ref: string | null }], "
+    "likely_production: string[], "
+    "likely_resistance: [{ severity: 'high'|'medium'|'low', "
+    "item: string, reason: string, "
+    "ask_attorney: string, page_ref: string | null }], "
+    "disclaimer: string } "
+    "Severity guide: high = critical omission or procedural "
+    "violation of Rule 3.220; medium = notable gap or "
+    "ambiguity; low = minor formatting or stylistic issue. "
+    "ask_attorney: a plain-English question the user should "
+    "raise with their defense attorney about this finding. "
+    "page_ref: where in the motion this issue appears "
+    "(e.g. 'p.2, paragraph 3'), or null if not page-specific."
 )
 
 # ---------------------------------------------------------------------------
@@ -145,6 +165,7 @@ class DiscoveryMotionAnalyzer:
             return
 
         try:
+            full_text = ""
             async with self.client.messages.stream(
                 model=self.model,
                 max_tokens=4096,
@@ -152,7 +173,34 @@ class DiscoveryMotionAnalyzer:
                 messages=[{"role": "user", "content": user_content}],
             ) as stream:
                 async for chunk in stream.text_stream:
+                    full_text += chunk
                     yield f"data: {chunk}\n\n"
+
+            # ── Post-stream: compute risk score deterministically ──
+            try:
+                parsed = json.loads(self._strip_fences(full_text))
+                all_findings: list[dict] = []
+                for d in parsed.get("discrepancies", []):
+                    all_findings.append({
+                        "severity": d.get("severity", "low"),
+                        "description": d.get("description", ""),
+                    })
+                for m in parsed.get("what_missing", []):
+                    all_findings.append({
+                        "severity": m.get("severity", "low"),
+                        "description": f"Missing: {m.get('item', 'unknown')} — {m.get('why_important', '')}",
+                    })
+                for r in parsed.get("likely_resistance", []):
+                    all_findings.append({
+                        "severity": r.get("severity", "low"),
+                        "description": f"Likely resisted: {r.get('item', 'unknown')} — {r.get('reason', '')}",
+                    })
+                risk = compute_risk_score(all_findings)
+                risk["type"] = "risk_analysis"
+                yield f"data: {json.dumps(risk)}\n\n"
+            except (json.JSONDecodeError, KeyError):
+                pass
+
         except Exception:
             logger.error("DiscoveryMotionAnalyzer stream error:\n%s", traceback.format_exc())
             yield f"data: {json.dumps({'error': True, 'message': 'Analysis could not be completed.', 'disclaimer': get_disclaimer(language)})}\n\n"
@@ -198,6 +246,25 @@ class DiscoveryMotionAnalyzer:
             )
             parsed = json.loads(self._strip_fences(response.content[0].text))
             parsed["disclaimer"] = get_disclaimer(language)
+
+            # Compute deterministic risk score from findings
+            all_findings: list[dict] = []
+            for d in parsed.get("discrepancies", []):
+                all_findings.append({
+                    "severity": d.get("severity", "low"),
+                    "description": d.get("description", ""),
+                })
+            for m in parsed.get("what_missing", []):
+                all_findings.append({
+                    "severity": m.get("severity", "low"),
+                    "description": f"Missing: {m.get('item', 'unknown')} — {m.get('why_important', '')}",
+                })
+            for r in parsed.get("likely_resistance", []):
+                all_findings.append({
+                    "severity": r.get("severity", "low"),
+                    "description": f"Likely resisted: {r.get('item', 'unknown')} — {r.get('reason', '')}",
+                })
+            parsed["risk_analysis"] = compute_risk_score(all_findings)
             return parsed
         except Exception:
             logger.error("DiscoveryMotionAnalyzer error:\n%s", traceback.format_exc())
