@@ -12,6 +12,7 @@ import SmallClaimsFL from "./pages/SmallClaimsFL"; // Phase 16 (filing wizard)
 import SmallClaimsExplainer from "./pages/SmallClaimsExplainer"; // Module 1 (v3 explainer)
 import CriminalProcedureExplainer from "./pages/CriminalProcedureExplainer"; // Module 2 (v3 explainer)
 import DiscoveryMotionAnalyzer from "./pages/DiscoveryMotionAnalyzer"; // Module 4 (v3 explainer)
+import PropertyCasualtyExplainer from "./pages/PropertyCasualtyExplainer"; // Module 5 (v3 explainer)
 import ExpungementFL from "./pages/ExpungementFL"; // Phase 17
 import LandlordTenantFL from "./pages/LandlordTenantFL"; // Phase 18
 import FormsFinderFL from "./pages/FormsFinderFL"; // Phase 19
@@ -64,6 +65,9 @@ export default function App() {
 
         {/* v3 Module 4 — Discovery Motion Analyzer */}
         <Route path="/discovery-motion" element={<DiscoveryMotionAnalyzer />} />
+
+        {/* v3 Module 5 — Property & Casualty Explainer */}
+        <Route path="/property-casualty" element={<PropertyCasualtyExplainer />} />
 
         {/* Tile 4 — Phase 18 (landing + 3 sub-flows; sub-routes handled inside) */}
         <Route path="/landlord/*" element={<LandlordTenantFL />} />
