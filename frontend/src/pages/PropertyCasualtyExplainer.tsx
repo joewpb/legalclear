@@ -10,6 +10,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
+import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -108,6 +109,7 @@ export default function PropertyCasualtyExplainer() {
   const [error, setError] = useState<string | null>(null);
   const [raw, setRaw] = useState("");
   const [checked, setChecked] = useState<Set<number>>(new Set());
+  const [chatOpen, setChatOpen] = useState(false);
   const inp = useRef<HTMLInputElement>(null);
 
   const onDrop = useCallback((e: React.DragEvent) => { e.preventDefault(); setDrag(false); const f = e.dataTransfer.files?.[0]; if (f) setFile(f); }, []);
@@ -225,6 +227,11 @@ export default function PropertyCasualtyExplainer() {
       </div>
 
       <div style={S.disc}>{resp.disclaimer || "LegalClear provides legal information, not legal advice."}</div>
+
+      <ChatButton module="property_casualty" onClick={() => setChatOpen(true)} />
+      {chatOpen && (
+        <ChatDrawer module="property_casualty" onClose={() => setChatOpen(false)} />
+      )}
     </div>
   );
 }

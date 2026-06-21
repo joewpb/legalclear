@@ -11,6 +11,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
+import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -293,6 +294,7 @@ export default function CriminalProcedureExplainer() {
   const [error, setError] = useState<string | null>(null);
   const [rawChunks, setRawChunks] = useState("");
   const abortRef = useRef<AbortController | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
 
   const currentIdx = stageIndex(currentStage);
 
@@ -482,6 +484,11 @@ export default function CriminalProcedureExplainer() {
         {response.disclaimer ||
           "LegalClear provides legal information, not legal advice. Nothing here creates an attorney-client relationship. Consult a licensed Florida attorney for your specific situation. If you cannot afford an attorney, you have the right to a public defender."}
       </div>
+
+      <ChatButton module="criminal_procedure" onClick={() => setChatOpen(true)} />
+      {chatOpen && (
+        <ChatDrawer module="criminal_procedure" onClose={() => setChatOpen(false)} />
+      )}
     </div>
   );
 }

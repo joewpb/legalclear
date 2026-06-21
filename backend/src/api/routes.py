@@ -67,6 +67,7 @@ from src.api.routers.deadline import router as deadline_router  # noqa: E402
 from src.api.routers.triage import router as triage_router        # noqa: E402
 from src.api.routers.reminders import router as reminders_router  # noqa: E402
 from src.api.routers.analysis import router as analysis_router    # noqa: E402
+from src.api.routers.chat import router as chat_router           # noqa: E402
 app.include_router(intake_router)
 app.include_router(small_claims_router)
 app.include_router(criminal_router)
@@ -84,6 +85,7 @@ app.include_router(deadline_router)
 app.include_router(triage_router)
 app.include_router(reminders_router)
 app.include_router(analysis_router)
+app.include_router(chat_router)
 
 # Compliance framework router — mounted if package is installed.
 # Install: cd compliance && uv sync; set PYTHONPATH=compliance/src.

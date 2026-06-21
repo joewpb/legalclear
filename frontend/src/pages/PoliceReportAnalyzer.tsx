@@ -10,6 +10,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
+import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -341,6 +342,7 @@ export default function PoliceReportAnalyzer() {
   const [error, setError] = useState<string | null>(null);
   const [rawChunks, setRawChunks] = useState("");
   const [expandedCharges, setExpandedCharges] = useState<Set<number>>(new Set());
+  const [chatOpen, setChatOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const language = "en"; // TODO: wire from context
@@ -642,6 +644,11 @@ export default function PoliceReportAnalyzer() {
         {response.disclaimer ||
           "LegalClear provides legal information, not legal advice. Nothing here creates an attorney-client relationship. Consult a licensed Florida attorney for your specific situation."}
       </div>
+
+      <ChatButton module="police_report" onClick={() => setChatOpen(true)} />
+      {chatOpen && (
+        <ChatDrawer module="police_report" onClose={() => setChatOpen(false)} />
+      )}
     </div>
   );
 }

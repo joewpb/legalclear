@@ -10,6 +10,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
+import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -98,6 +99,7 @@ export default function DiscoveryMotionAnalyzer() {
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [raw, setRaw] = useState("");
+  const [chatOpen, setChatOpen] = useState(false);
   const inp = useRef<HTMLInputElement>(null);
 
   const onDrop = useCallback((e: React.DragEvent) => { e.preventDefault(); setDrag(false); const f = e.dataTransfer.files?.[0]; if (f) setFile(f); }, []);
@@ -171,6 +173,11 @@ export default function DiscoveryMotionAnalyzer() {
       </div>
 
       <div style={S.disc}>{resp.disclaimer || "LegalClear provides legal information, not legal advice. Nothing here creates an attorney-client relationship."}</div>
+
+      <ChatButton module="discovery_motion" onClick={() => setChatOpen(true)} />
+      {chatOpen && (
+        <ChatDrawer module="discovery_motion" onClose={() => setChatOpen(false)} />
+      )}
     </div>
   );
 }

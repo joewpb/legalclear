@@ -10,6 +10,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
+import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -229,6 +230,7 @@ export default function SmallClaimsExplainer() {
   const [error, setError] = useState<string | null>(null);
   const [rawChunks, setRawChunks] = useState("");
   const abortRef = useRef<AbortController | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
 
   // Read entities from URL query params (passed by intake flow)
   const entities: Record<string, string> = {};
@@ -420,6 +422,12 @@ export default function SmallClaimsExplainer() {
         {response.disclaimer ||
           "LegalClear provides legal information, not legal advice. Nothing here creates an attorney-client relationship. Consult a licensed Florida attorney for your specific situation."}
       </div>
+
+      {/* Chat system */}
+      <ChatButton module="small_claims" onClick={() => setChatOpen(true)} />
+      {chatOpen && (
+        <ChatDrawer module="small_claims" onClose={() => setChatOpen(false)} />
+      )}
     </div>
   );
 }
