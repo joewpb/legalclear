@@ -50,7 +50,11 @@ FORM_CATEGORIES = [
 # Part B routers (Phase 15+). Each phase's router declares its own
 # /api/* prefix; HTTP paths match source spec even though the on-disk
 # location is backend/src/api/routers/ rather than .../routes/.
+from src.api.routers.intake import router as intake_router        # noqa: E402
 from src.api.routers.small_claims import router as small_claims_router  # noqa: E402
+from src.api.routers.criminal import router as criminal_router      # noqa: E402
+from src.api.routers.discovery import router as discovery_router    # noqa: E402
+from src.api.routers.property_casualty import router as property_casualty_router  # noqa: E402
 from src.api.routers.expungement import router as expungement_router  # noqa: E402
 from src.api.routers.landlord import router as landlord_router  # noqa: E402
 from src.api.routers.traffic import router as traffic_router  # noqa: E402
@@ -63,7 +67,11 @@ from src.api.routers.deadline import router as deadline_router  # noqa: E402
 from src.api.routers.triage import router as triage_router        # noqa: E402
 from src.api.routers.reminders import router as reminders_router  # noqa: E402
 from src.api.routers.analysis import router as analysis_router    # noqa: E402
+app.include_router(intake_router)
 app.include_router(small_claims_router)
+app.include_router(criminal_router)
+app.include_router(discovery_router)
+app.include_router(property_casualty_router)
 app.include_router(expungement_router)
 app.include_router(landlord_router)
 app.include_router(traffic_router)

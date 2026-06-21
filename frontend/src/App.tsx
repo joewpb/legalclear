@@ -8,7 +8,11 @@ import SiteFooter from "./components/SiteFooter";
 import HomeHub from "./pages/HomeHub";
 
 // Part B tile pages
-import SmallClaimsFL from "./pages/SmallClaimsFL"; // Phase 16
+import SmallClaimsFL from "./pages/SmallClaimsFL"; // Phase 16 (filing wizard)
+import SmallClaimsExplainer from "./pages/SmallClaimsExplainer"; // Module 1 (v3 explainer)
+import CriminalProcedureExplainer from "./pages/CriminalProcedureExplainer"; // Module 2 (v3 explainer)
+import DiscoveryMotionAnalyzer from "./pages/DiscoveryMotionAnalyzer"; // Module 4 (v3 explainer)
+import PropertyCasualtyExplainer from "./pages/PropertyCasualtyExplainer"; // Module 5 (v3 explainer)
 import ExpungementFL from "./pages/ExpungementFL"; // Phase 17
 import LandlordTenantFL from "./pages/LandlordTenantFL"; // Phase 18
 import FormsFinderFL from "./pages/FormsFinderFL"; // Phase 19
@@ -50,8 +54,20 @@ export default function App() {
         {/* Tile 3 — Phase 17 (replaces the old multi-state ExpungementPage.jsx) */}
         <Route path="/expungement" element={<ExpungementFL />} />
 
-        {/* Tile 2 — Phase 16 */}
-        <Route path="/small-claims" element={<SmallClaimsFL />} />
+        {/* v3 Module 1 — Small Claims Explainer (AI-first) */}
+        <Route path="/small-claims" element={<SmallClaimsExplainer />} />
+
+        {/* Tile 2 — Phase 16 filing wizard (linked from explainer) */}
+        <Route path="/small-claims/file" element={<SmallClaimsFL />} />
+
+        {/* v3 Module 2 — Criminal Procedure Explainer */}
+        <Route path="/criminal-procedure" element={<CriminalProcedureExplainer />} />
+
+        {/* v3 Module 4 — Discovery Motion Analyzer */}
+        <Route path="/discovery-motion" element={<DiscoveryMotionAnalyzer />} />
+
+        {/* v3 Module 5 — Property & Casualty Explainer */}
+        <Route path="/property-casualty" element={<PropertyCasualtyExplainer />} />
 
         {/* Tile 4 — Phase 18 (landing + 3 sub-flows; sub-routes handled inside) */}
         <Route path="/landlord/*" element={<LandlordTenantFL />} />

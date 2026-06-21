@@ -307,6 +307,19 @@ def apply_upl_guardrails(text: str, lang: str = "en") -> str:
     """
     flagged = audit_output_for_upl(text)
     if flagged:
-        disclaimer = get_disclaimer("standard", lang)
+        from src.core.disclaimer import get_disclaimer as _get
+
+        disclaimer = _get(lang)
         return f"{text}\n\n⚠️ {disclaimer}"
     return text
+
+
+def get_disclaimer(lang: str = "en") -> str:
+    """Return the standard disclaimer in the requested language.
+
+    Delegates to src.core.disclaimer.get_disclaimer so there is a
+    single source of truth for disclaimer text.
+    """
+    from src.core.disclaimer import get_disclaimer as _get
+
+    return _get(lang)
