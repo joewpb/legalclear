@@ -1,0 +1,205 @@
+"""Module 0 — AI Intake Router.
+
+Classifies a user's plain-English situation description into one of the
+LegalClear v3 module routes using claude-haiku-4-5-20251001.
+"""
+
+import json
+import logging
+import traceback
+from typing import Optional
+
+from anthropic import AsyncAnthropic
+from fastapi import APIRouter, Body
+from pydantic import BaseModel, Field
+
+from src.core.config import settings
+from src.core.disclaimer import get_disclaimer
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter(prefix="/api", tags=["intake"])
+
+# ---------------------------------------------------------------------------
+# Pydantic models
+# ---------------------------------------------------------------------------
+
+VALID_MODULES = [
+    "small_claims",
+    "criminal_procedure",
+    "police_report",
+    "discovery_motion",
+    "property_casualty",
+    "unknown",
+]
+
+VALID_SUB_TYPES = [
+    "insurance_bad_faith",
+    "premises_liability",
+    "unknown",
+]
+
+
+class IntakeRequest(BaseModel):
+    situation: str = Field(..., min_length=1, max_length=8000)
+    language: str = Field(default="en", pattern="^(en|es)$")
+
+
+class IntakeResponse(BaseModel):
+    module: str
+    sub_type: Optional[str] = None
+    entities: dict = Field(default_factory=dict)
+    confidence: float
+    clarifying_question: Optional[str] = None
+    disclaimer: str
+
+
+# ---------------------------------------------------------------------------
+# System prompt
+# ---------------------------------------------------------------------------
+
+SYSTEM_PROMPT = (
+    "You are a legal situation classifier for Florida pro se "
+    "litigants. Classify the situation into exactly one of: "
+    "small_claims, criminal_procedure, police_report, "
+    "discovery_motion, property_casualty, unknown. "
+    "For property_casualty also identify sub_type: "
+    "insurance_bad_faith or premises_liability. "
+    "Extract key entities (amounts, charge types, parties, "
+    "document types, incident types). "
+    "Return valid JSON only — no markdown, no preamble: "
+    "{ module, sub_type, entities, confidence, "
+    "clarifying_question }"
+)
+
+
+# ---------------------------------------------------------------------------
+# Internal helpers
+# ---------------------------------------------------------------------------
+
+def _strip_markdown_fences(raw: str) -> str:
+    """Remove optional ``` fences from an LLM response."""
+    text = raw.strip()
+    if text.startswith("```"):
+        text = text.split("```", 2)[1]
+        if text.startswith("json"):
+            text = text[4:]
+        text = text.strip()
+    return text
+
+
+def _sanitize_module(value: str) -> str:
+    """Coerce the classified module into one of the valid slots."""
+    if value in VALID_MODULES:
+        return value
+    return "unknown"
+
+
+def _sanitize_sub_type(value: Optional[str]) -> Optional[str]:
+    """Coerce sub_type or return None / unknown."""
+    if value in VALID_SUB_TYPES:
+        return value
+    if value is not None:
+        return "unknown"
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Client — reuses the same Anthropic key already configured
+# ---------------------------------------------------------------------------
+
+_client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY, max_retries=2, timeout=30.0)
+_MODEL = "claude-haiku-4-5-20251001"
+
+
+# ---------------------------------------------------------------------------
+# Endpoint
+# ---------------------------------------------------------------------------
+
+@router.post("/intake", response_model=IntakeResponse)
+async def intake(payload: IntakeRequest = Body(...)) -> IntakeResponse:
+    """Classify a plain-English situation description and route to a module."""
+
+    user_prompt = (
+        f"Language: {payload.language}\n\n"
+        f"Situation: {payload.situation}"
+    )
+
+    message_content = (
+        "Return ONLY a JSON object. No markdown, no preamble. "
+        + user_prompt
+    )
+
+    module = "unknown"
+    sub_type: Optional[str] = None
+    entities: dict = {}
+    confidence = 0.0
+    clarifying_question: Optional[str] = None
+
+    for attempt in range(2):
+        try:
+            response = await _client.messages.create(
+                model=_MODEL,
+                max_tokens=1024,
+                system=[
+                    {
+                        "type": "text",
+                        "text": SYSTEM_PROMPT,
+                        "cache_control": {"type": "ephemeral"},
+                    }
+                ],
+                messages=[
+                    {
+                        "role": "user",
+                        "content": (
+                            "Return ONLY a JSON object. No other text. "
+                            + user_prompt
+                            if attempt > 0
+                            else message_content
+                        ),
+                    }
+                ],
+            )
+
+            raw = response.content[0].text
+            parsed = json.loads(_strip_markdown_fences(raw))
+
+            module = _sanitize_module(parsed.get("module", "unknown"))
+            sub_type = _sanitize_sub_type(parsed.get("sub_type"))
+            entities = parsed.get("entities", {}) or {}
+            confidence = float(parsed.get("confidence", 0.0))
+            clarifying_question = parsed.get("clarifying_question")
+
+            # Low confidence → force unknown with clarifying question
+            if confidence < 0.70:
+                module = "unknown"
+                if not clarifying_question:
+                    clarifying_question = (
+                        "Could you share more about your situation "
+                        "so the right information can be found?"
+                    )
+
+            # Property casualty without sub_type gets unknown
+            if module == "property_casualty" and sub_type is None:
+                sub_type = "unknown"
+
+            break  # success — don't retry
+
+        except Exception:
+            logger.error(
+                "Intake classification attempt %d failed: %s\n%s",
+                attempt + 1,
+                traceback.format_exc(),
+                traceback.format_exc(),
+            )
+
+    disclaimer = get_disclaimer(payload.language)
+
+    return IntakeResponse(
+        module=module,
+        sub_type=sub_type,
+        entities=entities,
+        confidence=confidence,
+        clarifying_question=clarifying_question,
+        disclaimer=disclaimer,
+    )

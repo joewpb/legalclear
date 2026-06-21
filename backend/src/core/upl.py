@@ -297,3 +297,33 @@ def audit_output_for_upl(text: str) -> list[str]:
         if phrase in text_lower:
             found.append(phrase)
     return found
+
+
+def apply_upl_guardrails(text: str) -> str:
+    """Apply UPL guardrails to output text.
+
+    Audits text for risk phrases and prepends a warning banner
+    if any directive or advice-like language is detected.  Always
+    returns the text — it never blocks output, only annotates it.
+    """
+    risks = audit_output_for_upl(text)
+    if not risks:
+        return text
+    banner = (
+        "⚠️  This explanation contains wording that could be read "
+        "as a directive.  LegalClear provides legal information, "
+        "not legal advice.  Consult a licensed Florida attorney "
+        "before making decisions about your case.\n\n"
+    )
+    return banner + text
+
+
+def get_disclaimer(lang: str = "en") -> str:
+    """Return the standard disclaimer in the requested language.
+
+    Delegates to src.core.disclaimer.get_disclaimer so there is a
+    single source of truth for disclaimer text.
+    """
+    from src.core.disclaimer import get_disclaimer as _get
+
+    return _get(lang)
