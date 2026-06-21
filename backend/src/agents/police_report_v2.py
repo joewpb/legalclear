@@ -35,7 +35,7 @@ SYSTEM_PROMPT = (
     "5. Probable cause statement — is one present and what "
     "   does it say "
     "6. Discrepancies, inconsistencies, or missing standard "
-    "   fields in the report "
+    "   fields in the report — classify each by severity "
     "7. What typically happens next after this type of report "
     "Third-person framing only. Never give legal advice. "
     "Return structured JSON: "
@@ -45,8 +45,21 @@ SYSTEM_PROMPT = (
     "miranda_noted: boolean | null, "
     "probable_cause_present: boolean | null, "
     "probable_cause_summary: string | null, "
-    "discrepancies: string[], missing_fields: string[], "
-    "what_happens_next: string, disclaimer: string }"
+    "discrepancies: [{ severity: 'high'|'medium'|'low', "
+    "description: string, ask_attorney: string, "
+    "page_ref: string | null }], "
+    "missing_fields: [{ severity: 'high'|'medium'|'low', "
+    "field_name: string, why_important: string, "
+    "page_ref: string | null }], "
+    "what_happens_next: string, disclaimer: string } "
+    "Severity guide: high = critical procedural error or "
+    "constitutional violation; medium = notable inconsistency "
+    "or missing standard field; low = minor formatting or "
+    "typographical issue. "
+    "ask_attorney: a plain-English question the user should "
+    "raise with their defense attorney about this finding. "
+    "page_ref: where in the report this issue appears "
+    "(e.g. 'p.2, paragraph 3'), or null if not page-specific."
 )
 
 # ---------------------------------------------------------------------------
@@ -59,6 +72,76 @@ SUPPORTED_IMAGE_TYPES = {
     "image/gif",
     "image/webp",
 }
+
+# ---------------------------------------------------------------------------
+# Deterministic risk scoring — LLM classifies severity; Python computes score
+# ---------------------------------------------------------------------------
+
+
+def compute_risk_score(findings: list[dict]) -> dict:
+    """Compute a numeric risk score from LLM-classified findings.
+
+    LLM assigns severity (high/medium/low) per finding. This function
+    computes the weighted score deterministically — the LLM never
+    produces a number.
+    """
+    high = sum(1 for f in findings if f.get("severity") == "high")
+    medium = sum(1 for f in findings if f.get("severity") == "medium")
+    low = sum(1 for f in findings if f.get("severity") == "low")
+
+    # Weighted score: high=3, medium=2, low=1
+    score = high * 3 + medium * 2 + low * 1
+
+    if score == 0:
+        level = "LOW"
+        summary = (
+            "No significant risk indicators were identified "
+            "in this report."
+        )
+        concerns: list[str] = []
+    elif score <= 3:
+        level = "MEDIUM"
+        summary = (
+            "This report contains a few notable issues that "
+            "warrant attention but are not critical on their own."
+        )
+        concerns = [
+            f.get("description", "") for f in findings
+            if f.get("severity") in ("high", "medium")
+        ][:3]
+    elif score <= 6:
+        level = "HIGH"
+        summary = (
+            "Multiple significant issues were identified in "
+            "this report. These should be reviewed carefully "
+            "with a defense attorney."
+        )
+        concerns = [
+            f.get("description", "") for f in findings
+            if f.get("severity") in ("high", "medium")
+        ][:3]
+    else:
+        level = "CRITICAL"
+        summary = (
+            "This report contains critical procedural and "
+            "factual issues. Immediate attorney review is "
+            "strongly recommended."
+        )
+        concerns = [
+            f.get("description", "") for f in findings
+            if f.get("severity") in ("high", "medium")
+        ][:3]
+
+    return {
+        "risk_score": score,
+        "risk_level": level,
+        "high_count": high,
+        "medium_count": medium,
+        "low_count": low,
+        "risk_summary": summary,
+        "top_concerns": concerns,
+    }
+
 
 # ---------------------------------------------------------------------------
 # Agent
@@ -207,6 +290,7 @@ class PoliceReportAnalyzerV2:
 
         # ── Call Claude ─────────────────────────────────────────────────
         try:
+            full_text = ""
             async with self.client.messages.stream(
                 model=self.model,
                 max_tokens=4096,
@@ -220,7 +304,33 @@ class PoliceReportAnalyzerV2:
                 messages=[{"role": "user", "content": user_content}],
             ) as stream:
                 async for chunk in stream.text_stream:
+                    full_text += chunk
                     yield f"data: {chunk}\n\n"
+
+            # ── Post-stream: compute risk score deterministically ──
+            try:
+                parsed = json.loads(self._strip_fences(full_text))
+                all_findings = (
+                    parsed.get("discrepancies", [])
+                    + [
+                        {
+                            "severity": mf.get("severity", "low"),
+                            "description": (
+                                f"Missing field: {mf.get('field_name', 'unknown')} — "
+                                f"{mf.get('why_important', '')}"
+                            ),
+                        }
+                        for mf in parsed.get("missing_fields", [])
+                    ]
+                )
+                risk = compute_risk_score(all_findings)
+                risk["type"] = "risk_analysis"
+                risk_payload = json.dumps(risk)
+                yield f"data: {risk_payload}\n\n"
+            except (json.JSONDecodeError, KeyError):
+                # If parsing fails, skip risk analysis — the client
+                # will still have the raw streaming response
+                pass
 
         except Exception:
             logger.error(
@@ -317,6 +427,22 @@ class PoliceReportAnalyzerV2:
             raw = response.content[0].text
             parsed = json.loads(self._strip_fences(raw))
             parsed["disclaimer"] = get_disclaimer(language)
+
+            # Compute deterministic risk score from findings
+            all_findings = (
+                parsed.get("discrepancies", [])
+                + [
+                    {
+                        "severity": mf.get("severity", "low"),
+                        "description": (
+                            f"Missing field: {mf.get('field_name', 'unknown')} — "
+                            f"{mf.get('why_important', '')}"
+                        ),
+                    }
+                    for mf in parsed.get("missing_fields", [])
+                ]
+            )
+            parsed["risk_analysis"] = compute_risk_score(all_findings)
             return parsed
 
         except Exception:

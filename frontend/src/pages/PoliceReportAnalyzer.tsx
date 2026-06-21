@@ -16,6 +16,31 @@ import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
 // Types
 // ---------------------------------------------------------------------------
 
+interface Finding {
+  severity: "high" | "medium" | "low";
+  description: string;
+  ask_attorney: string;
+  page_ref: string | null;
+}
+
+interface MissingField {
+  severity: "high" | "medium" | "low";
+  field_name: string;
+  why_important: string;
+  page_ref: string | null;
+}
+
+interface RiskAnalysis {
+  type: "risk_analysis";
+  risk_score: number;
+  risk_level: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  high_count: number;
+  medium_count: number;
+  low_count: number;
+  risk_summary: string;
+  top_concerns: string[];
+}
+
 interface ChargeExplained {
   charge: string;
   plain_english: string;
@@ -28,10 +53,11 @@ interface AnalysisResponse {
   miranda_noted: boolean | null;
   probable_cause_present: boolean | null;
   probable_cause_summary: string | null;
-  discrepancies: string[];
-  missing_fields: string[];
+  discrepancies: Finding[];
+  missing_fields: MissingField[];
   what_happens_next: string;
   disclaimer: string;
+  risk_analysis?: RiskAnalysis;
 }
 
 // ---------------------------------------------------------------------------
@@ -55,6 +81,105 @@ async function* readSSE(
       }
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// Severity badge (inline component)
+// ---------------------------------------------------------------------------
+
+function SeverityBadge({ severity }: { severity: string }) {
+  const norm = (severity || "").toLowerCase();
+  const palette =
+    norm === "high"
+      ? { bg: "#C62828", fg: "#fff" }
+      : norm === "medium"
+        ? { bg: "#F57F17", fg: "#000" }
+        : { bg: "#6B6B66", fg: "#fff" };
+  return (
+    <span
+      style={{
+        background: palette.bg,
+        color: palette.fg,
+        padding: "2px 8px",
+        borderRadius: "var(--radius, 4px)",
+        fontSize: 11,
+        fontWeight: 600,
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        display: "inline-block",
+        flexShrink: 0,
+      }}
+    >
+      {norm}
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Risk score card (inline component)
+// ---------------------------------------------------------------------------
+
+function RiskScoreCard({ risk }: { risk: RiskAnalysis }) {
+  const levelColor =
+    risk.risk_level === "CRITICAL"
+      ? "#B71C1C"
+      : risk.risk_level === "HIGH"
+        ? "#C62828"
+        : risk.risk_level === "MEDIUM"
+          ? "#F57F17"
+          : "#2E7D32";
+
+  return (
+    <div
+      style={{
+        background: "#fff",
+        border: `2px solid ${levelColor}`,
+        borderRadius: "var(--radius, 4px)",
+        padding: 16,
+        marginBottom: 16,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          marginBottom: 8,
+          flexWrap: "wrap",
+        }}
+      >
+        <span
+          style={{
+            background: levelColor,
+            color: "#fff",
+            padding: "4px 14px",
+            borderRadius: "var(--radius, 4px)",
+            fontSize: 14,
+            fontWeight: 700,
+            letterSpacing: "0.05em",
+          }}
+        >
+          {risk.risk_level} RISK
+        </span>
+        <span style={{ fontSize: 13, color: "var(--muted)" }}>
+          Score: {risk.risk_score} · {risk.high_count}H / {risk.medium_count}M /{" "}
+          {risk.low_count}L
+        </span>
+      </div>
+      <p style={{ fontSize: 14, lineHeight: 1.6, margin: "0 0 8px" }}>
+        {risk.risk_summary}
+      </p>
+      {risk.top_concerns.length > 0 && (
+        <ul
+          style={{ margin: 0, paddingLeft: 18, fontSize: 13, lineHeight: 1.5 }}
+        >
+          {risk.top_concerns.map((c, i) => (
+            <li key={i}>{c}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -402,21 +527,46 @@ export default function PoliceReportAnalyzer() {
 
       let full = "";
       for await (const chunk of readSSE(reader)) {
+        // Try parsing the individual chunk first — risk_analysis
+        // events arrive as complete single-line JSON after the
+        // streaming analysis JSON finishes.
+        try {
+          const solo = JSON.parse(chunk);
+          if (solo.type === "risk_analysis") {
+            setResponse((prev) => ({
+              ...prev,
+              risk_analysis: solo as RiskAnalysis,
+            }));
+            continue; // don't add to full, it's not part of the analysis JSON
+          }
+        } catch {
+          /* not a complete JSON chunk — will be accumulated */
+        }
+
         full += chunk;
         setRawChunks(full);
         try {
           const parsed = JSON.parse(full) as AnalysisResponse;
           setResponse(parsed);
         } catch {
-          /* partial */
+          /* partial JSON — keep accumulating */
         }
       }
 
+      // Final parse attempt for the analysis JSON — merge to
+      // preserve any risk_analysis that arrived during streaming
       try {
         const parsed = JSON.parse(full) as AnalysisResponse;
-        setResponse(parsed);
+        setResponse((prev) => ({
+          ...parsed,
+          risk_analysis: prev.risk_analysis ?? parsed.risk_analysis,
+        }));
       } catch {
-        setError("Could not parse the analysis. Please try again.");
+        if (!full.trim()) {
+          setError("No response received. Please try again.");
+        } else {
+          // Partial streaming may have populated enough to show results
+        }
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred.");
@@ -604,7 +754,12 @@ export default function PoliceReportAnalyzer() {
               <span style={css.badgeUnknown}>Cannot determine from report</span>
             )}
 
-            {/* Discrepancies — red cards */}
+            {/* ── Risk Analysis Card ── */}
+            {response.risk_analysis && (
+              <RiskScoreCard risk={response.risk_analysis} />
+            )}
+
+            {/* Discrepancies — cards with severity badges */}
             {response.discrepancies &&
               response.discrepancies.length > 0 && (
                 <>
@@ -612,21 +767,150 @@ export default function PoliceReportAnalyzer() {
                     Discrepancies & Inconsistencies
                   </h2>
                   {response.discrepancies.map((d, i) => (
-                    <div key={i} style={css.redCard}>
-                      ⚠ {d}
+                    <div
+                      key={i}
+                      style={{
+                        border: "1px solid var(--border, #E5E5E0)",
+                        borderRadius: "var(--radius, 4px)",
+                        padding: 14,
+                        marginBottom: 10,
+                        background:
+                          d.severity === "high"
+                            ? "#FFEBEE"
+                            : d.severity === "medium"
+                              ? "#FFF8E1"
+                              : "#FAFAFA",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          justifyContent: "space-between",
+                          marginBottom: 8,
+                        }}
+                      >
+                        <SeverityBadge severity={d.severity} />
+                        {d.page_ref && (
+                          <span
+                            style={{
+                              fontSize: 11,
+                              color: "var(--muted)",
+                              fontFamily: "monospace",
+                            }}
+                          >
+                            {d.page_ref}
+                          </span>
+                        )}
+                      </div>
+                      <p
+                        style={{
+                          margin: "0 0 8px",
+                          fontSize: 14,
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        {d.description}
+                      </p>
+                      {d.ask_attorney && (
+                        <div
+                          style={{
+                            border: "1px solid var(--border, #E5E5E0)",
+                            padding: 10,
+                            background: "var(--bg-elevated, #fafafa)",
+                            borderRadius: "var(--radius, 4px)",
+                          }}
+                        >
+                          <p
+                            style={{
+                              margin: "0 0 4px",
+                              fontSize: 11,
+                              color: "var(--muted)",
+                              letterSpacing: "0.08em",
+                              textTransform: "uppercase",
+                            }}
+                          >
+                            Ask Your Attorney About
+                          </p>
+                          <p
+                            style={{
+                              margin: 0,
+                              fontSize: 13,
+                              lineHeight: 1.5,
+                            }}
+                          >
+                            {d.ask_attorney}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </>
               )}
 
-            {/* Missing fields — amber cards */}
+            {/* Missing fields — cards with severity badges */}
             {response.missing_fields &&
               response.missing_fields.length > 0 && (
                 <>
                   <h2 style={css.sectionTitle}>Missing Fields</h2>
                   {response.missing_fields.map((m, i) => (
-                    <div key={i} style={css.amberCard}>
-                      ⚡ {m}
+                    <div
+                      key={i}
+                      style={{
+                        border: "1px solid var(--border, #E5E5E0)",
+                        borderRadius: "var(--radius, 4px)",
+                        padding: 14,
+                        marginBottom: 10,
+                        background:
+                          m.severity === "high"
+                            ? "#FFEBEE"
+                            : m.severity === "medium"
+                              ? "#FFF8E1"
+                              : "#FAFAFA",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          justifyContent: "space-between",
+                          marginBottom: 8,
+                        }}
+                      >
+                        <SeverityBadge severity={m.severity} />
+                        {m.page_ref && (
+                          <span
+                            style={{
+                              fontSize: 11,
+                              color: "var(--muted)",
+                              fontFamily: "monospace",
+                            }}
+                          >
+                            {m.page_ref}
+                          </span>
+                        )}
+                      </div>
+                      <p
+                        style={{
+                          fontWeight: 500,
+                          margin: "0 0 4px",
+                          fontSize: 14,
+                        }}
+                      >
+                        {m.field_name}
+                      </p>
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: 13,
+                          lineHeight: 1.5,
+                          color: "var(--muted)",
+                        }}
+                      >
+                        {m.why_important}
+                      </p>
                     </div>
                   ))}
                 </>
