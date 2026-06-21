@@ -1,51 +1,56 @@
-import { LogoWordmark } from "./Logo";
-
 /**
- * Site-wide footer. Rendered once in App.tsx below <Routes>.
- *
- * Layout: wordmark at 16px above the two-paragraph disclaimer.
- * Disclaimer is set in 14px / 1.6 line-height per the retheme spec —
- * "Legal Clear is not a law firm. We provide educational explanations
- * only." sits in a readable size, not buried fine print.
+ * Site-wide footer — glossy v3 restyle.
+ * White background, #E0E7FF border-top, proper padding.
  */
+
 export default function SiteFooter() {
   return (
     <footer
       style={{
-        borderTop: "1px solid var(--border)",
-        background: "var(--bg)",
-        marginTop: "var(--space-8)",
+        borderTop: "1px solid #E0E7FF",
+        background: "#fff",
+        marginTop: 0,
       }}
     >
       <div
-        className="container"
         style={{
-          paddingTop: "var(--space-4)",
-          paddingBottom: "var(--space-4)",
-          display: "grid",
-          gap: "var(--space-2)",
-          maxWidth: "var(--max-prose)",
-          paddingLeft: 24,
-          paddingRight: 24,
+          maxWidth: 800,
+          margin: "0 auto",
+          padding: "32px 48px",
         }}
       >
-        <LogoWordmark size={16} />
+        {/* Wordmark — matches header */}
         <p
           style={{
-            margin: 0,
-            fontSize: 14,
-            lineHeight: 1.6,
-            color: "var(--fg)",
+            fontFamily: "var(--font-sans)",
+            fontSize: 16,
+            fontWeight: 600,
+            margin: "0 0 12px",
+            lineHeight: 1.2,
           }}
         >
-          Legal Clear is not a law firm. We provide educational explanations only.
+          <span style={{ color: "#1a1a2e" }}>legal</span>
+          <span style={{ color: "#4361EE" }}>clear</span>
         </p>
+
         <p
           style={{
             margin: 0,
-            fontSize: 14,
-            lineHeight: 1.6,
-            color: "var(--muted)",
+            fontSize: 13,
+            lineHeight: 1.7,
+            color: "#6B7280",
+          }}
+        >
+          Legal Clear is not a law firm. We provide educational explanations
+          only.
+        </p>
+
+        <p
+          style={{
+            margin: "6px 0 0",
+            fontSize: 13,
+            lineHeight: 1.7,
+            color: "#6B7280",
           }}
         >
           Nothing on this site is legal advice. Using it does not create an

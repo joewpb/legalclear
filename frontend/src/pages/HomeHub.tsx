@@ -1,7 +1,6 @@
 /**
- * v3 Homepage — AI-first intake screen.
+ * v3 Homepage — Modern Glossy AI-first intake screen.
  *
- * Replaces the Phase 15 tile hub with a single textarea intake.
  * POST /api/intake → routes to the correct module page.
  * "unknown" modules show a clarifying question inline.
  */
@@ -11,29 +10,41 @@ import { useNavigate } from "react-router-dom";
 import HubTile from "../components/HubTile";
 
 // ---------------------------------------------------------------------------
-// Module tile definitions (secondary nav)
+// Brand tokens
+// ---------------------------------------------------------------------------
+
+const C = {
+  navy: "#1a1a2e",
+  blue: "#4361EE",
+  purple: "#3A0CA3",
+  grey: "#6B7280",
+  border: "#E0E7FF",
+  bgStart: "#F0F4FF",
+  bgEnd: "#FAFAFA",
+};
+
+// ---------------------------------------------------------------------------
+// Module tiles — with icons
 // ---------------------------------------------------------------------------
 
 const MODULE_TILES = [
-  { title: "Small Claims", subtitle: "Disputes up to $8,000", to: "/small-claims" },
-  { title: "Criminal", subtitle: "Procedure explained by stage", to: "/criminal-procedure" },
-  { title: "Police Report", subtitle: "Upload and analyze", to: "/police-report" },
-  { title: "Discovery", subtitle: "Motion analysis under Rule 3.220", to: "/discovery-motion" },
-  { title: "Property & Casualty", subtitle: "Insurance and liability", to: "/property-casualty" },
-  { title: "Forms", subtitle: "Find Florida court forms", to: "/forms" },
+  { title: "Small Claims", subtitle: "Disputes up to $8,000", to: "/small-claims", icon: "⚖️" },
+  { title: "Criminal", subtitle: "Procedure explained by stage", to: "/criminal-procedure", icon: "🔒" },
+  { title: "Police Report", subtitle: "Upload and analyze", to: "/police-report", icon: "📋" },
+  { title: "Discovery", subtitle: "Motion analysis under Rule 3.220", to: "/discovery-motion", icon: "🔍" },
+  { title: "Property & Casualty", subtitle: "Insurance and liability", to: "/property-casualty", icon: "🏠" },
+  { title: "Forms", subtitle: "Find Florida court forms", to: "/forms", icon: "📝" },
 ];
 
 // ---------------------------------------------------------------------------
-// Route mapping from intake module → frontend route
+// Route mapping
 // ---------------------------------------------------------------------------
 
 function buildRoute(module: string, entities: Record<string, unknown>, language: string): string {
   const params = new URLSearchParams();
   params.set("language", language);
   for (const [k, v] of Object.entries(entities)) {
-    if (v !== null && v !== undefined) {
-      params.set(k, String(v));
-    }
+    if (v !== null && v !== undefined) params.set(k, String(v));
   }
   switch (module) {
     case "small_claims":      return `/small-claims?${params.toString()}`;
@@ -46,82 +57,93 @@ function buildRoute(module: string, entities: Record<string, unknown>, language:
 }
 
 // ---------------------------------------------------------------------------
-// Navy brand colour (replaces --accent for the homepage CTA)
-// ---------------------------------------------------------------------------
-
-const NAVY = "#1B2B5E";
-
-// ---------------------------------------------------------------------------
-// Styles
+// Inline styles
 // ---------------------------------------------------------------------------
 
 const S = {
-  /* ── Page container ── */
+  /* ── Full-page background wrapper ── */
+  bg: {
+    minHeight: "100%",
+    background: `linear-gradient(180deg, ${C.bgStart} 0%, ${C.bgEnd} 100%)`,
+  } as React.CSSProperties,
+
+  /* ── Content column ── */
   page: {
-    maxWidth: 680,
+    maxWidth: 800,
     margin: "0 auto",
     padding: "0 24px",
+    display: "flex",
+    flexDirection: "column",
+    gap: 32,
   } as React.CSSProperties,
 
   /* ── Hero ── */
   hero: {
-    padding: "32px 0 12px",
+    paddingTop: 40,
+    paddingBottom: 0,
   } as React.CSSProperties,
 
   wordmark: {
     fontFamily: "var(--font-serif)",
-    fontSize: 30,
-    fontWeight: 500,
+    fontSize: 48,
+    fontWeight: 600,
     letterSpacing: "-0.025em",
-    lineHeight: 1.1,
-    margin: "0 0 6px",
+    lineHeight: 1.05,
+    margin: "0 0 8px",
   } as React.CSSProperties,
-
-  wordmarkLegal: { color: "#1A1A1A" } as React.CSSProperties,
-  wordmarkClear: { color: NAVY } as React.CSSProperties,
 
   subhead: {
     fontSize: 16,
-    lineHeight: 1.45,
-    color: "#666",
     fontWeight: 400,
-    margin: "0 0 16px",
+    color: C.grey,
+    lineHeight: 1.4,
+    margin: 0,
   } as React.CSSProperties,
 
-  /* ── Language toggle ── */
-  langRow: {
+  /* ── Language toggle — pill container ── */
+  langContainer: {
     display: "flex",
     justifyContent: "flex-end",
-    marginBottom: 8,
+  } as React.CSSProperties,
+
+  langPill: {
+    display: "inline-flex",
+    background: C.bgStart,
+    borderRadius: 10,
+    padding: 4,
+    gap: 2,
   } as React.CSSProperties,
 
   langBtn: (active: boolean): React.CSSProperties => ({
-    background: "none",
-    border: active ? `2px solid ${NAVY}` : "2px solid transparent",
-    borderRadius: "var(--radius, 4px)",
-    padding: "4px 10px",
+    background: active ? C.blue : "transparent",
+    color: active ? "#fff" : C.grey,
+    border: "none",
+    borderRadius: 8,
+    padding: "6px 14px",
     fontSize: 13,
     fontWeight: active ? 600 : 400,
-    color: active ? NAVY : "var(--muted, #6B6B66)",
     cursor: "pointer",
-    marginLeft: 4,
+    lineHeight: 1.2,
+    transition: "background 0.15s, color 0.15s",
   }),
 
-  /* ── Intake box ── */
+  /* ── Textarea ── */
   textarea: {
     width: "100%",
     minHeight: 120,
-    padding: "14px 16px",
+    padding: 20,
     fontSize: 16,
     lineHeight: 1.6,
     fontFamily: "var(--font-sans)",
-    border: "1px solid var(--border-strong, #C7C7BF)",
-    borderRadius: "var(--radius, 4px)",
-    resize: "vertical",
     background: "#fff",
-    color: "var(--fg, #1A1A1A)",
+    color: C.navy,
+    border: "1px solid #E0E7FF",
+    borderRadius: 16,
+    boxShadow: "0 4px 24px rgba(67,97,238,0.08)",
+    resize: "vertical",
     boxSizing: "border-box",
     outline: "none",
+    transition: "border 0.2s, box-shadow 0.2s",
   } as React.CSSProperties,
 
   /* ── Button row ── */
@@ -129,107 +151,93 @@ const S = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 10,
-    marginBottom: 0,
   } as React.CSSProperties,
 
   submitBtn: {
-    padding: "12px 32px",
-    background: NAVY,
+    padding: "14px 32px",
+    background: `linear-gradient(135deg, ${C.blue} 0%, ${C.purple} 100%)`,
     color: "#fff",
     border: "none",
-    borderRadius: "var(--radius, 4px)",
+    borderRadius: 12,
     fontSize: 15,
-    fontWeight: 500,
+    fontWeight: 600,
     cursor: "pointer",
     lineHeight: 1.2,
+    boxShadow: "0 4px 15px rgba(67,97,238,0.35)",
+    transition: "box-shadow 0.2s, filter 0.2s",
   } as React.CSSProperties,
 
   submitBtnDisabled: {
-    padding: "12px 32px",
-    background: "var(--border-strong, #C7C7BF)",
+    padding: "14px 32px",
+    background: `linear-gradient(135deg, ${C.blue} 0%, ${C.purple} 100%)`,
     color: "#fff",
     border: "none",
-    borderRadius: "var(--radius, 4px)",
+    borderRadius: 12,
     fontSize: 15,
-    fontWeight: 500,
+    fontWeight: 600,
     cursor: "not-allowed",
     lineHeight: 1.2,
+    opacity: 0.5,
+    boxShadow: "none",
   } as React.CSSProperties,
 
-  /* ── Clarifying question ── */
+  /* ── Feedback ── */
+  status: {
+    fontSize: 12,
+    color: C.grey,
+  } as React.CSSProperties,
+
+  error: {
+    color: "var(--danger, #B91C1C)",
+    fontSize: 13,
+  } as React.CSSProperties,
+
   clarifyBox: {
-    marginTop: 12,
-    padding: 14,
+    padding: 16,
     background: "#FFF8E1",
     border: "1px solid #FFC107",
-    borderRadius: "var(--radius, 4px)",
+    borderRadius: 12,
     fontSize: 14,
     lineHeight: 1.6,
   } as React.CSSProperties,
 
   clarifyTitle: {
     fontWeight: 600,
-    margin: "0 0 6px",
+    margin: "0 0 4px",
     fontSize: 12,
     textTransform: "uppercase",
     letterSpacing: "0.07em",
     color: "#795548",
   } as React.CSSProperties,
 
-  clarifyText: { margin: 0, fontSize: 14, lineHeight: 1.6 } as React.CSSProperties,
+  clarifyText: {
+    margin: 0,
+    fontSize: 14,
+    lineHeight: 1.6,
+  } as React.CSSProperties,
 
-  /* ── Error ── */
-  error: { color: "var(--danger, #B91C1C)", fontSize: 13, marginTop: 8 } as React.CSSProperties,
-
-  /* ── Secondary nav ── */
+  /* ── Tile grid ── */
   navSection: {
-    paddingTop: 24,
-    position: "relative",
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
   } as React.CSSProperties,
 
   navLabel: {
     fontSize: 11,
     textTransform: "uppercase",
     letterSpacing: "0.08em",
-    color: "var(--muted, #6B6B66)",
-    margin: "0 0 12px",
+    color: C.grey,
+    margin: 0,
   } as React.CSSProperties,
 
-  /* Scroll wrapper — contains the row + fade */
-  scrollWrapper: {
-    position: "relative",
-    marginLeft: -24,
-    marginRight: -24,
+  tileGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+    gap: 12,
   } as React.CSSProperties,
 
-  scrollRow: {
-    display: "flex",
-    gap: 10,
-    overflowX: "auto",
-    paddingLeft: 24,
-    paddingRight: 40,     // extra space so last tile isn't clipped
-    paddingBottom: 8,
-    WebkitOverflowScrolling: "touch",
-    scrollbarWidth: "none",
-  } as React.CSSProperties,
-
-  /* Right-edge fade overlay */
-  fadeRight: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    width: 48,
-    background: "linear-gradient(to right, transparent, var(--bg, #FAFAF7))",
-    pointerEvents: "none",
-  } as React.CSSProperties,
-
-  tileWrap: {
-    flex: "0 0 172px",
-  } as React.CSSProperties,
-
-  /* ── Footer padding handled in page container ── */
+  /* ── Mobile overrides injected via inline media query style tag ── */
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -243,6 +251,7 @@ export default function HomeHub() {
   const [loading, setLoading] = useState(false);
   const [clarify, setClarify] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [hoverBtn, setHoverBtn] = useState(false);
 
   const isEmpty = !situation.trim();
 
@@ -293,76 +302,120 @@ export default function HomeHub() {
     [handleSubmit],
   );
 
+  // ── Render ─────────────────────────────────────────────────────────
+
   return (
-    <div style={S.page}>
-      {/* Hero */}
-      <header style={S.hero}>
-        <h1 style={S.wordmark}>
-          <span style={S.wordmarkLegal}>Legal</span>
-          <span style={S.wordmarkClear}>Clear</span>
-        </h1>
-        <p style={S.subhead}>Florida legal help, explained in plain English</p>
-      </header>
-
-      {/* Language toggle */}
-      <div style={S.langRow}>
-        <button style={S.langBtn(language === "en")} onClick={() => setLanguage("en")}>EN</button>
-        <button style={S.langBtn(language === "es")} onClick={() => setLanguage("es")}>ES</button>
-      </div>
-
-      {/* Intake textarea */}
-      <textarea
-        style={S.textarea}
-        value={situation}
-        onChange={(e) => { setSituation(e.target.value); setClarify(null); setError(null); }}
-        onKeyDown={handleKeyDown}
-        placeholder={
-          language === "es"
-            ? "Describa su situación en lenguaje sencillo…"
-            : "Describe your situation in plain English…"
+    <>
+      {/* Mobile responsive overrides */}
+      <style>{`
+        @media (max-width: 480px) {
+          .lc-home-page { padding: 0 16px !important; gap: 20px !important; }
+          .lc-wordmark { font-size: 36px !important; }
+          .lc-textarea { min-height: 100px !important; }
+          .lc-submit-btn { width: 100% !important; }
+          .lc-tile-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .lc-btn-row { flex-direction: column; align-items: stretch; gap: 8px; }
         }
-        disabled={loading}
-      />
+      `}</style>
 
-      {/* Submit row */}
-      <div style={S.btnRow}>
-        <span style={{ fontSize: 12, color: "var(--muted, #6B6B66)" }}>
-          {loading ? "Analyzing…" : ""}
-        </span>
-        <button
-          style={isEmpty ? S.submitBtnDisabled : S.submitBtn}
-          onClick={handleSubmit}
-          disabled={isEmpty || loading}
-        >
-          {loading ? "…" : "Get Explanation"}
-        </button>
-      </div>
+      <div style={S.bg}>
+        <div className="lc-home-page" style={S.page}>
+          {/* Hero */}
+          <header style={S.hero}>
+            <h1 className="lc-wordmark" style={S.wordmark}>
+              <span style={{ color: C.navy }}>legal</span>
+              <span style={{ color: C.blue }}>clear</span>
+            </h1>
+            <p style={S.subhead}>Florida legal help, explained in plain English</p>
+          </header>
 
-      {/* Error */}
-      {error && <p style={S.error}>{error}</p>}
-
-      {/* Clarifying question */}
-      {clarify && (
-        <div style={S.clarifyBox}>
-          <p style={S.clarifyTitle}>Tell us a little more</p>
-          <p style={S.clarifyText}>{clarify}</p>
-        </div>
-      )}
-
-      {/* Secondary nav — horizontal scroll of module tiles */}
-      <section style={S.navSection}>
-        <p style={S.navLabel}>Or jump to a topic</p>
-        <div style={S.scrollWrapper}>
-          <div style={S.scrollRow}>
-            {MODULE_TILES.map((t) => (
-              <div key={t.to} style={S.tileWrap}>
-                <HubTile title={t.title} subtitle={t.subtitle} to={t.to} />
-              </div>
-            ))}
+          {/* Language toggle */}
+          <div style={S.langContainer}>
+            <div style={S.langPill}>
+              <button style={S.langBtn(language === "en")} onClick={() => setLanguage("en")}>
+                EN
+              </button>
+              <button style={S.langBtn(language === "es")} onClick={() => setLanguage("es")}>
+                ES
+              </button>
+            </div>
           </div>
-          <div style={S.fadeRight} />
+
+          {/* Intake textarea */}
+          <textarea
+            className="lc-textarea"
+            style={S.textarea}
+            value={situation}
+            onChange={(e) => {
+              setSituation(e.target.value);
+              setClarify(null);
+              setError(null);
+            }}
+            onKeyDown={handleKeyDown}
+            onFocus={(e) => {
+              e.currentTarget.style.border = `1px solid ${C.blue}`;
+              e.currentTarget.style.boxShadow = "0 4px 24px rgba(67,97,238,0.18)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.border = "1px solid #E0E7FF";
+              e.currentTarget.style.boxShadow = "0 4px 24px rgba(67,97,238,0.08)";
+            }}
+            placeholder={
+              language === "es"
+                ? "Describa su situación en lenguaje sencillo…"
+                : "Describe your situation in plain English…"
+            }
+            disabled={loading}
+          />
+
+          {/* Submit */}
+          <div className="lc-btn-row" style={S.btnRow}>
+            <span style={S.status}>{loading ? "Analyzing…" : ""}</span>
+            <button
+              className="lc-submit-btn"
+              style={{
+                ...(isEmpty ? S.submitBtnDisabled : S.submitBtn),
+                ...(hoverBtn && !isEmpty
+                  ? { boxShadow: "0 6px 20px rgba(67,97,238,0.5)", filter: "brightness(1.05)" }
+                  : {}),
+              }}
+              onMouseEnter={() => setHoverBtn(true)}
+              onMouseLeave={() => setHoverBtn(false)}
+              onClick={handleSubmit}
+              disabled={isEmpty || loading}
+            >
+              {loading ? "…" : "Get Explanation"}
+            </button>
+          </div>
+
+          {/* Error */}
+          {error && <p style={S.error}>{error}</p>}
+
+          {/* Clarifying question */}
+          {clarify && (
+            <div style={S.clarifyBox}>
+              <p style={S.clarifyTitle}>Tell us a little more</p>
+              <p style={S.clarifyText}>{clarify}</p>
+            </div>
+          )}
+
+          {/* Module tiles grid */}
+          <section style={S.navSection}>
+            <p style={S.navLabel}>Or jump to a topic</p>
+            <div className="lc-tile-grid" style={S.tileGrid}>
+              {MODULE_TILES.map((t) => (
+                <HubTile
+                  key={t.to}
+                  title={t.title}
+                  subtitle={t.subtitle}
+                  to={t.to}
+                  icon={t.icon}
+                />
+              ))}
+            </div>
+          </section>
         </div>
-      </section>
-    </div>
+      </div>
+    </>
   );
 }
