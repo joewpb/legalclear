@@ -25,7 +25,8 @@ export default function SiteFooter() {
           display: "grid",
           gap: "var(--space-2)",
           maxWidth: "var(--max-prose)",
-          marginLeft: 0,
+          paddingLeft: 24,
+          paddingRight: 24,
         }}
       >
         <LogoWordmark size={16} />

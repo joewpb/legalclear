@@ -35,74 +35,202 @@ function buildRoute(module: string, entities: Record<string, unknown>, language:
       params.set(k, String(v));
     }
   }
-
   switch (module) {
-    case "small_claims":
-      return `/small-claims?${params.toString()}`;
-    case "criminal_procedure":
-      return `/criminal-procedure?${params.toString()}`;
-    case "police_report":
-      return `/police-report?${params.toString()}`;
-    case "discovery_motion":
-      return `/discovery-motion?${params.toString()}`;
-    case "property_casualty":
-      return `/property-casualty?${params.toString()}`;
-    default:
-      return "";
+    case "small_claims":      return `/small-claims?${params.toString()}`;
+    case "criminal_procedure": return `/criminal-procedure?${params.toString()}`;
+    case "police_report":     return `/police-report?${params.toString()}`;
+    case "discovery_motion":  return `/discovery-motion?${params.toString()}`;
+    case "property_casualty": return `/property-casualty?${params.toString()}`;
+    default: return "";
   }
 }
+
+// ---------------------------------------------------------------------------
+// Navy brand colour (replaces --accent for the homepage CTA)
+// ---------------------------------------------------------------------------
+
+const NAVY = "#1B2B5E";
 
 // ---------------------------------------------------------------------------
 // Styles
 // ---------------------------------------------------------------------------
 
 const S = {
-  page: { maxWidth: 680, margin: "0 auto", padding: "var(--space-2)" } as React.CSSProperties,
+  /* ── Page container ── */
+  page: {
+    maxWidth: 680,
+    margin: "0 auto",
+    padding: "0 24px",
+  } as React.CSSProperties,
 
   /* ── Hero ── */
-  hero: { padding: "var(--space-6) 0 var(--space-3)" } as React.CSSProperties,
-  wordmark: { fontFamily: "var(--font-serif)", fontSize: 36, fontWeight: 500,
-    letterSpacing: "-0.025em", lineHeight: 1.1, margin: "0 0 var(--space-1)" } as React.CSSProperties,
-  subhead: { fontSize: 16, lineHeight: 1.55, color: "var(--muted)", margin: "0 0 var(--space-3)" } as React.CSSProperties,
+  hero: {
+    padding: "32px 0 12px",
+  } as React.CSSProperties,
+
+  wordmark: {
+    fontFamily: "var(--font-serif)",
+    fontSize: 30,
+    fontWeight: 500,
+    letterSpacing: "-0.025em",
+    lineHeight: 1.1,
+    margin: "0 0 6px",
+  } as React.CSSProperties,
+
+  wordmarkLegal: { color: "#1A1A1A" } as React.CSSProperties,
+  wordmarkClear: { color: NAVY } as React.CSSProperties,
+
+  subhead: {
+    fontSize: 16,
+    lineHeight: 1.45,
+    color: "#666",
+    fontWeight: 400,
+    margin: "0 0 16px",
+  } as React.CSSProperties,
 
   /* ── Language toggle ── */
-  langRow: { display: "flex", justifyContent: "flex-end", marginBottom: "var(--space-1)" } as React.CSSProperties,
+  langRow: {
+    display: "flex",
+    justifyContent: "flex-end",
+    marginBottom: 8,
+  } as React.CSSProperties,
+
   langBtn: (active: boolean): React.CSSProperties => ({
-    background: "none", border: active ? "2px solid var(--accent)" : "2px solid transparent",
-    borderRadius: "var(--radius)", padding: "4px 10px", fontSize: 13, fontWeight: active ? 600 : 400,
-    color: active ? "var(--accent)" : "var(--muted)", cursor: "pointer", marginLeft: 4,
+    background: "none",
+    border: active ? `2px solid ${NAVY}` : "2px solid transparent",
+    borderRadius: "var(--radius, 4px)",
+    padding: "4px 10px",
+    fontSize: 13,
+    fontWeight: active ? 600 : 400,
+    color: active ? NAVY : "var(--muted, #6B6B66)",
+    cursor: "pointer",
+    marginLeft: 4,
   }),
 
   /* ── Intake box ── */
-  textarea: { width: "100%", minHeight: 140, padding: "var(--space-2)", fontSize: 16,
-    lineHeight: 1.6, fontFamily: "var(--font-sans)", border: "1px solid var(--border-strong)",
-    borderRadius: "var(--radius)", resize: "vertical", background: "#fff", color: "var(--fg)",
-    boxSizing: "border-box" } as React.CSSProperties,
-  btnRow: { display: "flex", justifyContent: "space-between", alignItems: "center",
-    marginTop: "var(--space-1)" } as React.CSSProperties,
-  submitBtn: { padding: "12px 28px", background: "var(--accent)", color: "#fff", border: "none",
-    borderRadius: "var(--radius)", fontSize: 15, fontWeight: 500, cursor: "pointer" } as React.CSSProperties,
-  submitBtnDisabled: { padding: "12px 28px", background: "var(--border-strong)", color: "#fff", border: "none",
-    borderRadius: "var(--radius)", fontSize: 15, fontWeight: 500, cursor: "not-allowed" } as React.CSSProperties,
+  textarea: {
+    width: "100%",
+    minHeight: 120,
+    padding: "14px 16px",
+    fontSize: 16,
+    lineHeight: 1.6,
+    fontFamily: "var(--font-sans)",
+    border: "1px solid var(--border-strong, #C7C7BF)",
+    borderRadius: "var(--radius, 4px)",
+    resize: "vertical",
+    background: "#fff",
+    color: "var(--fg, #1A1A1A)",
+    boxSizing: "border-box",
+    outline: "none",
+  } as React.CSSProperties,
+
+  /* ── Button row ── */
+  btnRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 10,
+    marginBottom: 0,
+  } as React.CSSProperties,
+
+  submitBtn: {
+    padding: "12px 32px",
+    background: NAVY,
+    color: "#fff",
+    border: "none",
+    borderRadius: "var(--radius, 4px)",
+    fontSize: 15,
+    fontWeight: 500,
+    cursor: "pointer",
+    lineHeight: 1.2,
+  } as React.CSSProperties,
+
+  submitBtnDisabled: {
+    padding: "12px 32px",
+    background: "var(--border-strong, #C7C7BF)",
+    color: "#fff",
+    border: "none",
+    borderRadius: "var(--radius, 4px)",
+    fontSize: 15,
+    fontWeight: 500,
+    cursor: "not-allowed",
+    lineHeight: 1.2,
+  } as React.CSSProperties,
 
   /* ── Clarifying question ── */
-  clarifyBox: { marginTop: "var(--space-2)", padding: "var(--space-2)", background: "#FFF8E1",
-    border: "1px solid #FFC107", borderRadius: "var(--radius)", fontSize: 14, lineHeight: 1.6 } as React.CSSProperties,
-  clarifyTitle: { fontWeight: 600, margin: "0 0 8px", fontSize: 13, textTransform: "uppercase",
-    letterSpacing: "0.06em", color: "#795548" } as React.CSSProperties,
+  clarifyBox: {
+    marginTop: 12,
+    padding: 14,
+    background: "#FFF8E1",
+    border: "1px solid #FFC107",
+    borderRadius: "var(--radius, 4px)",
+    fontSize: 14,
+    lineHeight: 1.6,
+  } as React.CSSProperties,
+
+  clarifyTitle: {
+    fontWeight: 600,
+    margin: "0 0 6px",
+    fontSize: 12,
+    textTransform: "uppercase",
+    letterSpacing: "0.07em",
+    color: "#795548",
+  } as React.CSSProperties,
+
   clarifyText: { margin: 0, fontSize: 14, lineHeight: 1.6 } as React.CSSProperties,
 
   /* ── Error ── */
-  error: { color: "var(--danger)", fontSize: 13, marginTop: 8 } as React.CSSProperties,
+  error: { color: "var(--danger, #B91C1C)", fontSize: 13, marginTop: 8 } as React.CSSProperties,
 
   /* ── Secondary nav ── */
-  navSection: { paddingTop: "var(--space-4)" } as React.CSSProperties,
-  navLabel: { fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em",
-    color: "var(--muted)", margin: "0 0 var(--space-2)" } as React.CSSProperties,
-  scrollRow: { display: "flex", gap: 10, overflowX: "auto", paddingBottom: 8,
-    WebkitOverflowScrolling: "touch", scrollbarWidth: "none" } as React.CSSProperties,
-  tileWrap: { flex: "0 0 180px" } as React.CSSProperties,
-};
+  navSection: {
+    paddingTop: 24,
+    position: "relative",
+  } as React.CSSProperties,
+
+  navLabel: {
+    fontSize: 11,
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
+    color: "var(--muted, #6B6B66)",
+    margin: "0 0 12px",
+  } as React.CSSProperties,
+
+  /* Scroll wrapper — contains the row + fade */
+  scrollWrapper: {
+    position: "relative",
+    marginLeft: -24,
+    marginRight: -24,
+  } as React.CSSProperties,
+
+  scrollRow: {
+    display: "flex",
+    gap: 10,
+    overflowX: "auto",
+    paddingLeft: 24,
+    paddingRight: 40,     // extra space so last tile isn't clipped
+    paddingBottom: 8,
+    WebkitOverflowScrolling: "touch",
+    scrollbarWidth: "none",
+  } as React.CSSProperties,
+
+  /* Right-edge fade overlay */
+  fadeRight: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: 48,
+    background: "linear-gradient(to right, transparent, var(--bg, #FAFAF7))",
+    pointerEvents: "none",
+  } as React.CSSProperties,
+
+  tileWrap: {
+    flex: "0 0 172px",
+  } as React.CSSProperties,
+
+  /* ── Footer padding handled in page container ── */
+} as const;
 
 // ---------------------------------------------------------------------------
 // Component
@@ -116,10 +244,10 @@ export default function HomeHub() {
   const [clarify, setClarify] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = useCallback(async () => {
-    const trimmed = situation.trim();
-    if (!trimmed) return;
+  const isEmpty = !situation.trim();
 
+  const handleSubmit = useCallback(async () => {
+    if (isEmpty) return;
     setLoading(true);
     setError(null);
     setClarify(null);
@@ -130,9 +258,8 @@ export default function HomeHub() {
       const res = await fetch(`${base}/api/intake`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ situation: trimmed, language }),
+        body: JSON.stringify({ situation: situation.trim(), language }),
       });
-
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
 
       const data = await res.json();
@@ -144,25 +271,17 @@ export default function HomeHub() {
         setLoading(false);
         return;
       }
+      if (data.sub_type) entities.sub_type = data.sub_type;
 
-      // Add sub_type to entities if present
-      if (data.sub_type) {
-        entities.sub_type = data.sub_type;
-      }
-
-      // Navigate to the appropriate module
       const route = buildRoute(module, entities, language);
-      if (route) {
-        navigate(route);
-      } else {
-        setError("Could not determine the right page. Please try again.");
-      }
+      if (route) navigate(route);
+      else setError("Could not determine the right page. Please try again.");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
-  }, [situation, language, navigate]);
+  }, [situation, language, isEmpty, navigate]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -178,7 +297,10 @@ export default function HomeHub() {
     <div style={S.page}>
       {/* Hero */}
       <header style={S.hero}>
-        <h1 style={S.wordmark}>LegalClear</h1>
+        <h1 style={S.wordmark}>
+          <span style={S.wordmarkLegal}>Legal</span>
+          <span style={S.wordmarkClear}>Clear</span>
+        </h1>
         <p style={S.subhead}>Florida legal help, explained in plain English</p>
       </header>
 
@@ -204,13 +326,13 @@ export default function HomeHub() {
 
       {/* Submit row */}
       <div style={S.btnRow}>
-        <span style={{ fontSize: 12, color: "var(--muted)" }}>
+        <span style={{ fontSize: 12, color: "var(--muted, #6B6B66)" }}>
           {loading ? "Analyzing…" : ""}
         </span>
         <button
-          style={situation.trim() && !loading ? S.submitBtn : S.submitBtnDisabled}
+          style={isEmpty ? S.submitBtnDisabled : S.submitBtn}
           onClick={handleSubmit}
-          disabled={!situation.trim() || loading}
+          disabled={isEmpty || loading}
         >
           {loading ? "…" : "Get Explanation"}
         </button>
@@ -219,7 +341,7 @@ export default function HomeHub() {
       {/* Error */}
       {error && <p style={S.error}>{error}</p>}
 
-      {/* Clarifying question — shown when module is "unknown" */}
+      {/* Clarifying question */}
       {clarify && (
         <div style={S.clarifyBox}>
           <p style={S.clarifyTitle}>Tell us a little more</p>
@@ -230,12 +352,15 @@ export default function HomeHub() {
       {/* Secondary nav — horizontal scroll of module tiles */}
       <section style={S.navSection}>
         <p style={S.navLabel}>Or jump to a topic</p>
-        <div style={S.scrollRow}>
-          {MODULE_TILES.map((t) => (
-            <div key={t.to} style={S.tileWrap}>
-              <HubTile title={t.title} subtitle={t.subtitle} to={t.to} />
-            </div>
-          ))}
+        <div style={S.scrollWrapper}>
+          <div style={S.scrollRow}>
+            {MODULE_TILES.map((t) => (
+              <div key={t.to} style={S.tileWrap}>
+                <HubTile title={t.title} subtitle={t.subtitle} to={t.to} />
+              </div>
+            ))}
+          </div>
+          <div style={S.fadeRight} />
         </div>
       </section>
     </div>
