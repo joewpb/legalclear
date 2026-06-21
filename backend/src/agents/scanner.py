@@ -29,6 +29,7 @@ from typing import Any
 from anthropic import Anthropic
 
 from src.agents.case_context import empty_case_context
+from src.agents.police_report_v2 import compute_risk_score
 from src.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -186,7 +187,11 @@ async def scan_documents(extracted_texts: list[dict]) -> dict:
     # If we have nothing to analyze, skip the API call entirely.
     if n_docs == 0 or not any(d.get("text") for d in extracted_texts):
         meta["note"] = "no document text extracted"
-        return {"findings": [], "meta": meta}
+        return {
+            "findings": [],
+            "meta": meta,
+            "risk_analysis": compute_risk_score([]),
+        }
 
     combined = "\n\n---\n\n".join(
         f"[FILE: {d.get('filename', 'unknown')}]\n{(d.get('text') or '')[:30000]}"
@@ -213,7 +218,20 @@ async def scan_documents(extracted_texts: list[dict]) -> dict:
         )
         raw = msg.content[0].text if msg.content else ""
         findings = _parse_findings(raw)
-        return {"findings": findings, "meta": meta}
+
+        # Compute deterministic risk score from LLM-classified severities.
+        # The scanner uses "finding" for description; map to the field
+        # name compute_risk_score expects.
+        risk_input = [
+            {**f, "description": f.get("finding", "")} for f in findings
+        ]
+        risk_analysis = compute_risk_score(risk_input)
+
+        return {
+            "findings": findings,
+            "meta": meta,
+            "risk_analysis": risk_analysis,
+        }
     except Exception as e:  # noqa: BLE001 — fail-soft is the contract
         logger.warning(
             "Scanner agent failed (%s); returning empty findings.\n%s",
@@ -221,7 +239,11 @@ async def scan_documents(extracted_texts: list[dict]) -> dict:
             traceback.format_exc(),
         )
         meta["error"] = type(e).__name__
-        return {"findings": [], "meta": meta}
+        return {
+            "findings": [],
+            "meta": meta,
+            "risk_analysis": compute_risk_score([]),
+        }
 
 
 def _parse_case_context_obj(raw: str) -> dict | None:

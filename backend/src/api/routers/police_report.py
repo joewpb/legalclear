@@ -98,4 +98,5 @@ async def analyze_report_batch(files: List[UploadFile] = File(...)):
         "findings": result["findings"],
         "documents_analyzed": result["meta"]["documents_analyzed"],
         "case_context": case_context,
+        "risk_analysis": result.get("risk_analysis"),
     }
