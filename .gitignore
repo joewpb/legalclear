@@ -54,3 +54,9 @@ forms/downloads.json
 /forms_manifest.json
 # unrelated local scratch
 screenshots/
+
+# harvest enrichment artifacts (source of truth is Supabase)
+forms/.enrich_checkpoint.json
+forms/enrichment_output_harvest.jsonl
+forms/text/
+forms/enrichment_input_harvest.jsonl
