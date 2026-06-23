@@ -320,6 +320,11 @@ async def process_document(session_id: str, background_tasks: BackgroundTasks, l
             language=lang
         )
 
+        # Phase 1: PII redaction — run after extraction, before returning
+        redaction = db.redact_document_pii(document_id)
+        if redaction.get("error"):
+            logger.warning(f"PII redaction issue for {document_id}: {redaction['error']}")
+
         db.log_usage(
             category=classification.get("document_category", "unknown"),
             jurisdiction=classification.get("jurisdiction_name", "unknown"),

@@ -324,3 +324,53 @@ class DatabaseManager:
             }).execute()
         except Exception as e:
             self.logger.error(f"log_usage failed: {e}")
+
+    def redact_document_pii(self, document_id: str) -> dict:
+        """Run PII redaction on a document's stored text after extraction.
+
+        Reads the current document_text, runs the PII redactor, and updates
+        the row with the redacted version. Returns the redaction audit log
+        so callers can verify what was removed.
+
+        Returns:
+            dict with keys: redacted (bool), findings_count (int), error (str|None)
+        """
+        if self.client is None:
+            return {"redacted": False, "findings_count": 0, "error": "db_unavailable"}
+        try:
+            from src.ingestion.pii_redactor import redact_pii
+
+            # Read current text
+            result = (self.client.table("documents")
+                      .select("document_text")
+                      .eq("id", document_id)
+                      .execute())
+            if not result.data:
+                return {"redacted": False, "findings_count": 0, "error": "document_not_found"}
+
+            text = result.data[0].get("document_text")
+            if not text:
+                return {"redacted": False, "findings_count": 0, "error": None}
+
+            # Run redaction
+            redaction = redact_pii(text)
+            if redaction["count"] == 0:
+                return {"redacted": False, "findings_count": 0, "error": None}
+
+            # Update with redacted text
+            self.client.table("documents").update({
+                "document_text": redaction["redacted_text"]
+            }).eq("id", document_id).execute()
+
+            self.logger.info(
+                f"PII redaction complete for {document_id}: "
+                f"{redaction['count']} findings"
+            )
+            return {
+                "redacted": True,
+                "findings_count": redaction["count"],
+                "error": None,
+            }
+        except Exception as e:
+            self.logger.error(f"PII redaction failed for {document_id}: {e}")
+            return {"redacted": False, "findings_count": 0, "error": str(e)}
