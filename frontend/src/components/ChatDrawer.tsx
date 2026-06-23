@@ -7,7 +7,7 @@
  *   - 5-message limit per session
  *   - localStorage persistence (survives page reload)
  *   - SSE streaming from /api/chat/{module}
- *   - Paywall stub at message 6
+ *   - Paywall overlay inside drawer at 5 messages
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -22,6 +22,7 @@ const MODULE_LABELS: Record<string, string> = {
   police_report: "Police Reports",
   discovery_motion: "Discovery Rules & Motions",
   property_casualty: "Property & Casualty Law",
+  wills_trusts: "Wills, Trusts & Probate",
 };
 
 // ---------------------------------------------------------------------------
@@ -38,7 +39,9 @@ interface ChatMessage {
 
 interface ChatDrawerProps {
   module: string;
+  isOpen?: boolean;
   onClose: () => void;
+  language?: "en" | "es";
 }
 
 // ---------------------------------------------------------------------------
@@ -47,7 +50,7 @@ interface ChatDrawerProps {
 
 function getSessionKey(module: string): string {
   const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  return `chat_${module}_${today}`;
+  return `legalclear_chat_${module}_${today}`;
 }
 
 function loadMessages(module: string): ChatMessage[] {
@@ -61,6 +64,10 @@ function loadMessages(module: string): ChatMessage[] {
 
 function saveMessages(module: string, messages: ChatMessage[]): void {
   localStorage.setItem(getSessionKey(module), JSON.stringify(messages));
+}
+
+function clearMessages(module: string): void {
+  localStorage.removeItem(getSessionKey(module));
 }
 
 // ---------------------------------------------------------------------------
@@ -146,6 +153,18 @@ const css = {
     opacity: 0.8,
   } as React.CSSProperties,
 
+  /* ── New chat button in header ── */
+  newChatBtn: {
+    background: "rgba(255,255,255,0.2)",
+    border: "1px solid rgba(255,255,255,0.3)",
+    color: "#fff",
+    fontSize: 12,
+    cursor: "pointer",
+    padding: "4px 10px",
+    borderRadius: 4,
+    marginRight: 8,
+  } as React.CSSProperties,
+
   /* ── Message list ── */
   messageList: {
     flex: 1,
@@ -168,8 +187,9 @@ const css = {
     borderRadius: 12,
     fontSize: 14,
     lineHeight: 1.6,
-    background: role === "user" ? "var(--accent, #1E40AF)" : "#F5F7FA",
-    color: role === "user" ? "#fff" : "var(--fg, #1A1A1A)",
+    background: role === "user" ? "#4361EE" : "#F5F7FA",
+    color: role === "user" ? "#fff" : "#1A1A1A",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
     borderTopRightRadius: role === "user" ? 4 : 12,
     borderTopLeftRadius: role === "expert" ? 4 : 12,
   }),
@@ -197,7 +217,7 @@ const css = {
 
   /* ── Input area ── */
   inputArea: {
-    borderTop: "1px solid #E5E5E0",
+    borderTop: "1px solid #E0E7FF",
     padding: "12px 20px",
     display: "flex",
     gap: 8,
@@ -209,10 +229,10 @@ const css = {
     minHeight: 44,
     maxHeight: 120,
     padding: "10px 14px",
-    border: "1px solid var(--border, #E5E5E0)",
-    borderRadius: "var(--radius, 4px)",
+    border: "1px solid #E0E7FF",
+    borderRadius: 16,
     fontSize: 14,
-    resize: "none",
+    resize: "none" as const,
     fontFamily: "inherit",
     lineHeight: 1.5,
   } as React.CSSProperties,
@@ -220,13 +240,13 @@ const css = {
   sendBtn: {
     padding: "10px 20px",
     border: "none",
-    borderRadius: "var(--radius, 4px)",
-    background: "linear-gradient(135deg, #1E40AF, #3B82F6)",
+    borderRadius: 16,
+    background: "linear-gradient(135deg, #4361EE, #3A0CA3)",
     color: "#fff",
     fontWeight: 600,
     fontSize: 14,
     cursor: "pointer",
-    whiteSpace: "nowrap",
+    whiteSpace: "nowrap" as const,
   } as React.CSSProperties,
 
   sendBtnDisabled: {
@@ -237,38 +257,59 @@ const css = {
   /* ── Counter ── */
   counter: {
     fontSize: 12,
-    color: "var(--muted, #6B6B66)",
-    textAlign: "center",
+    color: "#6B7280",
+    textAlign: "center" as const,
     padding: "4px 0",
   } as React.CSSProperties,
 
-  /* ── Paywall ── */
-  paywall: {
-    padding: "20px",
-    textAlign: "center",
-    background: "linear-gradient(135deg, #F5F7FA, #E8EAF6)",
+  /* ── Paywall overlay inside drawer ── */
+  paywallOverlay: {
+    position: "absolute" as const,
+    inset: 0,
+    background: "rgba(255,255,255,0.95)",
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10,
+    padding: "40px 20px",
+    textAlign: "center" as const,
   } as React.CSSProperties,
 
   paywallTitle: {
-    fontSize: 16,
-    fontWeight: 600,
-    color: "var(--accent, #1E40AF)",
+    fontSize: 18,
+    fontWeight: 700,
+    color: "#1A1A2E",
     marginBottom: 8,
   } as React.CSSProperties,
 
   paywallText: {
     fontSize: 14,
-    color: "var(--muted, #6B6B66)",
-    marginBottom: 12,
+    color: "#6B7280",
+    marginBottom: 20,
+    lineHeight: 1.6,
   } as React.CSSProperties,
 
   paywallBtn: {
-    padding: "10px 24px",
+    padding: "12px 28px",
     border: "none",
-    borderRadius: "var(--radius, 4px)",
+    borderRadius: 16,
     background: "linear-gradient(135deg, #635BFF, #7C3AED)",
     color: "#fff",
     fontWeight: 600,
+    fontSize: 15,
+    cursor: "pointer",
+    marginBottom: 10,
+    boxShadow: "0 4px 16px rgba(99,91,255,0.3)",
+  } as React.CSSProperties,
+
+  paywallCloseBtn: {
+    padding: "8px 20px",
+    border: "1px solid #E0E7FF",
+    borderRadius: 16,
+    background: "#fff",
+    color: "#6B7280",
+    fontWeight: 500,
     fontSize: 14,
     cursor: "pointer",
   } as React.CSSProperties,
@@ -281,12 +322,12 @@ const css = {
     padding: "12px 20px",
     border: "none",
     borderRadius: 28,
-    background: "linear-gradient(135deg, #1E40AF, #3B82F6)",
+    background: "linear-gradient(135deg, #4361EE, #3A0CA3)",
     color: "#fff",
     fontWeight: 600,
     fontSize: 14,
     cursor: "pointer",
-    boxShadow: "0 4px 16px rgba(30,64,175,0.3)",
+    boxShadow: "0 4px 16px rgba(67,97,238,0.35)",
     zIndex: 500,
     display: "flex",
     alignItems: "center",
@@ -311,7 +352,7 @@ export function ChatButton({
       onClick={onClick}
       aria-label={`Chat with ${MODULE_LABELS[module] || module} expert`}
     >
-      {/* Chat bubble icon ⬡ */}
+      {/* Chat bubble icon */}
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
       </svg>
@@ -324,15 +365,24 @@ export function ChatButton({
 // ChatDrawer component
 // ---------------------------------------------------------------------------
 
-export default function ChatDrawer({ module, onClose }: ChatDrawerProps) {
+export default function ChatDrawer({
+  module,
+  isOpen = true,
+  onClose,
+  language = "en",
+}: ChatDrawerProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(() =>
     loadMessages(module),
   );
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
+  const [paywalled, setPaywalled] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const MAX_MESSAGES = 5;
+
+  const userMessageCount = messages.filter((m) => m.role === "user").length;
+  const atLimit = userMessageCount >= MAX_MESSAGES;
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -346,176 +396,226 @@ export default function ChatDrawer({ module, onClose }: ChatDrawerProps) {
 
   // Cleanup abort on unmount
   useEffect(() => {
-    return () => abortRef.current?.abort();
+    return () => {
+      abortRef.current?.abort();
+    };
   }, []);
 
-  const messageCount = messages.filter((m) => m.role === "user").length;
-
+  // ── Handle send ──
   const handleSend = useCallback(async () => {
-    if (!input.trim() || messageCount >= MAX_MESSAGES || streaming) return;
+    const text = input.trim();
+    if (!text || streaming || atLimit) return;
 
     const userMsg: ChatMessage = {
       id: crypto.randomUUID(),
       role: "user",
-      content: input.trim(),
+      content: text,
       timestamp: Date.now(),
     };
 
-    const updatedMessages = [...messages, userMsg];
-    setMessages(updatedMessages);
+    setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setStreaming(true);
+
+    // Build placeholder for streaming expert response
+    const expertId = crypto.randomUUID();
+    const expertMsg: ChatMessage = {
+      id: expertId,
+      role: "expert",
+      content: "",
+      timestamp: Date.now(),
+    };
+    setMessages((prev) => [...prev, expertMsg]);
+
+    // Build chat_history from existing messages (excluding the ones we just added)
+    const chatHistory = messages.map((m) => ({
+      role: m.role === "expert" ? "assistant" : "user",
+      content: m.content,
+    }));
 
     const controller = new AbortController();
     abortRef.current = controller;
 
-    const base = import.meta.env.VITE_API_URL || "http://localhost:8001";
-
     try {
-      const res = await fetch(`${base}/api/chat/${module}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: userMsg.content,
-          session_id: crypto.randomUUID(),
-        }),
-        signal: controller.signal,
-      });
+      const resp = await fetch(
+        `${import.meta.env.VITE_API_URL || ""}/api/chat/${module}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: text,
+            session_id: crypto.randomUUID(),
+            chat_history: chatHistory,
+            language,
+          }),
+          signal: controller.signal,
+        },
+      );
 
-      if (!res.ok) {
-        throw new Error(`Server returned ${res.status}`);
+      if (!resp.ok) {
+        throw new Error(`Server error: ${resp.status}`);
       }
 
-      const reader = res.body?.getReader();
-      if (!reader) throw new Error("No response body");
+      const reader = resp.body?.getReader();
+      if (!reader) throw new Error("No response stream");
 
-      let accumulated = "";
-      const expertMsg: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: "expert",
-        content: "",
-        timestamp: Date.now(),
-      };
+      let fullContent = "";
 
-      // Add placeholder
-      const withPlaceholder = [...updatedMessages, expertMsg];
-      setMessages(withPlaceholder);
-
-      for await (const chunk of readSSE(reader)) {
+      for await (const raw of readSSE(reader)) {
         try {
-          const parsed = JSON.parse(chunk);
-          if (parsed.error) {
-            expertMsg.content = parsed.message;
+          const data = JSON.parse(raw);
+
+          if (data.chunk) {
+            fullContent += data.chunk;
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === expertId ? { ...m, content: fullContent } : m,
+              ),
+            );
+          }
+
+          if (data.disclaimer) {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === expertId ? { ...m, disclaimer: data.disclaimer } : m,
+              ),
+            );
+          }
+
+          if (data.paywall) {
+            setPaywalled(true);
+          }
+
+          if (data.done) {
             break;
           }
-          if (parsed.disclaimer) {
-            expertMsg.disclaimer = parsed.disclaimer;
-          }
-          if (parsed.chunk) {
-            accumulated += parsed.chunk;
-            expertMsg.content = accumulated;
-            setMessages([...updatedMessages, { ...expertMsg }]);
-          }
-          if (parsed.done) {
+
+          if (data.error) {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === expertId
+                  ? {
+                      ...m,
+                      content: data.message || "Something went wrong. Please try again.",
+                      disclaimer: data.disclaimer,
+                    }
+                  : m,
+              ),
+            );
             break;
           }
         } catch {
-          // Partial JSON or non-JSON chunk — accumulate raw
-          accumulated += chunk;
-          expertMsg.content = accumulated;
-          setMessages([...updatedMessages, { ...expertMsg }]);
+          // Skip unparseable chunks
         }
       }
-
-      // Finalize
-      setMessages((prev) => {
-        const last = prev[prev.length - 1];
-        if (last.role === "expert") {
-          last.content = accumulated;
-          return [...prev];
-        }
-        return prev;
-      });
     } catch (err: unknown) {
-      if (err instanceof DOMException && err.name === "AbortError") return;
-      const errorMsg: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: "expert",
-        content: "Sorry, something went wrong. Please try again.",
-        timestamp: Date.now(),
-      };
-      setMessages([...updatedMessages, errorMsg]);
+      if (err instanceof Error && err.name === "AbortError") return;
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === expertId
+            ? {
+                ...m,
+                content: "Connection lost. Please try again.",
+              }
+            : m,
+        ),
+      );
     } finally {
       setStreaming(false);
+      abortRef.current = null;
     }
-  }, [input, messageCount, messages, module, streaming]);
+  }, [input, streaming, atLimit, messages, module, language]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
+  // ── Handle Enter key ──
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSend();
+      }
+    },
+    [handleSend],
+  );
 
-  const atLimit = messageCount >= MAX_MESSAGES;
+  // ── Start new chat ──
+  const handleNewChat = useCallback(() => {
+    clearMessages(module);
+    setMessages([]);
+    setPaywalled(false);
+    setInput("");
+  }, [module]);
+
+  // ── Don't render if not open ──
+  if (!isOpen) return null;
 
   return (
     <div style={css.overlay} onClick={onClose}>
+      {/* Stop click propagation on drawer */}
       <div
         style={{
           ...css.drawer,
-          ...(window.innerWidth < 768 ? css.drawerMobile : {}),
+          ...(isMobile ? css.drawerMobile : {}),
+          position: "relative",
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div style={css.header}>
-          <span style={css.headerTitle}>
-            Chat with the Expert — {MODULE_LABELS[module] || module}
-          </span>
-          <button style={css.closeBtn} onClick={onClose}>
-            ✕
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={css.headerTitle}>Chat with the Expert</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <button
+              style={css.newChatBtn}
+              onClick={handleNewChat}
+              title="Start a new chat"
+            >
+              Start New Chat
+            </button>
+            <button style={css.closeBtn} onClick={onClose} aria-label="Close chat">
+              ✕
+            </button>
+          </div>
         </div>
 
         {/* Message list */}
         <div style={css.messageList} ref={listRef}>
           {messages.length === 0 && (
-            <div style={css.loadingBubble}>
-              Ask a question about {MODULE_LABELS[module] || module} to get started.
-            </div>
+            <p style={{ color: "#6B7280", fontSize: 14, textAlign: "center", marginTop: 24 }}>
+              Ask a question about{" "}
+              {MODULE_LABELS[module] || module}.
+            </p>
           )}
-
           {messages.map((msg) => (
             <div key={msg.id}>
               <div style={css.messageRow(msg.role)}>
-                <div style={css.messageBubble(msg.role)}>
-                  {msg.content || (msg.role === "expert" && streaming ? "..." : msg.content)}
-                </div>
+                <div style={css.messageBubble(msg.role)}>{msg.content}</div>
               </div>
               {msg.disclaimer && (
-                <div style={css.disclaimer}>{msg.disclaimer}</div>
+                <div style={css.messageRow(msg.role)}>
+                  <div style={css.disclaimer}>{msg.disclaimer}</div>
+                </div>
               )}
             </div>
           ))}
-
-          {/* Streaming indicator — shows when waiting for first chunk */}
-          {streaming && messages.length > 0 && messages[messages.length - 1].content === "" && (
-            <div style={css.loadingBubble}>Thinking...</div>
+          {streaming && messages[messages.length - 1]?.content === "" && (
+            <div style={css.messageRow("expert")}>
+              <div style={css.loadingBubble}>Thinking…</div>
+            </div>
           )}
         </div>
 
         {/* Counter */}
         <div style={css.counter}>
-          {atLimit
-            ? `${MAX_MESSAGES} of ${MAX_MESSAGES} questions used`
-            : `${messageCount} of ${MAX_MESSAGES} questions used`}
+          {userMessageCount} of {MAX_MESSAGES} questions used
         </div>
 
-        {/* Paywall or input */}
-        {atLimit ? (
-          <div style={css.paywall}>
-            <div style={css.paywallTitle}>Upgrade to Continue Chatting</div>
+        {/* Paywall overlay inside drawer */}
+        {paywalled && (
+          <div style={css.paywallOverlay}>
+            <div style={css.paywallTitle}>
+              You've used all 5 expert questions.
+            </div>
             <div style={css.paywallText}>
               Unlock unlimited questions for $9.99
             </div>
@@ -523,14 +623,16 @@ export default function ChatDrawer({ module, onClose }: ChatDrawerProps) {
               style={css.paywallBtn}
               onClick={() => (window.location.href = "/upgrade")}
             >
-              <svg width="14" height="14" viewBox="0 0 256 116" style={{ marginRight: 8, verticalAlign: "middle" }}>
-                <path fill="#635BFF" d="M0 0h256v116H0z"/>
-                <text x="30" y="78" fontFamily="Arial" fontWeight="bold" fontSize="72" fill="#fff">stripe</text>
-              </svg>
               Unlock for $9.99
             </button>
+            <button style={css.paywallCloseBtn} onClick={onClose}>
+              Close
+            </button>
           </div>
-        ) : (
+        )}
+
+        {/* Input area (hidden behind paywall) */}
+        {!paywalled && (
           <div style={css.inputArea}>
             <textarea
               style={css.textarea}

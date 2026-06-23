@@ -33,6 +33,7 @@ const MODULE_TILES = [
   { title: "Police Report", subtitle: "Upload and analyze", to: "/police-report", icon: "📋" },
   { title: "Discovery", subtitle: "Motion analysis under Rule 3.220", to: "/discovery-motion", icon: "🔍" },
   { title: "Property & Casualty", subtitle: "Insurance and liability", to: "/property-casualty", icon: "🏠" },
+  { title: "Wills & Trusts", subtitle: "Wills, trusts & probate explained", to: "/wills-trusts", icon: "📜" },
   { title: "Forms", subtitle: "Find Florida court forms", to: "/forms", icon: "📝" },
 ];
 
@@ -52,6 +53,7 @@ function buildRoute(module: string, entities: Record<string, unknown>, language:
     case "police_report":     return `/police-report?${params.toString()}`;
     case "discovery_motion":  return `/discovery-motion?${params.toString()}`;
     case "property_casualty": return `/property-casualty?${params.toString()}`;
+    case "wills_trusts":      return `/wills-trusts?${params.toString()}`;
     default: return "";
   }
 }

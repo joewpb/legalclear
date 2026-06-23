@@ -30,12 +30,17 @@ VALID_MODULES = [
     "police_report",
     "discovery_motion",
     "property_casualty",
+    "wills_trusts",
     "unknown",
 ]
 
 VALID_SUB_TYPES = [
     "insurance_bad_faith",
     "premises_liability",
+    "will",
+    "trust",
+    "probate",
+    "draft_will",
     "unknown",
 ]
 
@@ -62,9 +67,14 @@ SYSTEM_PROMPT = (
     "You are a legal situation classifier for Florida pro se "
     "litigants. Classify the situation into exactly one of: "
     "small_claims, criminal_procedure, police_report, "
-    "discovery_motion, property_casualty, unknown. "
+    "discovery_motion, property_casualty, wills_trusts, unknown. "
     "For property_casualty also identify sub_type: "
     "insurance_bad_faith or premises_liability. "
+    "For wills_trusts also identify sub_type: "
+    "will, trust, probate, draft_will, or unknown. "
+    "Key indicators for wills_trusts: will, trust, estate, "
+    "probate, executor, beneficiary, inheritance, death, "
+    "assets after death, living will, power of attorney. "
     "Extract key entities (amounts, charge types, parties, "
     "document types, incident types). "
     "Return valid JSON only — no markdown, no preamble: "
