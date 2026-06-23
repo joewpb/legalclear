@@ -12,7 +12,7 @@ Status values: `COMPLETE` · `IN PROGRESS` · `PENDING` · `BLOCKED`
 | # | Title | Status | Date | Notes |
 |---|-------|--------|------|-------|
 | 0 | Stabilize the Foundation | COMPLETE | 2026-06-23 | Re-verified: 2 new PRs merged (#10 migration rename, #13 forms integration); forms/ harvest debris cleaned (167MB → 1.3MB); .gitignore hardened (forms/*.txt, forms/*/, forms/crawled/, .whale/, supabase-schema-*.svg); AGENTS.md phase count fixed (0–8 → 0–9); CLAUDE.md verified accurate; README baseline confirmed |
-| 1 | Database Schema, Security & PII | COMPLETE | 2026-05-19 | 6 migrations: court_forms / trigger_events / deadlines tables; packets uuid migration (31 rows survived); cost cols on usage_stats; pg_cron; 9 RLS policies; 2 retention jobs. Manual gaps: anon sign-in, Presidio PII redaction |
+| 1 | Database Schema, Security & PII | COMPLETE | 2026-06-23 | Re-verified: 6 migrations intact; 9 RLS policies verified; packets uuid migration ok; pg_cron retention jobs active; PII redaction implemented (PIIRedactor class, regex-based SSN/DOB/financial/DL detection, 21 tests pass, wired into /api/process after extraction); delete endpoint exists. Remaining manual gap: anon sign-in (needs Supabase dashboard — no PAT available). Mobile dir empty (placeholder). Frontend types regenerated. |
 | 2 | Form Catalog & Version-Aware Permanent Cache | COMPLETE | 2026-05-19 | court-forms bucket; court_forms table seeded from CSV; GET /api/forms/{num} endpoint; POST /api/forms/check-updates; harvest script. Manual gaps: browser harvest of all PDFs; OSCA contact; pg_cron app.backend_url setting |
 | 3 | Statutes, Court Rules & Local AOs Corpus | COMPLETE | 2026-05-19 | statutes / court_rules / local_administrative_orders / court_closures tables; law_sources.json; /api/law/* router; ingest_statutes.py. Manual gap: run ingest_statutes.py --all-priority; 19th Circuit AOs |
 | 4 | The Deadline Engine | COMPLETE | 2026-05-19 | backend/deadline/rules.py (8 rules, 2.514, FL holidays); compute.py (deterministic, full trace); extract.py (LLM stage 1); pipeline.py; 16 tests pass |
@@ -29,7 +29,7 @@ Status values: `COMPLETE` · `IN PROGRESS` · `PENDING` · `BLOCKED`
 
 1. **Railway SUPABASE_SERVICE_KEY** — wrong value in `zesty-delight`; service-role JWT required (not anon key). Verify payload `"role": "service_role"` at jwt.io before pasting.
 2. **Supabase anonymous sign-in** — enable in Auth dashboard (Phase 1).
-3. **Presidio PII redaction** — post-extraction pass over `document_text` (Phase 1).
+3. **Presidio PII redaction** — DONE 2026-06-23. `PIIRedactor` class in `backend/src/ingestion/pii_redactor.py`; regex-based SSN/DOB/financial account/DL detection; wired into `/api/process` after extraction; 21 tests pass.
 4. **Form harvest** — DONE (Phase 10): 154 forms ingested via `scripts/ingest_forms.py`. Remaining: run LLM enrichment + writeback (see item 14).
 5. **OSCA contact** — initiate access arrangement (Phase 2).
 6. **Supabase pg_cron app settings** — set `app.backend_url` + `app.api_key` in DB Configuration (Phases 2, 6).
