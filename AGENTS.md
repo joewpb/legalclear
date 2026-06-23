@@ -97,7 +97,7 @@ backend is the only thing that talks to Supabase and holds the service-role key.
 
 ## 6. The phase system
 
-- `phases/BUILD_PLAN.md` — v2 phase sequence (Phases 0–8). One phase per
+- `phases/BUILD_PLAN.md` — v2 phase sequence (Phases 0–9). One phase per
   session. Verify the Definition of Done before moving on.
 - `phases/LEDGER.md` — v1 build state (Phases 0–23 complete). Source of truth
   for v1; if ledger and repo disagree, **the repo wins**.
