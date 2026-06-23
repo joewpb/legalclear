@@ -7,19 +7,31 @@ contacts flcourts.gov, and only for targeted HEAD checks on known URLs.
 """
 
 import hashlib
+import json
 import logging
+import re
 from typing import Optional
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Header
+from anthropic import AsyncAnthropic
+from fastapi import APIRouter, Body, Depends, HTTPException, Header
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel, Field
 
 from src.core.config import settings
+from src.core.upl import apply_upl_guardrails, get_disclaimer
 from src.memory.db import DatabaseManager
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/forms", tags=["forms"])
 db = DatabaseManager()
+
+# Pinned model for every LLM call in this router.
+SUGGEST_MODEL = "claude-sonnet-4-6"
+_anthropic = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
+
+# Statuses servable to end users (matches list_forms / download_form gating).
+_SERVABLE = ["published", "active"]
 
 FL_FAMILY_LAW_FORMS_PAGE = (
     "https://www.flcourts.gov/Resources-Services/"
@@ -53,6 +65,318 @@ async def list_forms(category: Optional[str] = None):
     except Exception as e:
         logger.error("list_forms failed: %s", e)
         raise HTTPException(status_code=500, detail="Could not list forms")
+
+
+# All Florida court forms in this database are valid statewide. The
+# form_number prefix on harvested rows is scrape provenance (which clerk site
+# the PDF came from), not jurisdiction, so it is not exposed as a filter.
+
+def _sanitize_fts(q: str) -> str:
+    """Strip characters that would break a PostgREST `or` / tsquery value."""
+    return re.sub(r"[(),:&|!*<>]", " ", q).strip()
+
+
+# Minimal stopword set for keyword extraction from a free-text situation.
+_STOPWORDS = {
+    "the", "and", "for", "with", "that", "this", "have", "has", "had", "was",
+    "were", "are", "from", "they", "them", "their", "what", "when", "where",
+    "which", "would", "could", "should", "about", "into", "need", "needs",
+    "want", "wants", "trying", "going", "been", "being", "will", "just",
+    "some", "than", "then", "your", "you", "i'm", "i've", "florida", "court",
+    "file", "filing", "form", "forms", "case", "legal", "help",
+}
+
+
+def _extract_keywords(situation: str, limit: int = 8) -> list[str]:
+    """Pull salient keywords from a free-text situation description."""
+    seen: list[str] = []
+    for raw in re.findall(r"[A-Za-z]{4,}", situation.lower()):
+        if raw in _STOPWORDS or raw in seen:
+            continue
+        seen.append(raw)
+        if len(seen) >= limit:
+            break
+    return seen
+
+
+def _candidate_forms_for_situation(situation: str, limit: int = 10) -> list[dict]:
+    """Retrieve candidate forms for an AI suggestion via keyword scoring.
+
+    A whole-sentence FTS query ANDs every term and matches almost nothing, so
+    keywords are extracted and searched one at a time (FTS on form_text OR
+    ilike on title). Forms are then ranked by how many DISTINCT keywords they
+    match, so a form hitting several situation keywords outranks one that only
+    matches a single common word.
+    """
+    keywords = _extract_keywords(situation)
+    if not keywords:
+        return []
+
+    scores: dict[str, int] = {}
+    rows: dict[str, dict] = {}
+    for kw in keywords:
+        res = (
+            db.client.table("court_forms")
+            .select(
+                "form_number,title,category,plain_language_summary,situation_tags"
+            )
+            .in_("status", _SERVABLE)
+            .or_(f"form_text.wfts(english).{kw},title.ilike.*{kw}*")
+            .limit(40)
+            .execute()
+        )
+        for row in res.data or []:
+            fn = row["form_number"]
+            scores[fn] = scores.get(fn, 0) + 1
+            rows[fn] = row
+
+    ranked = sorted(
+        rows.values(),
+        key=lambda r: (-scores[r["form_number"]], r["form_number"]),
+    )
+    return ranked[:limit]
+
+
+def _search_court_forms(
+    q: Optional[str] = None,
+    category: Optional[str] = None,
+    limit: int = 20,
+    offset: int = 0,
+):
+    """Shared search over servable forms. Returns (rows, total).
+
+    Full-text search uses the GIN tsvector index on form_text, OR-ed with an
+    ilike match on title. Filters by category only.
+    """
+    query = (
+        db.client.table("court_forms")
+        .select(
+            "form_number,title,category,plain_language_summary,"
+            "situation_tags,source_page_url,status",
+            count="exact",
+        )
+        .in_("status", _SERVABLE)
+    )
+
+    if q:
+        cleaned = _sanitize_fts(q)
+        if cleaned:
+            query = query.or_(
+                f"form_text.wfts(english).{cleaned},title.ilike.*{cleaned}*"
+            )
+    if category:
+        query = query.eq("category", category)
+
+    result = (
+        query.order("form_number")
+        .range(offset, offset + limit - 1)
+        .execute()
+    )
+
+    rows = result.data or []
+    total = result.count if result.count is not None else len(rows)
+    return rows, total
+
+
+# ── Search ──────────────────────────────────────────────────────────────────
+
+@router.get("/search")
+async def search_forms(
+    q: Optional[str] = None,
+    category: Optional[str] = None,
+    limit: int = 20,
+    offset: int = 0,
+):
+    """Keyword + category search over servable forms, with pagination."""
+    if db.client is None:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+
+    limit = max(1, min(limit, 50))
+    offset = max(0, offset)
+
+    try:
+        rows, total = _search_court_forms(q, category, limit, offset)
+    except Exception as e:
+        logger.error("search_forms failed: %s", e)
+        raise HTTPException(status_code=500, detail="Could not search forms")
+
+    return {
+        "forms": rows,
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+    }
+
+
+# ── Facets ──────────────────────────────────────────────────────────────────
+
+@router.get("/facets")
+async def form_facets():
+    """Distinct categories (with counts) for the filter dropdown."""
+    if db.client is None:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+
+    try:
+        result = (
+            db.client.table("court_forms")
+            .select("category")
+            .in_("status", _SERVABLE)
+            .execute()
+        )
+    except Exception as e:
+        logger.error("form_facets failed: %s", e)
+        raise HTTPException(status_code=500, detail="Could not load facets")
+
+    category_counts: dict[str, int] = {}
+    for row in result.data or []:
+        cat = row.get("category")
+        if cat:
+            category_counts[cat] = category_counts.get(cat, 0) + 1
+
+    return {
+        "categories": [
+            {"value": k, "count": v}
+            for k, v in sorted(category_counts.items())
+        ],
+    }
+
+
+# ── Metadata ─────────────────────────────────────────────────────────────────
+
+@router.get("/meta/{form_number:path}")
+async def form_meta(form_number: str):
+    """Return JSON metadata for a single form (no PDF stream)."""
+    if db.client is None:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+
+    try:
+        result = (
+            db.client.table("court_forms")
+            .select(
+                "form_number,title,category,plain_language_summary,"
+                "situation_tags,source_page_url,court_revision_date,status"
+            )
+            .eq("form_number", form_number)
+            .execute()
+        )
+    except Exception as e:
+        logger.error("form_meta failed for %s: %s", form_number, e)
+        raise HTTPException(status_code=500, detail="Could not load form metadata")
+
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Form not found")
+
+    return result.data[0]
+
+
+# ── AI form suggestion (SSE) ─────────────────────────────────────────────────
+
+SUGGEST_SYSTEM_PROMPT = (
+    "You are a Florida court forms assistant for a legal information tool.\n"
+    "A user has described their situation. Based on the forms provided,\n"
+    "identify which forms are most relevant.\n"
+    "RULES:\n"
+    "Third person only. Never write \"you should\" or \"you must.\"\n"
+    "Describe what each form is and what situation it addresses.\n"
+    "Do not give legal advice. Do not state deadlines as obligations.\n"
+    "Format: for each relevant form, output form_number, title, and\n"
+    "a one-sentence plain description of when it is used.\n"
+    "End with: \"This tool provides legal information only, not legal advice.\""
+)
+
+
+class SuggestRequest(BaseModel):
+    situation: str = Field(..., min_length=1)
+
+
+def _format_candidates(rows: list[dict]) -> str:
+    """Render candidate forms as plain-text context for the model."""
+    lines = []
+    for r in rows:
+        tags = ", ".join(r.get("situation_tags") or [])
+        summary = r.get("plain_language_summary") or ""
+        lines.append(
+            f"- form_number: {r.get('form_number')}\n"
+            f"  title: {r.get('title')}\n"
+            f"  category: {r.get('category')}\n"
+            f"  situation_tags: {tags}\n"
+            f"  summary: {summary}"
+        )
+    return "\n".join(lines)
+
+
+@router.post("/suggest")
+async def suggest_forms(payload: SuggestRequest = Body(...)):
+    """Stream AI-identified relevant forms for a described situation (SSE)."""
+    if db.client is None:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+
+    # 1–2. Extract keywords from the situation and pull candidate forms.
+    try:
+        candidates = _candidate_forms_for_situation(payload.situation, limit=10)
+    except Exception as e:
+        logger.error("suggest_forms candidate search failed: %s", e)
+        raise HTTPException(status_code=500, detail="Could not retrieve forms")
+
+    disclaimer = get_disclaimer("en")
+
+    if not candidates:
+        async def _empty():
+            payload_obj = {
+                "text": (
+                    "No matching Florida court forms were found for that "
+                    "description. Adjusting the wording or browsing by "
+                    "category may surface relevant forms."
+                )
+            }
+            yield f"data: {json.dumps(payload_obj)}\n\n"
+            yield f"data: {json.dumps({'disclaimer': disclaimer})}\n\n"
+            yield "data: [DONE]\n\n"
+
+        return StreamingResponse(_empty(), media_type="text/event-stream")
+
+    user_message = (
+        f"Situation described: {payload.situation}\n\n"
+        f"Candidate Florida court forms:\n{_format_candidates(candidates)}"
+    )
+
+    async def _stream():
+        collected: list[str] = []
+        try:
+            async with _anthropic.messages.stream(
+                model=SUGGEST_MODEL,
+                max_tokens=1500,
+                system=[
+                    {
+                        "type": "text",
+                        "text": SUGGEST_SYSTEM_PROMPT,
+                        "cache_control": {"type": "ephemeral"},
+                    }
+                ],
+                messages=[{"role": "user", "content": user_message}],
+            ) as stream:
+                async for chunk in stream.text_stream:
+                    collected.append(chunk)
+                    yield f"data: {json.dumps({'text': chunk})}\n\n"
+
+            # Apply UPL guardrails to the full AI response and always append
+            # the standard disclaimer.
+            guarded = apply_upl_guardrails("".join(collected), "en")
+            if guarded.strip() != "".join(collected).strip():
+                logger.warning("suggest_forms: UPL guardrails flagged output")
+            yield f"data: {json.dumps({'disclaimer': disclaimer})}\n\n"
+            yield "data: [DONE]\n\n"
+
+        except Exception as e:
+            logger.error("suggest_forms stream failed: %s", e)
+            error_payload = {
+                "error": True,
+                "message": "Suggestions could not be generated.",
+                "disclaimer": disclaimer,
+            }
+            yield f"data: {json.dumps(error_payload)}\n\n"
+
+    return StreamingResponse(_stream(), media_type="text/event-stream")
 
 
 # ── Download ──────────────────────────────────────────────────────────────────
