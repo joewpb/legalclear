@@ -11,7 +11,7 @@ Status values: `COMPLETE` · `IN PROGRESS` · `PENDING` · `BLOCKED`
 
 | # | Title | Status | Date | Notes |
 |---|-------|--------|------|-------|
-| 0 | Stabilize the Foundation | COMPLETE | 2026-05-19 | Repo cleanup; AGENTS.md Core Principles; BUILD_PLAN.md + seed CSV placed; 3 PRs closed; secrets rotated; gitleaks + eval-deadline CI workflows added; Node 24 opt-in |
+| 0 | Stabilize the Foundation | COMPLETE | 2026-06-23 | Re-verified: 2 new PRs merged (#10 migration rename, #13 forms integration); forms/ harvest debris cleaned (167MB → 1.3MB); .gitignore hardened (forms/*.txt, forms/*/, forms/crawled/, .whale/, supabase-schema-*.svg); AGENTS.md phase count fixed (0–8 → 0–9); CLAUDE.md verified accurate; README baseline confirmed |
 | 1 | Database Schema, Security & PII | COMPLETE | 2026-05-19 | 6 migrations: court_forms / trigger_events / deadlines tables; packets uuid migration (31 rows survived); cost cols on usage_stats; pg_cron; 9 RLS policies; 2 retention jobs. Manual gaps: anon sign-in, Presidio PII redaction |
 | 2 | Form Catalog & Version-Aware Permanent Cache | COMPLETE | 2026-05-19 | court-forms bucket; court_forms table seeded from CSV; GET /api/forms/{num} endpoint; POST /api/forms/check-updates; harvest script. Manual gaps: browser harvest of all PDFs; OSCA contact; pg_cron app.backend_url setting |
 | 3 | Statutes, Court Rules & Local AOs Corpus | COMPLETE | 2026-05-19 | statutes / court_rules / local_administrative_orders / court_closures tables; law_sources.json; /api/law/* router; ingest_statutes.py. Manual gap: run ingest_statutes.py --all-priority; 19th Circuit AOs |
