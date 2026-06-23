@@ -66,5 +66,8 @@ forms/enrichment_input_harvest.jsonl
 # Whale agent local config
 .whale/
 
+# Supabase CLI artifacts
+supabase/.temp/
+
 # Generated schema diagram (large, regenerable)
 supabase-schema-*.svg
