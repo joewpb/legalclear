@@ -64,9 +64,11 @@ async def classify_document(document_id: str):
     if routing["suggested_form_tags"] and db.client is not None:
         try:
             for tag in routing["suggested_form_tags"]:
+                # 'published' is the current status vocabulary (Phase 10);
+                # 'active' kept for legacy compat — matches forms.py _SERVABLE.
                 result = (db.client.table("court_forms")
                           .select("form_number,title,court_revision_date,status")
-                          .eq("status", "active")
+                          .in_("status", ["published", "active"])
                           .contains("situation_tags", [tag])
                           .execute())
                 suggested_forms.extend(result.data or [])
