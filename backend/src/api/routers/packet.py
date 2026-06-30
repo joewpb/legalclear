@@ -28,6 +28,7 @@ from src.services.packet_builder import (
     track_packet_filing,
 )
 from src.services.translation_layer import get_walkthrough
+from src.core.upl import apply_disclaimer
 
 router = APIRouter(prefix="/api/packet")
 logger = logging.getLogger(__name__)
@@ -56,12 +57,12 @@ async def build_packet_with_checkout(req: PacketRequest) -> dict:
     """
     result = await build_packet(req)
     mark_packet_paid(result.packet_id)
-    return {
+    return apply_disclaimer({
         "packet_id": result.packet_id,
         "fee_usd": result.fee_usd,
         "file_count": result.file_count,
         "checkout_url": "",
-    }
+    }, lang=req.language if req.language in ("en", "es") else "en")
 
 
 @router.post("/build")

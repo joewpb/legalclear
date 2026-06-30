@@ -118,14 +118,37 @@ def compute_deadline_for_event(
             escalation_reasons=[f"Unknown rule key: {rule_key!r}"],
         )
 
-    # Non-computable rules: date is set by the court, not a rule period
+    # Non-computable rules: the date is set by the court (e.g. printed on the
+    # summons), so it cannot be derived from a rule period. Surface it as an
+    # escalated deadline pointing the user to the document rather than dropping
+    # it silently — "unknown" is a first-class output (Core Principle 5).
     if rule["response_days"] is None:
+        note = rule.get("note") or (
+            "Date cannot be computed from a rule period — read the document."
+        )
+        results.append(ComputedDeadline(
+            due_date=today,           # placeholder — the real date is on the document
+            label=rule["label"],
+            governing_rule=rule["governing_rule"],
+            severity=rule["severity"],
+            consequence=rule["consequence"],
+            escalation_recommended=True,
+            computation_trace=[{
+                "step": 1,
+                "action": (
+                    f"{rule['label']}: date is set by the court and cannot be "
+                    f"computed from a rule period — {note}"
+                ),
+                "date": None,
+                "rule": rule["governing_rule"],
+            }],
+            assumption_disclosures=[note],
+            is_past=False,
+        ))
         return DeadlineComputationResult(
-            deadlines=[],
+            deadlines=results,
             escalation_needed=True,
-            escalation_reasons=[
-                f"{rule['label']}: {rule.get('note', 'Date cannot be computed from a rule period — read the document.')}"
-            ],
+            escalation_reasons=[],
         )
 
     # For unknown/publication service, compute both personal and mail variants

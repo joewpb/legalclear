@@ -6,6 +6,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Header
 
 from src.core.config import settings
 from src.memory.db import DatabaseManager
+from src.core.upl import apply_disclaimer
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/triage", tags=["triage"])
@@ -63,9 +64,11 @@ async def classify_document(document_id: str):
     if routing["suggested_form_tags"] and db.client is not None:
         try:
             for tag in routing["suggested_form_tags"]:
+                # 'published' is the current status vocabulary (Phase 10);
+                # 'active' kept for legacy compat — matches forms.py _SERVABLE.
                 result = (db.client.table("court_forms")
                           .select("form_number,title,court_revision_date,status")
-                          .eq("status", "active")
+                          .in_("status", ["published", "active"])
                           .contains("situation_tags", [tag])
                           .execute())
                 suggested_forms.extend(result.data or [])
@@ -80,14 +83,14 @@ async def classify_document(document_id: str):
         except Exception as e:
             logger.error("Form lookup failed: %s", e)
 
-    return {
+    return apply_disclaimer({
         "document_id": document_id,
         "classification": classification,
         "routing": {
             **routing,
             "suggested_forms": suggested_forms,
         },
-    }
+    }, lang="en")
 
 
 @router.post("/confirm/{document_id}", dependencies=[Depends(_require_api_key)])
@@ -135,8 +138,8 @@ async def confirm_classification(
         raise HTTPException(status_code=500, detail="Could not update classification")
 
     routing = route(updated)
-    return {
+    return apply_disclaimer({
         "document_id": document_id,
         "classification": updated,
         "routing": routing,
-    }
+    }, lang="en")
