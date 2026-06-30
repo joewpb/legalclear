@@ -1,0 +1,59 @@
+name: Backend Tests
+
+# Runs the backend unit-test suite on every push/PR touching backend code.
+# Catches regressions in core logic (UPL/disclaimer layer, deterministic
+# deadline engine, triage, PII redaction) — the class of bug that previously
+# shipped undetected because no CI workflow ran pytest.
+#
+# Integration tests (test_full_v1, test_phase_2, test_phase_16/17/18/20/21/22/23)
+# require a live backend on :8001 + DB + network and are excluded here.
+# TODO: formalize via a `pytest.mark.integration` marker so new server-bound
+# test files are skipped by marker rather than by an explicit ignore list.
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "backend/**"
+      - ".github/workflows/pytest.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "backend/**"
+      - ".github/workflows/pytest.yml"
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    defaults:
+      run:
+        working-directory: ./backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run unit tests
+        run: |
+          uv run pytest tests/ -q \
+            --ignore=tests/test_full_v1.py \
+            --ignore=tests/test_phase_2.py \
+            --ignore=tests/test_phase_16.py \
+            --ignore=tests/test_phase_17.py \
+            --ignore=tests/test_phase_18.py \
+            --ignore=tests/test_phase_20.py \
+            --ignore=tests/test_phase_21.py \
+            --ignore=tests/test_phase_22.py \
+            --ignore=tests/test_phase_23.py
