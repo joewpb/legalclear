@@ -19,6 +19,7 @@ from typing import Optional
 
 from src.api.routers.packet import build_packet_with_checkout
 from src.services.packet_builder import PacketRequest
+from src.core.upl import apply_disclaimer
 
 router = APIRouter(prefix="/api/expungement")
 
@@ -55,17 +56,17 @@ async def check_eligibility(req: EligibilityRequest):
 
     # Hard disqualifiers per §943.0584
     if any(d in charge_lower for d in DISQUALIFIERS):
-        return {
+        return apply_disclaimer({
             "status": "not_eligible",
             "reason": f"Charges involving '{req.charge}' are disqualifying under FL §943.0584.",
             "applicable_statute": "FL §943.0584",
             "next_steps": [
                 "Consult a licensed Florida attorney about case-specific options."
             ],
-        }
+        }, lang=req.language)
 
     if req.previously_sealed == "Yes":
-        return {
+        return apply_disclaimer({
             "status": "not_eligible",
             "reason": "Florida allows only one expungement or sealing per lifetime.",
             "applicable_statute": "FL §943.0585(2)(b)",
@@ -73,10 +74,10 @@ async def check_eligibility(req: EligibilityRequest):
                 "No further administrative action is available under FL law.",
                 "Consult an attorney about restoration-of-rights alternatives.",
             ],
-        }
+        }, lang=req.language)
 
     if req.disposition == "Adjudicated guilty":
-        return {
+        return apply_disclaimer({
             "status": "likely_eligible",
             "reason": "Adjudication of guilt generally bars expunction. Sealing may be possible.",
             "applicable_statute": "FL §943.059",
@@ -84,9 +85,9 @@ async def check_eligibility(req: EligibilityRequest):
                 "Apply for Certificate of Eligibility (FDLE)",
                 "Confirm sealing-vs-expunction with a licensed FL attorney",
             ],
-        }
+        }, lang=req.language)
 
-    return {
+    return apply_disclaimer({
         "status": "eligible",
         "reason": "Based on your answers, you appear eligible to apply for expungement.",
         "applicable_statute": "FL §943.0585",
@@ -95,7 +96,7 @@ async def check_eligibility(req: EligibilityRequest):
             "File petition in court of original jurisdiction",
             "Pay applicable filing fees",
         ],
-    }
+    }, lang=req.language)
 
 
 @router.post("/generate")

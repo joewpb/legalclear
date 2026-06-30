@@ -27,6 +27,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from src.core.config import settings
+from src.core.upl import apply_disclaimer
 
 router = APIRouter(prefix="/api/case-law")
 logger = logging.getLogger(__name__)
@@ -168,8 +169,8 @@ async def search_case_law(req: CaseLawSearchRequest):
             }
         )
 
-    return {
+    return apply_disclaimer({
         "results": enriched,
         "total_results": cl_data.get("count", 0),
         "query": req.query,
-    }
+    }, lang="en")

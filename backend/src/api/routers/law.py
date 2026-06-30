@@ -11,6 +11,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException
 
 from src.memory.db import DatabaseManager
+from src.core.upl import apply_disclaimer
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/law", tags=["law"])
@@ -48,7 +49,7 @@ async def lookup_statute(citation: Optional[str] = None,
         result = q.execute()
         if not result.data:
             raise HTTPException(status_code=404, detail="Statute not found")
-        return {"statutes": result.data}
+        return apply_disclaimer({"statutes": result.data}, lang="en")
     except HTTPException:
         raise
     except Exception as e:
@@ -87,7 +88,7 @@ async def lookup_rule(citation: Optional[str] = None,
         result = q.execute()
         if not result.data:
             raise HTTPException(status_code=404, detail="Rule not found")
-        return {"rules": result.data}
+        return apply_disclaimer({"rules": result.data}, lang="en")
     except HTTPException:
         raise
     except Exception as e:
@@ -109,7 +110,7 @@ async def list_administrative_orders(circuit: Optional[int] = None):
         if circuit is not None:
             q = q.eq("circuit", circuit)
         result = q.execute()
-        return {"administrative_orders": result.data or []}
+        return apply_disclaimer({"administrative_orders": result.data or []}, lang="en")
     except Exception as e:
         logger.error("AO lookup failed: %s", e)
         raise HTTPException(status_code=500, detail="Lookup failed")

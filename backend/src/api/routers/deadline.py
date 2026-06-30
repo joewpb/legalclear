@@ -5,6 +5,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Header
 
 from src.core.config import settings
+from src.core.upl import apply_disclaimer
 from src.memory.db import DatabaseManager
 
 logger = logging.getLogger(__name__)
@@ -41,7 +42,7 @@ async def analyze_document(document_id: str):
         )
 
     result = await run_deadline_pipeline(document_id, text, db)
-    return result
+    return apply_disclaimer(result, lang="en")
 
 
 @router.get("/{document_id}/deadlines")
@@ -57,7 +58,7 @@ async def get_deadlines(document_id: str):
                   .eq("document_id", document_id)
                   .order("due_date")
                   .execute())
-        return {"deadlines": result.data or []}
+        return apply_disclaimer({"deadlines": result.data or []}, lang="en")
     except Exception as e:
         logger.error("get_deadlines failed: %s", e)
         raise HTTPException(status_code=500, detail="Could not retrieve deadlines")
@@ -74,7 +75,7 @@ async def get_trigger_events(document_id: str):
                   .eq("document_id", document_id)
                   .order("created_at")
                   .execute())
-        return {"trigger_events": result.data or []}
+        return apply_disclaimer({"trigger_events": result.data or []}, lang="en")
     except Exception as e:
         logger.error("get_trigger_events failed: %s", e)
         raise HTTPException(status_code=500, detail="Could not retrieve trigger events")

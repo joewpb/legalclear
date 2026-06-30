@@ -95,6 +95,17 @@ ATTORNEY_REFERRAL_LINKS = {
 
 
 def get_disclaimer(level: str = "standard", lang: str = "en") -> str:
+    """Return an escalation-tier disclaimer: ``standard`` | ``urgent`` | ``criminal``.
+
+    This is the UPL/escalation vocabulary, keyed by severity tier and consumed
+    by ``check_escalation`` (which sets ``disclaimer_level`` to one of these
+    tiers). It is intentionally distinct from ``src/core/disclaimer.py``, which
+    holds the agent-facing disclaimer copy (``standard|short|criminal|plea``)
+    imported by the explainer agents.
+
+    Do NOT re-add a one-arg ``get_disclaimer(lang)`` here: a second definition
+    shadows this one and breaks ``apply_disclaimer`` plus the test suite.
+    """
     lang = lang if lang in ("en", "es") else "en"
     level = level if level in _DISCLAIMERS else "standard"
     return _DISCLAIMERS[level][lang]
@@ -312,14 +323,3 @@ def apply_upl_guardrails(text: str, lang: str = "en") -> str:
         disclaimer = _get(lang)
         return f"{text}\n\n⚠️ {disclaimer}"
     return text
-
-
-def get_disclaimer(lang: str = "en") -> str:
-    """Return the standard disclaimer in the requested language.
-
-    Delegates to src.core.disclaimer.get_disclaimer so there is a
-    single source of truth for disclaimer text.
-    """
-    from src.core.disclaimer import get_disclaimer as _get
-
-    return _get(lang)
