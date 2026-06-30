@@ -9,6 +9,8 @@ from typing import Any
 
 import httpx
 
+from src.core.config import settings
+
 logger = logging.getLogger(__name__)
 
 EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send"
@@ -55,17 +57,38 @@ class NotificationService:
         subject: str,
         body: str,
     ) -> bool:
-        """Email fallback — stub until an email provider is configured.
+        """Email fallback. Returns True ONLY when a provider actually delivers.
 
-        Logs the notification so it's auditable. Wire to SES/SendGrid in a
-        future phase by replacing this method body.
+        Until a provider is wired this returns False — it does NOT fake
+        success — so the reminder pipeline records the reminder as 'failed'
+        instead of silently advancing reminder_state to 'sent'. Web users
+        (no Expo push token) rely on this channel, so faking success here
+        would mean a legal-deadline reminder that never reaches the user.
+
+        To enable delivery:
+          1. Set EMAIL_PROVIDER (e.g. "resend") + its API key in env.
+          2. Add the provider SDK to backend deps.
+          3. Implement the matching branch below to return True on confirmed
+             delivery. Until then a configured-but-unimplemented provider
+             also fails honestly (logged at ERROR).
         """
-        logger.info(
-            "EMAIL (stub) to=%r subject=%r | Configure an email provider "
-            "to deliver this: %s",
-            email, subject, body
+        provider = (settings.EMAIL_PROVIDER or "").strip().lower()
+        if not provider:
+            logger.warning(
+                "send_email: EMAIL_PROVIDER not configured — reminder NOT "
+                "delivered (to=%r subject=%r). Set EMAIL_PROVIDER + key to "
+                "enable email delivery.",
+                email, subject,
+            )
+            return False
+        # TODO(email): dispatch on provider ("resend"/"sendgrid") and return
+        # True only on confirmed delivery. Fail honestly until implemented.
+        logger.error(
+            "send_email: EMAIL_PROVIDER=%r set but send path not implemented "
+            "— reminder NOT delivered to=%r",
+            provider, email,
         )
-        return True   # stub always succeeds so reminder_state advances
+        return False
 
     async def deliver(
         self,

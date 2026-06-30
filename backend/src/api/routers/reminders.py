@@ -161,15 +161,21 @@ async def process_reminders():
             else:
                 stats["errors"] += 1
 
-        # Advance to 'sent' if all scheduled reminders have fired
+        # Advance reminder_state once every reminder has fired. Mark 'sent'
+        # ONLY if every reminder actually delivered; if any failed (e.g. no
+        # email provider configured, or no push token/email on file) mark
+        # 'failed' so the gap is visible and we never claim a reminder was
+        # delivered when it wasn't.
         all_rows = (db.client.table("deadline_reminders")
                     .select("state")
                     .eq("deadline_id", dl_id)
                     .execute()).data or []
         all_done = all(r["state"] in ("sent", "failed") for r in all_rows)
         if all_done and all_rows:
+            any_failed = any(r["state"] == "failed" for r in all_rows)
+            final_state = "failed" if any_failed else "sent"
             db.client.table("deadlines").update(
-                {"reminder_state": "sent"}
+                {"reminder_state": final_state}
             ).eq("id", dl_id).execute()
 
     return stats

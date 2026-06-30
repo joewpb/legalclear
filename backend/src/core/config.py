@@ -23,6 +23,11 @@ class Settings:
         "STRIPE_SUBSCRIPTION_PRICE_ID", "")
     API_KEY: str = os.getenv("API_KEY", "testkey123")
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
+    # Email provider for the deadline-reminder fallback (web users have no
+    # Expo push token). Empty = delivery disabled (reminders fail honestly).
+    EMAIL_PROVIDER: str = os.getenv("EMAIL_PROVIDER", "")  # "resend" | "sendgrid" | ""
+    RESEND_API_KEY: str = os.getenv("RESEND_API_KEY", "")
+    SENDGRID_API_KEY: str = os.getenv("SENDGRID_API_KEY", "")
     MESSAGING_PLATFORM: str = os.getenv(
         "MESSAGING_PLATFORM", "log")
     BACKEND_PORT: int = int(os.getenv("BACKEND_PORT", "8001"))
