@@ -9,7 +9,7 @@
  */
 
 import { useState, useRef, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
 
 // ---------------------------------------------------------------------------
@@ -470,7 +470,10 @@ export default function PoliceReportAnalyzer() {
   const [chatOpen, setChatOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const language = "en"; // TODO: wire from context
+  // Language is read from the ?language= query param (en/es), matching the
+  // other explainer pages. Defaults to English.
+  const [sp] = useSearchParams();
+  const language = (sp.get("language") as "en" | "es") || "en";
 
   // ── Drag & drop handlers ──────────────────────────────────────────
   const handleDrop = useCallback((e: React.DragEvent) => {

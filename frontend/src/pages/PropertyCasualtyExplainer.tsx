@@ -229,7 +229,7 @@ export default function PropertyCasualtyExplainer() {
               </>
             )}
 
-            {resp.useful_documentation?.length > 0 && (
+            {resp.useful_documentation && resp.useful_documentation.length > 0 && (
               <>
                 <h2 style={S.sTitle}>Useful Documentation</h2>
                 {resp.useful_documentation.map((d, i) => (
@@ -244,7 +244,7 @@ export default function PropertyCasualtyExplainer() {
             {/* ── Risk Analysis Card ── */}
             {resp.risk_analysis && <RiskScoreCard risk={resp.risk_analysis} />}
 
-            {resp.watch_out_for?.length > 0 && (
+            {resp.watch_out_for && resp.watch_out_for.length > 0 && (
               <>
                 <h2 style={S.sTitle}>Watch Out For</h2>
                 {resp.watch_out_for.map((w, i) => {
@@ -260,14 +260,14 @@ export default function PropertyCasualtyExplainer() {
               </>
             )}
 
-            {resp.typical_outcomes?.length > 0 && (
+            {resp.typical_outcomes && resp.typical_outcomes.length > 0 && (
               <>
                 <h2 style={S.sTitle}>Typical Outcomes</h2>
                 {resp.typical_outcomes.map((o, i) => <div key={i} style={S.green}>✓ {o}</div>)}
               </>
             )}
 
-            {resp.clarifying_questions?.length > 0 && (
+            {resp.clarifying_questions && resp.clarifying_questions.length > 0 && (
               <>
                 <h2 style={S.sTitle}>Clarifying Questions</h2>
                 {resp.clarifying_questions.map((q, i) => <div key={i} style={S.clarify}>? {q}</div>)}
