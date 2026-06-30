@@ -125,15 +125,16 @@ LLMs extract trigger events (event type, trigger date, service method). Determin
 
 | Surface | Railway service | Build command |
 |---|---|---|
-| Backend | `zesty-delight` | `uv sync` → push |
+| Backend | `zesty-delight` | Nixpacks: `pip install -r requirements.txt` (+ `playwright install chromium`) on push — **not** `uv sync`. See SPEC_LEDGER.md §5 |
 | Frontend | `appealing-victory` | `npm run build` → push |
 
 Stripe product: **"LegalClear Filing Packet"** — $35.00.
 
 ## CI
 
-Three GitHub Actions workflows:
+Four GitHub Actions workflows:
 - **node.js.yml** — `npm ci && npm run build && npm test` on Node 22.x (from `frontend/`)
+- **pytest.yml** — `uv run pytest` backend unit suite; triggers on changes to `backend/**` (server-dependent integration tests excluded)
 - **eval-deadline.yml** — `uv run python -m evals.run_all` (fast mode, no LLM); triggers on changes to `backend/deadline/`, `backend/triage/`, or `backend/evals/`
 - **gitleaks.yml** — secret scan on every push/PR
 
@@ -141,7 +142,7 @@ All workflows use `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true`.
 
 ## Key constraints
 
-- Use `uv` for all Python env/package operations — never `pip` or `venv` directly.
+- **Dependency source of truth:** local dev uses `uv` (`uv sync`/`uv run`) against `pyproject.toml`; production (Railway/Nixpacks) installs from `requirements.txt` via `pip`. `requirements.txt` is canonical — keep `pyproject.toml` in sync. See `SPEC_LEDGER.md` §5.
 - `/api/upload` is complete and correct — do not modify it.
 - Every user-facing string accepts a `language` parameter; EN ships first, ES must not require re-architecture.
 - Forms whose change-detection status is unresolved are gated, not served silently.
