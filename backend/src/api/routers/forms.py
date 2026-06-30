@@ -463,7 +463,7 @@ async def check_updates():
 
     result = (db.client.table("court_forms")
               .select("id,form_number,source_download_url,content_hash,storage_path")
-              .eq("status", "active")
+              .in_("status", ["published", "active"])
               .not_.is_("source_download_url", "null")
               .execute())
 
@@ -484,20 +484,20 @@ async def check_updates():
                 content_length = head.headers.get("content-length", "")
                 remote_sig = f"{etag}:{content_length}"
 
-                if stored_hash and stored_hash == remote_sig:
+                # Download and compute SHA-256 for content comparison
+                get_resp = await client.get(url)
+                get_resp.raise_for_status()
+                file_bytes = get_resp.content
+                sha256 = hashlib.sha256(file_bytes).hexdigest()
+
+                if stored_hash and stored_hash == sha256:
                     # Unchanged — just update the checked timestamp
                     db.client.table("court_forms").update(
                         {"last_checked_at": "now()"}
                     ).eq("id", form_id).execute()
                     unchanged.append(form["form_number"])
                 else:
-                    # Changed (or first check) — re-pull the file
-                    get_resp = await client.get(url)
-                    get_resp.raise_for_status()
-                    file_bytes = get_resp.content
-                    sha256 = hashlib.sha256(file_bytes).hexdigest()
-
-                    # Store new version alongside old (keep old for audit)
+                    # Changed (or first check) — store new version
                     filename = url.split("/")[-1]
                     new_path = f"{form['form_number']}/{filename}"
                     db.client.storage.from_(BUCKET).upload(
@@ -507,7 +507,7 @@ async def check_updates():
                     )
 
                     db.client.table("court_forms").update({
-                        "content_hash": remote_sig,
+                        "content_hash": sha256,
                         "storage_path": new_path,
                         "last_checked_at": "now()",
                         "last_changed_at": "now()",

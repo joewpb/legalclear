@@ -84,7 +84,7 @@
       "circuit": 19,
       "counties": ["Martin", "St. Lucie", "Indian River", "Okeechobee"],
       "court_name": "Nineteenth Judicial Circuit of Florida",
-      "ao_source_url": "https://www.19thcircuit.org/administrative-orders",
+      "ao_source_url": "https://www.circuit19.org/administrative-orders/",
       "robots_status": "VERIFY_BEFORE_SCRAPE",
       "acquisition_method": "browser_review",
       "priority": "HIGH",

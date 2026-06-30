@@ -118,26 +118,14 @@ def compute_deadline_for_event(
             escalation_reasons=[f"Unknown rule key: {rule_key!r}"],
         )
 
-    # Small claims: date is on the summons — not computable
+    # Non-computable rules: date is set by the court, not a rule period
     if rule["response_days"] is None:
-        results.append(ComputedDeadline(
-            due_date=today,           # placeholder — real date is on the document
-            label=rule["label"],
-            governing_rule=rule["governing_rule"],
-            severity=rule["severity"],
-            consequence=rule["consequence"],
-            escalation_recommended=True,
-            computation_trace=[{
-                "step": 1,
-                "action": "Pretrial conference date is printed on the summons — cannot be computed",
-                "date": None,
-                "rule": rule["governing_rule"],
-            }],
-            assumption_disclosures=["Pretrial conference date must be read from the summons."],
-            is_past=False,
-        ))
         return DeadlineComputationResult(
-            deadlines=results, escalation_needed=False, escalation_reasons=[]
+            deadlines=[],
+            escalation_needed=True,
+            escalation_reasons=[
+                f"{rule['label']}: {rule.get('note', 'Date cannot be computed from a rule period — read the document.')}"
+            ],
         )
 
     # For unknown/publication service, compute both personal and mail variants

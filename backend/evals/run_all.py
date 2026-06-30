@@ -25,10 +25,17 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import sys
 from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
+
+# Load .env before anything else
+from dotenv import load_dotenv
+_env_path = Path(__file__).resolve().parent.parent / ".env"
+if _env_path.exists():
+    load_dotenv(_env_path)
 
 # Make sure the backend packages are importable
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -112,7 +119,10 @@ def _run_fast(doc: dict, results: list[EvalResult]) -> None:
                 has_local_closure_data=True,
                 today=date(2025, 1, 1),
             )
-            escalated = any(d.escalation_recommended for d in compute_result.deadlines)
+            escalated = (
+                compute_result.escalation_needed or
+                any(d.escalation_recommended for d in compute_result.deadlines)
+            )
             r.deadline_match = escalated  # pass if engine correctly escalates
             r.actual_deadline = "escalated" if escalated else "no-escalation"
             r.expected_deadline = "escalated"
@@ -214,6 +224,13 @@ async def _run_full(doc: dict, results: list[EvalResult]) -> None:
                         )
                         r.actual_deadline = fatal_dl.due_date.isoformat()
                         r.deadline_match = (r.actual_deadline == r.expected_deadline)
+                    elif compute_result.escalation_needed and r.expected_deadline is None:
+                        # Non-computable rule correctly escalated — pass
+                        r.actual_deadline = "escalated"
+                        r.expected_deadline = "escalated"
+                        r.deadline_match = True
+                    else:
+                        r.error = "compute returned no deadlines and no escalation"
             else:
                 r.skip_reason = "LLM returned no trigger events"
         else:

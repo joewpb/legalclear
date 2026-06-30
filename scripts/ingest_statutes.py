@@ -1,27 +1,25 @@
 #!/usr/bin/env python3
 """
-Phase 3 — Ingest Florida Statutes from the FL Legislature bulk XML.
+Phase 3 — Ingest Florida Statutes from the FL Legislature website.
 
-SOURCE: https://www.leg.state.fl.us/statutes/download/
-ROBOTS: VERIFIED_ALLOWED — leg.state.fl.us permits bulk download access.
-METHOD: Downloads one XML file per chapter; parses section/subsection/text;
+SOURCE: https://www.leg.state.fl.us/statutes/
+ROBOTS: VERIFIED_ALLOWED — leg.state.fl.us permits automated access.
+METHOD: Fetches one HTML chapter page; parses section/subsection/text;
         upserts into the public.statutes table.
 
 Usage (run from repo root):
     cd backend
     uv run python ../scripts/ingest_statutes.py --chapters 83 61 47 110
     uv run python ../scripts/ingest_statutes.py --all-priority
-
-Chapters are specified by number (e.g. 83 for Ch. 083 Landlord and Tenant).
-The script zero-pads to 3 digits for the XML filename.
 """
 
 import argparse
+import html as html_mod
 import os
 import re
 import sys
+from html.parser import HTMLParser
 from pathlib import Path
-from xml.etree import ElementTree as ET
 
 import httpx
 
@@ -38,8 +36,7 @@ except ImportError:
     print("ERROR: supabase package not found. Run: cd backend && uv sync")
     sys.exit(1)
 
-BULK_XML_BASE = "https://www.leg.state.fl.us/statutes/download/statutes/2025"
-SOURCE_BASE   = "https://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=Ch"
+BASE_URL = "https://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL={range_dir}/{ch4}/{ch4}.html"
 
 PRIORITY_CHAPTERS = [
     "83",   # Landlord and Tenant
@@ -55,69 +52,186 @@ PRIORITY_CHAPTERS = [
     "110",  # State Employment (holidays § 110.117)
 ]
 
+EXTRA_CHAPTERS = [
+    "34",   # County Courts
+    "38",   # Judges — General Provisions
+    "48",   # Process and Service (continued)
+    "51",   # Summary Claims
+    "76",   # Attachment
+    "77",   # Garnishment
+    "79",   # Habeas Corpus
+    "82",   # Forcible Entry and Unlawful Detainer
+    "84",   # Property (supplemental to 83)
+    "85",   # Replevin
+    "90",   # Evidence
+    "92",   # Limitations of Actions
+    "95",   # Limitations of Actions (continued)
+    "768",  # Negligence
+]
 
-def xml_filename(chapter: str) -> str:
-    padded = chapter.zfill(3)
-    return f"Title_?_Ch{padded}.xml"
+
+def range_dir_for(chapter: str) -> str:
+    ch = int(chapter)
+    low = (ch // 100) * 100
+    high = low + 99
+    return f"{low:04d}-{high:04d}"
 
 
-def fetch_chapter_xml(chapter: str, client: httpx.Client) -> bytes | None:
-    """Try to fetch the chapter XML; returns None if not found."""
-    padded = chapter.zfill(3)
-    # FL Legislature uses Title groupings; try common ones
-    for title_num in range(1, 50):
-        url = f"{BULK_XML_BASE}/Title_{title_num:02d}_Ch{padded}.xml"
-        resp = client.head(url)
-        if resp.status_code == 200:
-            return client.get(url).content
-    return None
+def chapter_url(chapter: str) -> str:
+    ch4 = chapter.zfill(4)
+    return BASE_URL.format(range_dir=range_dir_for(chapter), ch4=ch4)
 
 
-def parse_chapter_xml(xml_bytes: bytes, chapter: str) -> list[dict]:
-    """Parse FL Statutes XML into individual section records."""
-    records = []
-    try:
-        root = ET.fromstring(xml_bytes)
-        ns = {"s": root.tag.split("}")[0].lstrip("{")} if "}" in root.tag else {}
+class StatuteSectionParser(HTMLParser):
+    """
+    Parse <div class='Section'> blocks from FL Statutes HTML.
 
-        def find_text(el, tag):
-            found = el.find(f".//{tag}")
-            if found is not None and found.text:
-                return found.text.strip()
-            return None
+    Uses a simple state machine:
+    - Encounter <div class="Section"> → start new section
+    - Encounter <span class="SectionNumber"> → capture number
+    - Encounter <span class="Catchline"> → capture title (until </span>)
+    - Encounter <span class="SectionBody"> → capture body text (until </span>)
+    - Encounter <div class="History"> inside Section → capture history (until </div>)
+    - Encounter </div> matching the Section div → finalize
 
-        for section_el in root.iter():
-            if not section_el.tag.endswith(("Section", "Statute", "SECTION")):
-                continue
-            section_num = (find_text(section_el, "SectionNumber") or
-                          find_text(section_el, "section_number") or "")
-            if not section_num:
-                continue
-            title = (find_text(section_el, "Catchline") or
-                    find_text(section_el, "catchline") or
-                    find_text(section_el, "Title") or "")
-            text = " ".join(
-                (el.text or "").strip()
-                for el in section_el.iter()
-                if el.text and el.text.strip()
-            )
-            if not text:
-                continue
-            full_section = f"{chapter}.{section_num}" if "." not in section_num else section_num
-            records.append({
-                "citation":    f"Fla. Stat. § {full_section}",
-                "chapter":     chapter,
-                "section":     full_section,
-                "subsection":  None,
-                "title":       title or None,
-                "text":        text,
-                "source_url":  f"{SOURCE_BASE}{chapter.zfill(3)}.htm",
-                "source_xml_ref": f"Ch{chapter.zfill(3)}.xml",
-                "jurisdiction": "FL",
-            })
-    except Exception as e:
-        print(f"  WARNING: XML parse failed for chapter {chapter}: {e}")
-    return records
+    Key fix: depth tracks only <div> nesting, not all tags.
+    """
+
+    def __init__(self, chapter: str):
+        super().__init__()
+        self.chapter = chapter
+        self.sections: list[dict] = []
+
+        self._in_section = False
+        self._div_depth = 0  # tracks DIV nesting within Section (0 = Section div itself)
+        self._capture: str | None = None  # 'number', 'catchline', 'body', 'history'
+        self._buf: list[str] = []
+        self._cur: dict = {}
+
+    def handle_starttag(self, tag, attrs):
+        attrs_d = dict(attrs)
+        cls = attrs_d.get("class", "")
+
+        if tag == "div" and cls == "Section":
+            self._in_section = True
+            self._div_depth = 0
+            self._cur = {}
+            self._capture = None
+            self._buf = []
+            return
+
+        if not self._in_section:
+            return
+
+        if tag == "div":
+            self._div_depth += 1
+            if cls == "History":
+                self._capture = "history"
+                self._buf = []
+            return
+
+        if tag == "span":
+            if cls == "SectionNumber":
+                self._capture = "number"
+                self._buf = []
+            elif cls == "SectionBody":
+                self._capture = "body"
+                self._buf = []
+            elif "Catchline" in cls and self._capture in (None, "number"):
+                # The outer <span class="Catchline"> — start capturing title.
+                # Inner CatchlineText and EmDash spans just contribute data.
+                self._capture = "catchline"
+                self._buf = []
+
+    def handle_endtag(self, tag):
+        if not self._in_section:
+            return
+
+        if tag == "div":
+            if self._div_depth == 0:
+                # Closing the Section div itself
+                self._finalize()
+                self._in_section = False
+                return
+            self._div_depth -= 1
+            if self._capture == "history":
+                self._cur["history"] = "".join(self._buf).strip()
+                self._capture = None
+            return
+
+        if tag == "span":
+            if self._capture == "number":
+                self._cur["number"] = "".join(self._buf).strip()
+                self._capture = None
+            elif self._capture == "catchline":
+                self._cur["title"] = "".join(self._buf).strip()
+                self._capture = None
+            elif self._capture == "body":
+                self._cur["text"] = "".join(self._buf).strip()
+                self._capture = None
+
+    def handle_data(self, data):
+        if self._capture:
+            self._buf.append(data)
+
+    def handle_entityref(self, name):
+        if self._capture:
+            self._buf.append(html_mod.unescape(f"&{name};"))
+
+    def handle_charref(self, name):
+        if self._capture:
+            self._buf.append(html_mod.unescape(f"&#{name};"))
+
+    def _finalize(self):
+        section_num = self._cur.get("number", "").strip()
+        if not section_num:
+            return
+        title = self._cur.get("title", "")
+        text = self._cur.get("text", "")
+        history = self._cur.get("history", "")
+
+        if not text:
+            return  # TOC-style entry — skip
+
+        full_text = text
+        if history:
+            full_text += f"\n{history}"
+
+        full_text = re.sub(r'[ \t]+', ' ', full_text)
+        full_text = re.sub(r'\n{3,}', '\n\n', full_text)
+        full_text = full_text.strip()
+
+        if not full_text:
+            return
+
+        full_section = f"{self.chapter}.{section_num}" if "." not in section_num else section_num
+
+        self.sections.append({
+            "citation":    f"Fla. Stat. § {full_section}",
+            "chapter":     self.chapter,
+            "section":     full_section,
+            "subsection":  None,
+            "title":       title or None,
+            "text":        full_text,
+            "source_url":  chapter_url(self.chapter),
+            "source_xml_ref": f"Ch{self.chapter.zfill(3)}.html",
+            "jurisdiction": "FL",
+        })
+
+
+def parse_chapter_html(html_str: str, chapter: str) -> list[dict]:
+    parser = StatuteSectionParser(chapter)
+    parser.feed(html_str)
+    return parser.sections
+
+
+def fetch_chapter_html(chapter: str, client: httpx.Client) -> str | None:
+    url = chapter_url(chapter)
+    resp = client.get(url)
+    if resp.status_code != 200:
+        print(f"HTTP {resp.status_code}")
+        return None
+    return resp.text
 
 
 def main():
@@ -126,13 +240,17 @@ def main():
                         help="Chapter numbers to ingest (e.g. 83 61 110)")
     parser.add_argument("--all-priority", action="store_true",
                         help="Ingest all priority chapters")
+    parser.add_argument("--extra", action="store_true",
+                        help="Also ingest extra chapters beyond priority")
     args = parser.parse_args()
 
-    chapters = args.chapters
+    chapters = list(args.chapters)
     if args.all_priority:
         chapters = list(set(chapters + PRIORITY_CHAPTERS))
+    if args.extra:
+        chapters = list(set(chapters + EXTRA_CHAPTERS))
     if not chapters:
-        print("ERROR: specify --chapters or --all-priority")
+        print("ERROR: specify --chapters, --all-priority, or --extra")
         sys.exit(1)
 
     url = os.environ.get("SUPABASE_URL")
@@ -143,19 +261,29 @@ def main():
 
     supabase = create_client(url, key)
     total_upserted = 0
+    failed: list[str] = []
 
-    with httpx.Client(timeout=30, follow_redirects=True) as client:
+    with httpx.Client(timeout=60, follow_redirects=True) as client:
         for chapter in chapters:
             print(f"Chapter {chapter}...", end=" ", flush=True)
-            xml_bytes = fetch_chapter_xml(chapter, client)
-            if xml_bytes is None:
-                print("NOT FOUND — check the XML URL manually.")
+            html_str = fetch_chapter_html(chapter, client)
+            if html_str is None:
+                failed.append(chapter)
                 continue
-            records = parse_chapter_xml(xml_bytes, chapter)
+            records = parse_chapter_html(html_str, chapter)
             if not records:
-                print(f"parsed 0 sections (check XML structure).")
+                print("parsed 0 sections.")
+                failed.append(chapter)
                 continue
-            # Upsert in batches of 100
+
+            # Deduplicate by citation — keep longest text
+            by_cite: dict[str, dict] = {}
+            for r in records:
+                cite = r["citation"]
+                if cite not in by_cite or len(r["text"]) > len(by_cite[cite]["text"]):
+                    by_cite[cite] = r
+            records = list(by_cite.values())
+
             for i in range(0, len(records), 100):
                 batch = records[i:i+100]
                 supabase.table("statutes").upsert(
@@ -165,6 +293,8 @@ def main():
             print(f"{len(records)} sections upserted.")
 
     print(f"\nDone. Total sections upserted: {total_upserted}")
+    if failed:
+        print(f"Failed chapters: {', '.join(failed)}")
 
 
 if __name__ == "__main__":
