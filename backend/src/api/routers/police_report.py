@@ -15,6 +15,7 @@ from fastapi.responses import StreamingResponse
 
 from src.agents.police_report_v2 import PoliceReportAnalyzerV2
 from src.agents.scanner import extract_case_context, scan_documents
+from src.core.upl import apply_disclaimer
 from src.ingestion import ingest_document
 
 router = APIRouter(prefix="/api/police-report")
@@ -94,9 +95,9 @@ async def analyze_report_batch(files: List[UploadFile] = File(...)):
 
     result = await scan_documents(extracted)
     case_context = await extract_case_context(extracted)
-    return {
+    return apply_disclaimer({
         "findings": result["findings"],
         "documents_analyzed": result["meta"]["documents_analyzed"],
         "case_context": case_context,
         "risk_analysis": result.get("risk_analysis"),
-    }
+    }, lang="en")
