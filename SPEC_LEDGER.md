@@ -20,12 +20,12 @@ Registration lines are in `backend/src/api/routes.py`.
 | Expungement | `routers/expungement.py` (reg :77) | `agents/expungement.py` | `PHASE_17_expungement_ui.md` | v2-phase | 2026-06-30 | MAJOR | Y |
 | Landlord/Tenant | `routers/landlord.py` (reg :78) | `services/packet_builder.py` (shared) | `PHASE_18_landlord_tenant.md` | v2-phase | 2026-06-30 | MINOR | N |
 | Traffic | `routers/traffic.py` (reg :79) | `services/packet_builder.py` (shared) | `PHASE_20_traffic.md` | v2-phase | 2026-06-30 | MINOR | N |
-| Police Report | `routers/police_report.py` (reg :80) | `agents/police_report_v2.py` + `agents/scanner.py` (parallel) | `PHASE_21_police_report.md` + `BUILD_PLAN` Phase 9 | v2-phase | 2026-06-30 | MAJOR | Y |
+| Police Report | `routers/police_report.py` (reg :80) | `agents/police_report_v2.py` + `agents/scanner.py` (parallel) | `PHASE_21_police_report.md` + `BUILD_PLAN` Phase 9 | v2-phase | 2026-07-02 | MAJOR | Y |
 | Case Law | `routers/case_law.py` (reg :81) | none — inline Anthropic call (`case_law.py:72`) | `PHASE_22_case_law.md` | v2-phase | 2026-06-30 | MINOR | N |
 | Packet Builder | `routers/packet.py` (reg :82) | `services/packet_builder.py` | `PHASE_23_packet_builder.md` | v2-phase | 2026-06-30 | MAJOR | Y |
 | Forms | `routers/forms.py` (reg :83) | inline `SUGGEST_MODEL` (`forms.py:30`) | `PHASE_19_forms_finder.md` + Phase 2/10 | v2-phase | 2026-06-30 | MINOR | Y |
 | Law Corpus | `routers/law.py` (reg :84) | none — verbatim DB lookup | `BUILD_PLAN` Phase 3 | v2-phase | 2026-06-30 | MINOR | Y |
-| Deadline Engine | `routers/deadline.py` (reg :85) | `deadline/{extract,compute,pipeline}.py` | `BUILD_PLAN` Phase 4 + `PHASE_10_api.md` | v2-phase | 2026-06-30 | MAJOR | Y |
+| Deadline Engine | `routers/deadline.py` (reg :85) | `deadline/{extract,compute,pipeline}.py` | `BUILD_PLAN` Phase 4 + `PHASE_10_api.md` | v2-phase | 2026-07-02 | MAJOR | Y |
 | Triage Classifier | `routers/triage.py` (reg :86) | `triage/classify.py` + `agents/classifier.py` | `BUILD_PLAN` Phase 5 + `PHASE_03_classifier_agent.md` | v2-phase | 2026-06-30 | MAJOR | Y |
 | Reminders | `routers/reminders.py` (reg :87) | `core/{reminders,notifications}.py` | `BUILD_PLAN` Phase 6 | v2-phase | 2026-06-30 | MAJOR | Y |
 | Analysis / UPL | `routers/analysis.py` (reg :88) | `agents/{explainer,form_guide,risk_scanner}.py` | `BUILD_PLAN` Phase 8 + `PHASE_04/05/06_*.md` | v2-phase | 2026-06-30 | MAJOR | Y |
@@ -33,7 +33,7 @@ Registration lines are in `backend/src/api/routes.py`.
 | Wills & Trusts | `routers/wills_trusts.py` (reg :90) | `agents/wills_trusts.py` | **UNDOCUMENTED — v3** | v3-undocumented | 2026-06-30 | N/A — no spec | Y |
 | Compliance (optional) | `_compliance_router` (reg :101, gated) | none | none — feature-gated behind `compliance/` pkg | n/a | 2026-06-30 | NONE | N |
 
-Drift-status basis (MAJOR items): Small Claims = response contract replaced by packet builder + paywall bypassed; Expungement = router ignores its own agent, hardcoded JSON rules, phantom `Phase 07`/`v1.1` TODO; Police Report = `/analyze` silently swapped to streaming, `scan_documents` modified against Phase 9 guardrail, parallel v1/v2 impls; Packet = $35 paywall disabled in code (contradicts CLAUDE.md); Deadline = unhandled `int(circuit)`/`date.fromisoformat`, muted fatal-deadline closure escalation, sync client in async, partial-write 200; Triage = 18-label taxonomy matches no spec, Haiku model drift; Reminders = TOCTOU + no real email delivery; Analysis = streaming-success path emits no disclaimer (U1), IDOR on document lookups, no router auth.
+Drift-status basis (MAJOR items): Small Claims = response contract replaced by packet builder + paywall bypassed; Expungement = router ignores its own agent, hardcoded JSON rules, phantom `Phase 07`/`v1.1` TODO; Police Report = `/analyze` silently swapped to streaming, `scan_documents` modified against Phase 9 guardrail, parallel v1/v2 impls; Packet = $35 paywall disabled in code (contradicts CLAUDE.md); Deadline = muted fatal-deadline closure escalation, sync client in async, partial-write 200 (circuit/date parsing hardened 2026-07-02); Triage = 18-label taxonomy matches no spec, Haiku model drift; Reminders = TOCTOU + no real email delivery; Analysis = streaming-success path emits no disclaimer (U1), IDOR on document lookups, no router auth.
 
 ---
 
@@ -96,7 +96,7 @@ CLAUDE.md pins `claude-sonnet-4-6`. Every LLM call-site in the repo:
 
 **Production source of truth: `pip` + `backend/requirements.txt`** — not uv.
 
-Evidence: `backend/nixpacks.toml` (the `[phases.install]` comment, verbatim): *"The Nixpacks Python provider detects requirements.txt, creates the /opt/venv virtualenv, puts /opt/venv/bin on PATH, and runs `pip install -r requirements.txt` automatically."* Railway's Nixpacks build installs from `requirements.txt`. `pyproject.toml` exists only to support local `uv` workflows (its own header admits this). The two have already drifted: `httpx` is in `requirements.txt` (load-bearing for `case_law.py`, `forms.py`) but **not** in `pyproject.toml`'s `dependencies`, so `uv sync` produces a broken local env.
+Evidence: `backend/nixpacks.toml` (the `[phases.install]` comment, verbatim): *"The Nixpacks Python provider detects requirements.txt, creates the /opt/venv virtualenv, puts /opt/venv/bin on PATH, and runs `pip install -r requirements.txt` automatically."* Railway's Nixpacks build installs from `requirements.txt`. `pyproject.toml` exists only to support local `uv` workflows (its own header admits this). ~~The two have already drifted: `httpx` was in `requirements.txt` but not `pyproject.toml`~~ — **fixed 2026-07-02**: `httpx` added to `pyproject.toml` deps + `uv.lock` regenerated; both files in sync.
 
 **Going-forward rule (single source of truth):**
 - `backend/requirements.txt` is canonical for production. Every dependency added or bumped must be added there first.

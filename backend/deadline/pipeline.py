@@ -12,6 +12,7 @@ The pipeline layer owns:
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import asdict
 from datetime import date
 
@@ -24,6 +25,30 @@ from .rules import RULES
 logger = logging.getLogger(__name__)
 
 ESCALATION_CONFIDENCE_THRESHOLD = 0.90  # fatal + below this → escalate
+
+
+def _safe_int(value) -> int | None:
+    """Best-effort int parse for LLM-supplied values (e.g. circuit numbers).
+
+    Returns None if the value can't be interpreted as an int; the caller then
+    treats the circuit as unknown (statewide closures still apply). Handles
+    "13th" / "Circuit 13" -> 13; "Thirteenth" -> None.
+    """
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        m = re.search(r"\d+", str(value))
+        return int(m.group()) if m else None
+
+
+def _safe_float(value, default: float = 0.0) -> float:
+    """float() that won't raise on LLM output like confidence='high'."""
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
 
 
 async def run_deadline_pipeline(
@@ -59,8 +84,9 @@ async def run_deadline_pipeline(
     # Always fetch statewide (circuit=0) + the specific circuit if known
     circuits_needed = {0}
     for ev in events:
-        if ev.get("circuit"):
-            circuits_needed.add(int(ev["circuit"]))
+        c = _safe_int(ev.get("circuit"))
+        if c is not None:
+            circuits_needed.add(c)
 
     closure_dates: frozenset[date] = frozenset()
     if db.client is not None:
@@ -81,8 +107,8 @@ async def run_deadline_pipeline(
         rule_key = event.get("document_type", "unknown")
         event_date_str = event.get("event_date")
         service_method = event.get("service_method", "unknown")
-        confidence = float(event.get("confidence", 0.0))
-        circuit = event.get("circuit")
+        confidence = _safe_float(event.get("confidence"))
+        circuit = _safe_int(event.get("circuit"))
 
         # Missing service date → escalate immediately
         if not event_date_str:
@@ -107,24 +133,26 @@ async def run_deadline_pipeline(
             result["trigger_events_written"] += 1
             continue
 
-        event_date = date.fromisoformat(event_date_str)
-        has_local_closure_data = (circuit is not None and int(circuit) in circuits_needed
-                                  and any(c.circuit == int(circuit)
-                                         for c in _closure_rows_cache))
-
-        # Check if we have any local closure data at all for this circuit
-        local_circuit = int(circuit) if circuit else None
-        has_local = local_circuit is not None and any(
-            d for d in closure_dates
-        )  # simplified: True if we got ANY closures (statewide counts)
+        # Malformed event date → escalate this event rather than 500 the request
+        try:
+            event_date = date.fromisoformat(event_date_str)
+        except ValueError:
+            result["escalation_needed"] = True
+            result["escalation_reasons"].append(
+                f"The event date for {rule_key!r} could not be parsed "
+                f"({event_date_str!r}). Manual review required to compute the deadline."
+            )
+            _write_trigger_event(db, document_id, event, is_escalated=True)
+            result["trigger_events_written"] += 1
+            continue
 
         compute_result = compute_deadline_for_event(
             rule_key=rule_key,
             event_date=event_date,
             service_method=service_method,
-            circuit=local_circuit,
+            circuit=circuit,
             closure_dates=closure_dates,
-            has_local_closure_data=bool(closure_dates),  # True if we fetched any
+            has_local_closure_data=bool(closure_dates),
         )
 
         # Write trigger_event row
@@ -173,9 +201,6 @@ async def run_deadline_pipeline(
             result["escalation_reasons"].extend(compute_result.escalation_reasons)
 
     return result
-
-
-_closure_rows_cache: list = []  # module-level for has_local check
 
 
 def _write_trigger_event(
