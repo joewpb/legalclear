@@ -46,6 +46,13 @@ Development continued beyond v2 phases, enhancing the platform with new capabili
 - **PII Redaction** — Full implementation with 21 passing tests (`backend/src/ingestion/pii_redactor.py`)
 - **Risk Scoring** — Applied across Discovery Motion, Property & Casualty, Police Report modules
 
+### Opinion Retrieval (case-law corpus → product)
+- **Corpus:** 759 FL appellate opinions in Supabase `legal_opinions` (ingested offline via `scripts/opinion_pipeline/`, commit `9110b20`, 2026-07). 178 distinct `situation_tags`; heavily criminal-leaning (`felony`=346, `criminal_sentencing`=263, `constitutional_challenge`=243).
+- **Retrieval service:** `backend/src/services/opinion_retrieval.py` — `get_relevant_opinions(tags)` queries via `DatabaseManager` (degraded-mode-safe, fail-soft → `[]`), PostgREST `.overlaps("situation_tags", ...)`, `.eq("quality_flagged", False)`, ordered by `cite_count` desc. 13 unit + 2 live-integration tests.
+- **Deterministic mapper:** `derive_situation_tags(v2_result)` — precision-over-recall. Curated booleans (`miranda_noted` / `probable_cause_present`) OWN the Miranda/probable-cause signals; free-text keyword scan reserved only for signals with no boolean (excessive force → `police_misconduct`). Emits only verified-vocabulary tags; no baseline; `[]` on no match.
+- **First module wired — Police Report Analyzer** (streaming `/api/police-report/analyze`, commit `33cb1c1`, 2026-07-03): `relevant_opinions` SSE event emitted post-stream in `PoliceReportAnalyzerV2` after `risk_analysis`, sealed in its own try/except so a mapper/retrieval failure can never break an already-sent analysis. `OpinionCard.tsx` renders plain-English summary + per-case `attorney_prompt` + `cite_count` authority signal; `RelevantOpinion` type lives in `components/policereport/types.ts`.
+- **Deferred:** legacy `/analyze/batch` NOT wired (frontend never calls it — dead path). Other modules (Small Claims, Eviction, Traffic, etc.) not yet wired — pattern proven on Police Report first.
+
 ### Infrastructure Improvements
 - `backend/deadline/compute.py` — Simplified non-computable deadline handling (cleaner escalation)
 - `backend/evals/run_all.py` — Fixed escalation detection logic, added .env support
