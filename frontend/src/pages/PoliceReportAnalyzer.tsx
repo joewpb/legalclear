@@ -11,6 +11,8 @@
 import { useState, useRef, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
+import OpinionCard from "../components/policereport/OpinionCard";
+import type { RelevantOpinion } from "../components/policereport/types";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -41,6 +43,12 @@ interface RiskAnalysis {
   top_concerns: string[];
 }
 
+interface RelevantOpinionsEvent {
+  type: "relevant_opinions";
+  situation_tags_used: string[];
+  opinions: RelevantOpinion[];
+}
+
 interface ChargeExplained {
   charge: string;
   plain_english: string;
@@ -58,6 +66,8 @@ interface AnalysisResponse {
   what_happens_next: string;
   disclaimer: string;
   risk_analysis?: RiskAnalysis;
+  relevant_opinions?: RelevantOpinion[];
+  situation_tags_used?: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -542,6 +552,15 @@ export default function PoliceReportAnalyzer() {
             }));
             continue; // don't add to full, it's not part of the analysis JSON
           }
+          if (solo.type === "relevant_opinions") {
+            const ev = solo as RelevantOpinionsEvent;
+            setResponse((prev) => ({
+              ...prev,
+              situation_tags_used: ev.situation_tags_used,
+              relevant_opinions: ev.opinions,
+            }));
+            continue; // typed event — don't accumulate into the analysis JSON
+          }
         } catch {
           /* not a complete JSON chunk — will be accumulated */
         }
@@ -915,6 +934,17 @@ export default function PoliceReportAnalyzer() {
                         {m.why_important}
                       </p>
                     </div>
+                  ))}
+                </>
+              )}
+
+            {/* Relevant Florida case law — retrieved by situation-tag overlap */}
+            {response.relevant_opinions &&
+              response.relevant_opinions.length > 0 && (
+                <>
+                  <h2 style={css.sectionTitle}>Relevant Florida Case Law</h2>
+                  {response.relevant_opinions.map((op, i) => (
+                    <OpinionCard key={op.citation || i} opinion={op} />
                   ))}
                 </>
               )}

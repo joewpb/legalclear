@@ -1,5 +1,6 @@
-// caseContext schema for the Police Report Analyzer.
-// This file holds ONLY facts and flagged questions — no legal conclusions.
+// Types for the Police Report Analyzer.
+// Case-context facts, flagged questions, and retrieved legal reference
+// material (opinions) — no original legal conclusions are generated here.
 
 // ── Enum union types ──────────────────────────────────────────────────────────
 
@@ -146,4 +147,19 @@ export function createEmptyCaseContext(): CaseContext {
       collateralConsequenceFlags: [],
     },
   };
+}
+
+// ── Retrieved legal reference (opinions) ─────────────────────────────────────
+// One row from the Supabase `legal_opinions` table, selected by
+// situation-tag overlap. Matches the service .select() list exactly.
+export interface RelevantOpinion {
+  case_name: string;
+  citation: string;
+  court: string;
+  date_filed: string | null;
+  cite_count: number;
+  outcome: string | null;
+  summary_plain: string;
+  summary_legal: string;
+  attorney_prompt: string;
 }

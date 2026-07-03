@@ -1,0 +1,86 @@
+"""Unit tests for derive_situation_tags() — the Police Report V2 ->
+situation_tags mapper. Pure Python — no LLM, no DB calls.
+
+Run: cd backend && uv run python -m pytest tests/test_opinion_mapper.py -v
+"""
+
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+import pytest
+
+from src.services.opinion_retrieval import derive_situation_tags
+
+
+def _v2(**overrides) -> dict:
+    """A clean V2 result with no triggering signals; override per test."""
+    base = {
+        "miranda_noted": True,        # explicit True -> NOT a violation
+        "probable_cause_present": True,
+        "charges_explained": [],
+        "discrepancies": [],
+        "missing_fields": [],
+    }
+    base.update(overrides)
+    return base
+
+
+@pytest.mark.parametrize("v2_result, expected", [
+    # 1. Miranda violation via the curated boolean.
+    (_v2(miranda_noted=False), ["fifth_amendment", "sixth_amendment"]),
+    # 2. Miranda mentioned only in discrepancy text, boolean True ->
+    #    NOT tagged (recall loss accepted; boolean owns the signal).
+    (_v2(discrepancies=[{
+        "severity": "high",
+        "description": "Officer never gave a Miranda warning before questioning.",
+        "ask_attorney": "Was this custodial?", "page_ref": "p.2",
+    }]), []),
+    # 3. Felony via stem match on "Burglary" (plain_english blank on purpose).
+    (_v2(charges_explained=[
+        {"charge": "Armed Burglary of a Dwelling", "plain_english": ""}]),
+        ["felony"]),
+    # 4. Robbery stem -> felony.
+    (_v2(charges_explained=[
+        {"charge": "Robbery with a Firearm", "plain_english": ""}]),
+        ["felony"]),
+    # 5. DUI -> dui + traffic_stop.
+    (_v2(charges_explained=[
+        {"charge": "DUI", "plain_english": ""}]),
+        ["dui", "traffic_stop"]),
+    # 6. Drug trafficking — stem "Trafficking" + substance "Cocaine".
+    (_v2(charges_explained=[
+        {"charge": "Trafficking in Cocaine (28g+)", "plain_english": ""}]),
+        ["drug_trafficking"]),
+    # 7. Possession alone is NOT trafficking -> no drug tag (precision).
+    (_v2(charges_explained=[
+        {"charge": "Possession of a controlled substance", "plain_english": ""}]),
+        []),
+    # 8. Probable-cause boolean False -> the unlawful_search signal path.
+    (_v2(probable_cause_present=False),
+        ["fourth_amendment", "probable_cause", "unlawful_search"]),
+    # 9. Excessive force in discrepancy text -> police_misconduct.
+    (_v2(discrepancies=[{
+        "severity": "high",
+        "description": "Taser used repeatedly after subject was restrained.",
+        "ask_attorney": "", "page_ref": None,
+    }]), ["police_misconduct"]),
+    # 10. NEGATIVE: bare "search" in neutral narration -> no 4A tag.
+    (_v2(discrepancies=[{
+        "severity": "low",
+        "description": "Report notes officers conducted a search of the "
+                       "vehicle and found nothing; no discrepancy in the "
+                       "search itself, timestamp is missing.",
+        "ask_attorney": "", "page_ref": None,
+    }]), []),
+    # 11. No matching signals -> [] (precision: no baseline tag).
+    (_v2(), []),
+    # 12. Null booleans are NOT violations (null != False).
+    (_v2(miranda_noted=None, probable_cause_present=None), []),
+])
+def test_derive_situation_tags(v2_result, expected):
+    assert derive_situation_tags(v2_result) == expected
+
+
+def test_derive_non_dict_returns_empty():
+    assert derive_situation_tags(None) == []          # type: ignore[arg-type]
+    assert derive_situation_tags("not a dict") == []  # type: ignore[arg-type]

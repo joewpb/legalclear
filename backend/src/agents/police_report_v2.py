@@ -18,6 +18,7 @@ from anthropic import AsyncAnthropic
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.ingestion.pdf_parser import PDFParser
+from src.services.opinion_retrieval import derive_situation_tags, get_relevant_opinions
 
 logger = logging.getLogger(__name__)
 
@@ -308,6 +309,7 @@ class PoliceReportAnalyzerV2:
                     yield f"data: {chunk}\n\n"
 
             # ── Post-stream: compute risk score deterministically ──
+            parsed = None
             try:
                 parsed = json.loads(self._strip_fences(full_text))
                 all_findings = (
@@ -331,6 +333,29 @@ class PoliceReportAnalyzerV2:
                 # If parsing fails, skip risk analysis — the client
                 # will still have the raw streaming response
                 pass
+
+            # ── Post-stream: retrieve relevant opinions (Stage 2) ──
+            # Sealed in its own try/except: risk_analysis (and the full
+            # analysis JSON) have already been sent above, so a failure
+            # here must NEVER bubble to the outer `except Exception`,
+            # which would emit a misleading error event after a
+            # successful analysis. Log + skip instead. Guard on `parsed`
+            # so we don't run (and raise NameError) when JSON failed.
+            if parsed:
+                try:
+                    tags = derive_situation_tags(parsed)
+                    opinions = get_relevant_opinions(tags)
+                    opinions_payload = json.dumps({
+                        "type": "relevant_opinions",
+                        "situation_tags_used": tags,
+                        "opinions": opinions,
+                    })
+                    yield f"data: {opinions_payload}\n\n"
+                except Exception:
+                    logger.error(
+                        "relevant_opinions emission failed:\n%s",
+                        traceback.format_exc(),
+                    )
 
         except Exception:
             logger.error(
