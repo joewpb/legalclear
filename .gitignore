@@ -71,3 +71,9 @@ supabase/.temp/
 
 # Generated schema diagram (large, regenerable)
 supabase-schema-*.svg
+
+# Opinion pipeline data exhaust — code only, never the 759 JSONs
+scripts/opinion_pipeline/data/*
+scripts/opinion_pipeline/logs/*
+!scripts/opinion_pipeline/data/.gitkeep
+!scripts/opinion_pipeline/logs/.gitkeep
