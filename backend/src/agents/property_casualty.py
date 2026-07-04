@@ -215,6 +215,7 @@ class PropertyCasualtyExplainer:
         Routes through the deterministic deadline engine — ZERO date math here.
         """
         from deadline.compute import compute_deadline_for_event
+        from deadline.rules import RULES
 
         closure_dates: frozenset[date] = frozenset()
         results: list[dict] = []
@@ -238,7 +239,7 @@ class PropertyCasualtyExplainer:
                         "severity": dl.severity,
                         "consequence": dl.consequence,
                         "is_past": dl.is_past,
-                        "deadline_type": rule.get("deadline_type", "court_filing"),
+                        "deadline_type": RULES[rule_key].get("deadline_type", "court_filing"),
                         "computation_trace": dl.computation_trace,
                     })
             except Exception:
