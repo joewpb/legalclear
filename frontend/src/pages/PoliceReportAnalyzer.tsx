@@ -12,6 +12,7 @@ import { useState, useRef, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
 import OpinionCard from "../components/policereport/OpinionCard";
+import { applySseEvent } from "../components/policereport/sseMerge";
 import type { RelevantOpinion } from "../components/policereport/types";
 
 // ---------------------------------------------------------------------------
@@ -546,19 +547,13 @@ export default function PoliceReportAnalyzer() {
         try {
           const solo = JSON.parse(chunk);
           if (solo.type === "risk_analysis") {
-            setResponse((prev) => ({
-              ...prev,
-              risk_analysis: solo as RiskAnalysis,
-            }));
+            setResponse((prev) => applySseEvent(prev, solo));
             continue; // don't add to full, it's not part of the analysis JSON
           }
           if (solo.type === "relevant_opinions") {
-            const ev = solo as RelevantOpinionsEvent;
-            setResponse((prev) => ({
-              ...prev,
-              situation_tags_used: ev.situation_tags_used,
-              relevant_opinions: ev.opinions,
-            }));
+            setResponse((prev) =>
+              applySseEvent(prev, solo as RelevantOpinionsEvent),
+            );
             continue; // typed event — don't accumulate into the analysis JSON
           }
         } catch {
@@ -575,14 +570,16 @@ export default function PoliceReportAnalyzer() {
         }
       }
 
-      // Final parse attempt for the analysis JSON — merge to
-      // preserve any risk_analysis that arrived during streaming
+      // Final parse attempt for the analysis JSON — merge to preserve any
+      // typed SSE events (risk_analysis, relevant_opinions) that arrived
+      // during streaming and are NOT part of the analysis JSON itself.
+      // relevant_opinions is emitted LAST, so this merge runs after it was
+      // just set; the reducer's carry-overs keep it alive.
       try {
         const parsed = JSON.parse(full) as AnalysisResponse;
-        setResponse((prev) => ({
-          ...parsed,
-          risk_analysis: prev.risk_analysis ?? parsed.risk_analysis,
-        }));
+        setResponse((prev) =>
+          applySseEvent(prev, { type: "analysis_json", data: parsed }),
+        );
       } catch {
         if (!full.trim()) {
           setError("No response received. Please try again.");
@@ -944,7 +941,11 @@ export default function PoliceReportAnalyzer() {
                 <>
                   <h2 style={css.sectionTitle}>Relevant Florida Case Law</h2>
                   {response.relevant_opinions.map((op, i) => (
-                    <OpinionCard key={op.citation || i} opinion={op} />
+                    <OpinionCard
+                      key={op.citation || i}
+                      opinion={op}
+                      language={language}
+                    />
                   ))}
                 </>
               )}

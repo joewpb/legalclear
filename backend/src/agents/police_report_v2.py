@@ -7,6 +7,7 @@ Uses claude-sonnet-4-6 with structured JSON output and SSE streaming.
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import json
 import logging
@@ -344,7 +345,13 @@ class PoliceReportAnalyzerV2:
             if parsed:
                 try:
                     tags = derive_situation_tags(parsed)
-                    opinions = get_relevant_opinions(tags)
+                    # get_relevant_opinions() does synchronous Supabase I/O
+                    # (supabase-py is blocking); offload it so the network
+                    # round-trip doesn't stall the event loop and every
+                    # other in-flight SSE client on this worker.
+                    opinions = await asyncio.to_thread(
+                        get_relevant_opinions, tags
+                    )
                     opinions_payload = json.dumps({
                         "type": "relevant_opinions",
                         "situation_tags_used": tags,
