@@ -25,7 +25,7 @@ Quick lookup for "where does Phase N live?" — verified against
 | 6     | Risk scanner agent                | `backend/src/agents/risk_scanner.py` | — |
 | 7     | Expungement agent                 | `backend/src/agents/expungement.py` | — |
 | 8     | Supabase wiring in db.py          | `backend/src/memory/db.py` (Supabase code path) | — |
-| 8     | SQL schema                        | (not specified)                    | `deploy/supabase_schema.sql` |
+| 8     | SQL schema                        | `supabase/migrations/*.sql` (migration set; base tables = `20260519190000_base_schema.sql`) | — (`deploy/supabase_schema.sql` retired PR #19; migrations are the source of truth) |
 | 9     | Stripe payments                   | `backend/src/services/payments.py` | `backend/src/payments/stripe_client.py` — different dir + module name |
 | 10    | FastAPI app entrypoint            | `backend/src/api/main.py`          | `backend/main.py` (entrypoint) + `backend/src/api/routes.py` (consolidated routes) — split, not unified |
 | 10    | Endpoint paths                    | `/api/*` (`/api/upload`, `/api/chat`, `/api/eligibility`, `/api/stripe/webhook`, `/api/push/register`, `/health`) | bare paths (`/upload`, `/chat/{document_id}`, `/eligibility`, `/webhook`, `/user/{user_id}/push-token`, `/health`) — different prefix scheme + some different names |
