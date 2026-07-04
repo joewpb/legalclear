@@ -18,24 +18,19 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Optional
 
 from src.memory.db import DatabaseManager
 
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# DB handle — reuse DatabaseManager so we inherit its degraded-mode guard.
+# DB handle — module-level DatabaseManager, matching the idiom used by the
+# routers (deadline/reminders/triage/law/forms). DatabaseManager.__init__
+# degrades gracefully (client is None) when SUPABASE_URL / SERVICE_KEY are
+# absent, so the guard below handles degraded mode without a lazy factory.
 # ---------------------------------------------------------------------------
 
-_db: Optional[DatabaseManager] = None
-
-
-def _get_db() -> DatabaseManager:
-    global _db
-    if _db is None:
-        _db = DatabaseManager()
-    return _db
+db = DatabaseManager()
 
 
 # Columns returned to the API. Verified against legal_opinions schema
@@ -49,7 +44,6 @@ _OPINION_COLUMNS = (
 def get_relevant_opinions(
     situation_tags: list[str],
     limit: int = 3,
-    db: Optional[DatabaseManager] = None,
 ) -> list[dict]:
     """Return up to `limit` opinions matching any of `situation_tags`.
 
@@ -59,8 +53,7 @@ def get_relevant_opinions(
     """
     if not situation_tags:
         return []
-    client = (db or _get_db()).client
-    if client is None:
+    if db.client is None:
         return []
     try:
         result = (
@@ -103,15 +96,35 @@ _CHARGE_DRUG_VERB = re.compile(
 _DRUG_SUBSTANCE = re.compile(
     r"\b(cocaine|heroin|meth(?:amphetamine)?|cannabis|marijuana|"
     r"controlled substance|fentanyl|oxycodone|narcotic|opium|mdma)\b", re.I)
+# Felony-class indicators. Bare "assault" is intentionally EXCLUDED — in
+# Florida, simple assault (a threat) is a first-degree misdemeanor, so matching
+# it here would surface felony-level opinions for misdemeanor defendants (a
+# precision regression). Felony assault/battery variants are caught by the
+# explicit "aggravated" / "sexual batter" qualifiers below.
 _CHARGE_FELONY = re.compile(
-    r"\b(felony|murder|homicide|burglar|robber|assault|kidnap|rape|"
-    r"sexual batter|arson|manslaughter)", re.I)
+    r"\b(felony|murder|homicide|burglar|robber|kidnap|rape|"
+    r"sexual batter|aggravated assault|aggravated batter|"
+    r"arson|manslaughter)", re.I)
 _CHARGE_MISD = re.compile(r"\bmisdemeanor\b", re.I)
 
 # Free-text keyword scan — ONLY for signals with no dedicated boolean.
 _DESC_FORCE = re.compile(
     r"\b(excessive force|beat(?:en)?|taser|tased|choke|choked|"
     r"pepper spray|body ?slam)\b", re.I)
+
+
+def _is_explicit_false(value) -> bool:
+    """True only for an explicitly-negated boolean signal.
+
+    Accepts real ``False`` plus the common LLM-JSON drift forms (the strings
+    "false"/"False", and ``0``). ``None`` (unknown) and any truthy/``True``
+    value return False — preserving the precision-over-recall contract that
+    constitutional-violation tags fire ONLY on an explicit negation, never on
+    an absent/unknown field.
+    """
+    if isinstance(value, str):
+        return value.strip().lower() == "false"
+    return value is False or value == 0
 
 
 def derive_situation_tags(v2_result: dict) -> list[str]:
@@ -134,9 +147,17 @@ def derive_situation_tags(v2_result: dict) -> list[str]:
     tags: set[str] = set()
 
     # --- Curated boolean signals (explicit False only; null = unknown) ---
-    if v2_result.get("miranda_noted") is False:
+    # Raw flag values (as received from the LLM, BEFORE normalization) captured
+    # for observability: if a future report surfaces zero opinions because a
+    # flag arrived in a shape the normalizer doesn't recognize, this log line
+    # shows exactly what the model emitted — turning a silent miss into a
+    # diagnosable one. No PII: flag values and tag names only, never report text.
+    raw_miranda = v2_result.get("miranda_noted")
+    raw_pc = v2_result.get("probable_cause_present")
+
+    if _is_explicit_false(raw_miranda):
         tags |= {"fifth_amendment", "sixth_amendment"}
-    if v2_result.get("probable_cause_present") is False:
+    if _is_explicit_false(raw_pc):
         tags |= {"probable_cause", "fourth_amendment", "unlawful_search"}
 
     # --- Charge text -> offense-class tags ---
@@ -165,5 +186,14 @@ def derive_situation_tags(v2_result: dict) -> list[str]:
     )
     if desc_blob and _DESC_FORCE.search(desc_blob):
         tags.add("police_misconduct")
+
+    # One structured line per mapper invocation: raw flag shapes (pre-
+    # normalization) + emitted tags. Surfaces normalizer-miss shape drift that
+    # would otherwise silently yield [] and render no opinions. No PII.
+    logger.info(
+        "derive_situation_tags miranda_noted=%r probable_cause_present=%r "
+        "tags=%r",
+        raw_miranda, raw_pc, sorted(tags),
+    )
 
     return sorted(tags)

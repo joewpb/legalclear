@@ -120,3 +120,33 @@ Enforceable checklist. Every future spec prompt follows this before touching the
 - [ ] **If a parallel/duplicate implementation is introduced or resolved:** update Section 3 in the same commit.
 
 This ledger is the diff target. A module not traceable to a row here, or a row whose drift is MAJOR and unaddressed, blocks the change.
+
+---
+
+## 7. POLICE REPORT V2 — OPINION RETRIEVAL (English path hardened 2026-07-04)
+
+Module #1 of the sitewide opinion-retrieval pattern (759-opinion Supabase corpus → Police Report Analyzer). Seven-fix hardening pass applied; this section records the proof-gap closure.
+
+**Extraction flags are load-bearing routing signals, RETAINED as-is.** `miranda_noted` and `probable_cause_present` (and the charge/discrepancy fields) drive deterministic tag derivation in `services/opinion_retrieval.py::derive_situation_tags`. They were not removed, renamed, or refactored in this pass. Raw flag values are now logged at mapper time for observability (see below).
+
+**English path — hardened + verified:**
+
+| Concern | Resolution | Verification |
+|---|---|---|
+| SSE merge showstopper | Merge logic extracted to pure reducer `frontend/.../policereport/sseMerge.ts::applySseEvent`; component calls it at all three sites. Order-independent carry-overs for `risk_analysis` / `relevant_opinions` / `situation_tags_used`. | New `sseMerge.test.ts` (vitest): 5 tests incl. adversarial order-independence (relevant_opinions followed by an analysis-JSON or risk-only event that omits it). Vacuousness probe confirmed the test catches the original buggy merge. `tsc --noEmit` clean; `npm run build` clean. |
+| Blocking I/O in async stream | `get_relevant_opinions` now runs via `asyncio.to_thread` in `police_report_v2.py`. | Import + call-site audit. |
+| Migration read-path | `legal_opinions` DDL captured in `supabase/migrations/20260703020000_legal_opinions.sql` (idempotent; GIN index on `situation_tags`; RLS enabled, no policies). Read uses **service-role** (`SUPABASE_SERVICE_KEY`, bypasses RLS) → no SELECT policy needed. Migration sorts last; self-contained. | `memory/db.py` confirms service-role init; `ls supabase/migrations \| sort`. |
+| Mapper literal precision | Bare `assault` removed from `_CHARGE_FELONY` (FL simple assault is a misdemeanor); `aggravated assault` / `aggravated batter` / `sexual batter` qualifiers added. Literals are intentional **stems** (leading `\b` only, no trailing `\b`; `.search()` substring match) — verified `aggravated battery` and `sexual battery` match, `simple assault` excluded. | `tests/test_opinion_mapper.py` 16/16 (3 new cases). |
+| Boolean-flag drift | `_is_explicit_false` normalizes `False` / `"false"` / `"False"` / `0`; `None` and truthy still mean "not a violation." No speculative handling of un-observed shapes. | Mapper suite green. |
+
+**Observability hook (mapper):** `derive_situation_tags` emits one structured log line per invocation recording the RAW flag values (pre-normalization) + emitted tags — no PII, no report body. Turns a silent zero-opinions miss into a diagnosable one. Sample:
+```
+INFO src.services.opinion_retrieval: derive_situation_tags miranda_noted='No' probable_cause_present=None tags=[]
+```
+Deferring further drift handling is now SAFE because every miss leaves a trace.
+
+**ES opinion corpus — DEFERRED (backlog).** `summary_plain` / `summary_legal` / `attorney_prompt` are English-only in the corpus. Interim coherence (not completeness): `OpinionCard.tsx` renders an EN/ES honesty stamp above the body when `language === 'es'` ("La jurisprudencia está disponible únicamente en inglés por el momento."), threaded through the localized `STRINGS` map. UPL disclaimer is EN/ES. Design default is STAMP (preserve information); a one-boolean flip to HIDE the whole card for ES is documented in a code comment if product later prefers hiding. Spanish opinion content / an ES corpus is out of scope.
+
+**Frontend test infra:** vitest added (Vite-native); `npm test` now runs `vitest run`. CI (`node.js.yml`) runs `npm test --if-present` so this is covered.
+
+**Backend suite scope (reconciled 2026-07-04):** the coverage-scoped unit suite (`tests/` minus the live `test_opinion_retrieval_integration.py`) shows **43 failed / 121 passed**. Per-failure breakdown (`--tb=line`, one exception per failed test): **38 `httpx.ConnectError` + 5 `FileNotFoundError` = 43** — all server-dependent integration tests (live backend / CourtListener / fixture-packet assets) excluded from CI per CLAUDE.md. Zero assertion/import/type errors. **None of the 9 failing files** (`test_full_v1`, `test_phase_2/16/17/18/20/21/22/23`) import `opinion_retrieval` or `police_report_v2` (or `derive_situation_tags`/`get_relevant_opinions`). _(Earlier draft mis-counted by tallying traceback-line occurrences: 61/11; the correct per-failure count is 38/5.)_

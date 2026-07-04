@@ -76,6 +76,19 @@ def _v2(**overrides) -> dict:
     (_v2(), []),
     # 12. Null booleans are NOT violations (null != False).
     (_v2(miranda_noted=None, probable_cause_present=None), []),
+    # 13. LLM-JSON drift: string "false"/"False" still counts as negation.
+    (_v2(miranda_noted="false", probable_cause_present="False"),
+        ["fifth_amendment", "fourth_amendment",
+         "probable_cause", "sixth_amendment", "unlawful_search"]),
+    # 14. Simple assault is a misdemeanor in FL — bare "assault" must NOT
+    #     trigger the felony tag (precision regression fixed).
+    (_v2(charges_explained=[
+        {"charge": "Simple Assault", "plain_english": ""}]),
+        []),
+    # 15. Aggravated assault IS a felony and is still caught by the qualifier.
+    (_v2(charges_explained=[
+        {"charge": "Aggravated Assault with a Deadly Weapon", "plain_english": ""}]),
+        ["felony"]),
 ])
 def test_derive_situation_tags(v2_result, expected):
     assert derive_situation_tags(v2_result) == expected

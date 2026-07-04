@@ -20,6 +20,32 @@ const COURT_SHORT: Record<string, string> = {
   "District Court of Appeal of Florida": "Fla. District Court of Appeal",
 };
 
+// Localized strings. The card renders its own disclaimer because it is built
+// to be embedded anywhere on the platform, not just under a page that already
+// shows one. EN/ES to satisfy the CLAUDE.md invariant that every user-facing
+// string honors `language`.
+//
+// The opinion CORPUS (summary_plain / summary_legal / attorney_prompt) is
+// English-only today (ES corpus deferred — see SPEC_LEDGER). Rather than hide
+// English case law from a Spanish reader, we render an honesty stamp so they
+// know it exists and can get help reading it. EN has no stamp (no notice).
+const STRINGS: Record<
+  "en" | "es",
+  { disclaimer: string; englishOnlyNotice: string }
+> = {
+  en: {
+    disclaimer:
+      "This is legal information, not legal advice. LegalClear is not a law firm and cannot tell you what to do in your case.",
+    englishOnlyNotice: "", // EN path: corpus is English-native, no stamp.
+  },
+  es: {
+    disclaimer:
+      "Esta es información legal, no asesoría legal. LegalClear no es un bufete de abogados y no puede decirle qué hacer en su caso.",
+    englishOnlyNotice:
+      "La jurisprudencia está disponible únicamente en inglés por el momento.",
+  },
+};
+
 type PlainBlock = { label: string | null; body: string };
 
 function parsePlainSummary(text: string | null | undefined): PlainBlock[] {
@@ -49,7 +75,13 @@ function formatYear(dateStr: string | null | undefined): string {
   return Number.isNaN(y) ? "" : String(y);
 }
 
-export default function OpinionCard({ opinion }: { opinion: RelevantOpinion }) {
+export default function OpinionCard({
+  opinion,
+  language = "en",
+}: {
+  opinion: RelevantOpinion;
+  language?: "en" | "es";
+}) {
   const [showLegal, setShowLegal] = useState(false);
   if (!opinion) return null;
 
@@ -61,6 +93,7 @@ export default function OpinionCard({ opinion }: { opinion: RelevantOpinion }) {
   const courtLabel = COURT_SHORT[court] || court;
   const year = formatYear(date_filed);
   const plainBlocks = parsePlainSummary(summary_plain);
+  const t = STRINGS[language];
 
   return (
     <article className="oc">
@@ -69,6 +102,14 @@ export default function OpinionCard({ opinion }: { opinion: RelevantOpinion }) {
         <Scale className="oc-eyebrow-icon" aria-hidden="true" />
         <span>What courts have said</span>
       </div>
+
+      {/* ES honesty stamp: corpus is English-only. Rendered ABOVE the body so a
+          Spanish reader sees the language gap before the English text. Default
+          is STAMP (preserve information). To instead HIDE the whole card for ES
+          readers, flip one boolean: `if (language === "es") return null;` here. */}
+      {t.englishOnlyNotice && (
+        <p className="oc-notice">{t.englishOnlyNotice}</p>
+      )}
 
       {/* Case identity */}
       <header className="oc-head">
@@ -164,10 +205,7 @@ export default function OpinionCard({ opinion }: { opinion: RelevantOpinion }) {
       )}
 
       {/* Standing disclaimer — the UPL guardrail, always present */}
-      <p className="oc-disclaimer">
-        This is legal information, not legal advice. LegalClear is not a law
-        firm and cannot tell you what to do in your case.
-      </p>
+      <p className="oc-disclaimer">{t.disclaimer}</p>
 
       <style>{`
         .oc {
@@ -214,6 +252,18 @@ export default function OpinionCard({ opinion }: { opinion: RelevantOpinion }) {
           margin-bottom: 0.875rem;
         }
         .oc-eyebrow-icon { width: 13px; height: 13px; stroke-width: 2; }
+
+        .oc-notice {
+          margin: 0 0 1rem;
+          padding: 0.625rem 0.75rem;
+          background: var(--amber-wash);
+          border-left: 2px solid var(--amber);
+          border-radius: 2px;
+          font-family: "Söhne", ui-sans-serif, system-ui, sans-serif;
+          font-size: 12.5px;
+          line-height: 1.45;
+          color: var(--ink-soft);
+        }
 
         .oc-head { margin-bottom: 1.125rem; }
         .oc-case {
