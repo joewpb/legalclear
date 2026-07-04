@@ -1,0 +1,98 @@
+[
+  {
+    "cite": "§ 627.70131",
+    "title": "Insurer's duty to acknowledge, investigate, and pay or deny",
+    "plain_summary": "Insurer must acknowledge claim communication within 7 days, begin investigation within 7 days of proof of loss, inspect within 30 days, and pay or deny the claim (or pay the undisputed portion) within 60 days after notice. Interest accrues from date of notice at the § 55.03 rate if the deadline is missed.",
+    "official_url": "https://flsenate.gov/Laws/Statutes/2024/0627.70131"
+  },
+  {
+    "cite": "§ 627.70132",
+    "title": "Notice of claim deadlines",
+    "plain_summary": "A new or reopened claim must be reported within 1 year of the date of loss. A supplemental claim for additional damage from the same event must be reported within 18 months of the date of loss. For weather events, the date of loss is fixed as the date of hurricane landfall or the NOAA-verified event date. These deadlines apply to policies issued or renewed on or after December 16, 2022.",
+    "official_url": "https://flsenate.gov/Laws/Statutes/2024/0627.70132"
+  },
+  {
+    "cite": "§ 95.11(2)(e)",
+    "title": "Statute of limitations — breach of property insurance contract",
+    "plain_summary": "A lawsuit against the insurer for breach of a property insurance contract must be filed within 5 years from the date of loss. This is separate from and independent of the claim-reporting deadline. Filing a mediation request or a Civil Remedy Notice does not toll this period.",
+    "official_url": "https://flsenate.gov/Laws/Statutes/2024/0095.11"
+  },
+  {
+    "cite": "§ 627.70152",
+    "title": "Notice of Intent to Initiate Litigation — pre-suit condition precedent",
+    "plain_summary": "A written Notice of Intent must be filed with DFS at least 10 business days before filing suit. It is a condition precedent — skipping it can result in dismissal regardless of the merits. The notice must be served within the § 95.11 limitations period. The insurer must respond in writing within 10 business days.",
+    "official_url": "https://flsenate.gov/Laws/Statutes/2024/0627.70152"
+  },
+  {
+    "cite": "§ 627.7015",
+    "title": "DFS residential property mediation program",
+    "plain_summary": "Florida runs a free, non-binding, state-administered mediation program for residential property claims. The insurer bears the cost ($350 total: $300 mediator fee + $50 administrator fee). Available for disputes of at least $500. Not available for commercial, auto, or fraud-suspected claims. The insurer must notify the policyholder of the right to mediate.",
+    "official_url": "https://flsenate.gov/Laws/Statutes/2024/0627.7015"
+  },
+  {
+    "cite": "§ 627.70154",
+    "title": "Optional mandatory binding arbitration endorsement",
+    "plain_summary": "Since the 2022 reforms, insurers may sell policies containing a mandatory binding arbitration endorsement in exchange for a premium reduction. The insured must sign an election and be offered a policy without the endorsement. If the policy contains this endorsement, disputes may be required to go to arbitration instead of court.",
+    "official_url": "https://flsenate.gov/Laws/Statutes/2024/0627.70154"
+  },
+  {
+    "cite": "§ 624.155",
+    "title": "Civil remedy — insurer bad faith",
+    "plain_summary": "Creates a statutory cause of action against an insurer that fails to attempt in good faith to settle a claim when it could and should have. Damages can exceed policy limits. A Civil Remedy Notice must be filed with DFS before suit, giving the insurer 60 days to cure. Mere negligence is not bad faith.",
+    "official_url": "https://flsenate.gov/Laws/Statutes/2024/0624.155"
+  },
+  {
+    "cite": "§ 624.1551",
+    "title": "Property-insurer bad-faith prerequisite",
+    "plain_summary": "A bad-faith action under § 624.155(1)(b) against a property insurer may not proceed until the insured has first established that the insurer breached the contract through an adverse adjudication — a court determination and final judgment. Payment of an appraisal award alone does not satisfy this prerequisite.",
+    "official_url": "https://flsenate.gov/Laws/Statutes/2024/0624.1551"
+  },
+  {
+    "cite": "§ 627.7152",
+    "title": "Assignment of Benefits — post-loss AOB prohibition",
+    "plain_summary": "For residential and commercial property policies issued on or after January 1, 2023, a policyholder may not assign any post-loss insurance benefit. Any attempted assignment is void, invalid, and unenforceable. Narrow carve-outs exist for subsequent purchasers and true powers of attorney.",
+    "official_url": "https://flsenate.gov/Laws/Statutes/2024/0627.7152"
+  },
+  {
+    "cite": "§ 627.7142",
+    "title": "Homeowner Claims Bill of Rights",
+    "plain_summary": "Insurer must send a plain-language summary of claim-handling timelines and responsibilities to the policyholder within 14 days of receiving a first notice of loss. Does not itself create a separate right to sue.",
+    "official_url": "https://flsenate.gov/Laws/Statutes/2024/0627.7142"
+  },
+  {
+    "cite": "§ 768.79 / Rule 1.442",
+    "title": "Offer of judgment / proposal for settlement",
+    "plain_summary": "Two-way fee-shifting mechanism that now applies to insurance contract actions. A party who rejects a formal settlement proposal and then fails to beat it by a defined margin at trial can be ordered to pay the other side's fees and costs incurred after the proposal. Creates downside risk for rejecting reasonable settlement offers.",
+    "official_url": "https://flsenate.gov/Laws/Statutes/2024/0768.79"
+  },
+  {
+    "cite": "§ 57.105",
+    "title": "Attorney's-fee sanctions",
+    "plain_summary": "A court may award fees against a party or attorney who raises a claim or defense not supported by the material facts or existing law.",
+    "official_url": "https://flsenate.gov/Laws/Statutes/2024/0057.105"
+  },
+  {
+    "cite": "§ 34.01",
+    "title": "County-court jurisdiction thresholds",
+    "plain_summary": "Small Claims division: $8,000 or less. County Civil: $8,000.01 to $50,000. Circuit Civil: more than $50,000. The amount in controversy is the principal amount claimed, excluding interest, costs, and attorney's fees.",
+    "official_url": "https://flsenate.gov/Laws/Statutes/2024/0034.01"
+  },
+  {
+    "cite": "§§ 48.151, 624.422",
+    "title": "Service of process on insurer through CFO",
+    "plain_summary": "An insurer authorized to do business in Florida is served with process through the Chief Financial Officer as its statutory agent. The CFO forwards the service to the insurer. A service fee (commonly around $15) applies.",
+    "official_url": "https://flsenate.gov/Laws/Statutes/2024/0048.151"
+  },
+  {
+    "cite": "§ 626.9541",
+    "title": "Unfair Insurance Trade Practices Act",
+    "plain_summary": "Defines unfair methods of competition and unfair or deceptive acts or practices in the business of insurance.",
+    "official_url": "https://flsenate.gov/Laws/Statutes/2024/0626.9541"
+  },
+  {
+    "cite": "§ 55.03",
+    "title": "Judgment interest rate",
+    "plain_summary": "Sets the statutory interest rate applied when an insurer misses the 60-day pay-or-deny deadline under § 627.70131(7)(a). Interest accrues from the date the insurer received notice of the claim.",
+    "official_url": "https://flsenate.gov/Laws/Statutes/2024/0055.03"
+  }
+]

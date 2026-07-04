@@ -18,13 +18,16 @@ DayCounting = Literal["calendar", "business"]
 
 class DeadlineRule(TypedDict):
     label: str
-    response_days: int | None         # None = court-set date, not computable
+    response_days: int | None
+    response_years: int | None
+    response_months: int | None
+    deadline_type: str                  # "SOL" | "insurer_deadline" | "pre_suit_gate" | "court_filing"
     day_counting: DayCounting | None
-    explicitly_business_days: bool    # True = exclude weekends regardless of period length
-    governing_rule: str               # citation — required
+    explicitly_business_days: bool
+    governing_rule: str
     severity: Severity
-    consequence: str                  # plain-language — never a legal conclusion
-    note: str | None                  # optional clarification
+    consequence: str
+    note: str | None
 
 
 # fmt: off
@@ -147,6 +150,109 @@ RULES: dict[str, DeadlineRule] = {
             "in court sanctions or the facts being deemed admitted."
         ),
         "note": None,
+    },
+
+    # ── Property & Casualty — Module 5 ─────────────────────────────────
+    # Statutory insurance deadlines. Computed as calendar days (not 2.514
+    # business days) — these are NOT court filing deadlines.
+
+    "pc_report_claim": {
+        "label":                    "Report Property Insurance Claim",
+        "response_days":            None,
+        "response_years":           1,
+        "response_months":          None,
+        "deadline_type":            "SOL",
+        "day_counting":             "calendar",
+        "explicitly_business_days": False,
+        "governing_rule":           "Fla. Stat. § 627.70132",
+        "severity":                 "fatal",
+        "consequence": (
+            "A claim not reported within 1 year of the date of loss is barred. "
+            "This deadline runs from the date of loss, not from discovery."
+        ),
+        "note": "For weather events, date of loss is hurricane landfall or NOAA-verified date per § 627.70132(3).",
+    },
+
+    "pc_supplemental_claim": {
+        "label":                    "Report Supplemental Property Claim",
+        "response_days":            None,
+        "response_years":           None,
+        "response_months":          18,
+        "deadline_type":            "SOL",
+        "day_counting":             "calendar",
+        "explicitly_business_days": False,
+        "governing_rule":           "Fla. Stat. § 627.70132",
+        "severity":                 "fatal",
+        "consequence": (
+            "A supplemental claim for additional damage from the same event "
+            "must be reported within 18 months of the date of loss."
+        ),
+        "note": None,
+    },
+
+    "pc_file_suit": {
+        "label":                    "File Suit — Breach of Property Insurance Contract",
+        "response_days":            None,
+        "response_years":           5,
+        "response_months":          None,
+        "deadline_type":            "SOL",
+        "day_counting":             "calendar",
+        "explicitly_business_days": False,
+        "governing_rule":           "Fla. Stat. § 95.11(2)(e)",
+        "severity":                 "fatal",
+        "consequence": (
+            "A lawsuit for breach of the property insurance contract must be "
+            "filed within 5 years of the date of loss. If missed, the suit is "
+            "time-barred. This deadline is independent of the claim-reporting "
+            "deadline — both must be satisfied."
+        ),
+        "note": (
+            "This 5-year period runs from the date of loss (not date of breach). "
+            "Filing mediation or a Civil Remedy Notice does NOT toll this clock."
+        ),
+    },
+
+    "pc_pay_or_deny": {
+        "label":                    "Insurer Pay-or-Deny Deadline",
+        "response_days":            60,
+        "response_years":           None,
+        "response_months":          None,
+        "deadline_type":            "insurer_deadline",
+        "day_counting":             "calendar",
+        "explicitly_business_days": False,
+        "governing_rule":           "Fla. Stat. § 627.70131(7)(a)",
+        "severity":                 "high",
+        "consequence": (
+            "The insurer must pay or deny the claim, or pay the undisputed "
+            "portion, within 60 days after notice of the claim. If the deadline "
+            "is missed, interest accrues from the date of notice at the § 55.03 rate."
+        ),
+        "note": (
+            "The 60-day period may be extended for factors beyond the insurer's "
+            "control or after a declared state of emergency."
+        ),
+    },
+
+    "pc_notice_of_intent": {
+        "label":                    "Pre-Suit Notice of Intent to Initiate Litigation",
+        "response_days":            10,
+        "response_years":           None,
+        "response_months":          None,
+        "deadline_type":            "pre_suit_gate",
+        "day_counting":             "business",
+        "explicitly_business_days": True,
+        "governing_rule":           "Fla. Stat. § 627.70152",
+        "severity":                 "fatal",
+        "consequence": (
+            "A lawsuit filed without first serving the Notice of Intent to "
+            "Initiate Litigation under § 627.70152 is subject to dismissal "
+            "regardless of the merits. The notice must be filed at least 10 "
+            "business days before filing suit."
+        ),
+        "note": (
+            "Filed through the DFS online portal. The notice must be served "
+            "within the § 95.11 limitations period."
+        ),
     },
 }
 # fmt: on

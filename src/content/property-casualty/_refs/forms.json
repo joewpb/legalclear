@@ -1,0 +1,52 @@
+[
+  {
+    "form_no": "Form 7.330 / 7.331 / 7.332",
+    "purpose": "Statement of Claim — the small-claims equivalent of a complaint. If the claim is based on a written document (the policy), a copy must be attached.",
+    "source_url": "https://www.flcourts.gov/Resources-Services/Office-of-the-State-Courts-Administrator/Publications-References/Forms/Information-for-Small-Claims"
+  },
+  {
+    "form_no": "Form 7.322",
+    "purpose": "Summons / Notice to Appear for Pretrial Conference — notifies the defendant to appear in small claims court. Issued by the clerk.",
+    "source_url": "https://www.flcourts.gov/Resources-Services/Office-of-the-State-Courts-Administrator/Publications-References/Forms/Information-for-Small-Claims"
+  },
+  {
+    "form_no": "Form 7.323",
+    "purpose": "Pretrial Conference Order and Notice of Trial — issued by the court, not the filer.",
+    "source_url": "https://www.flcourts.gov/Resources-Services/Office-of-the-State-Courts-Administrator/Publications-References/Forms/Information-for-Small-Claims"
+  },
+  {
+    "form_no": "Form 1.918",
+    "purpose": "Complaint (general model) — the pleading that states the parties, the facts, the breach, and the relief sought for county or circuit civil cases.",
+    "source_url": "https://www.flcourts.gov/Resources-Services/Office-of-the-State-Courts-Administrator/Publications-References/Forms/Rules-of-Civil-Procedure-Forms"
+  },
+  {
+    "form_no": "Form 1.997",
+    "purpose": "Civil Cover Sheet — required for cases over $8,000 in county or circuit civil court. Reports data to the clerk under § 25.075.",
+    "source_url": "https://www.flcourts.gov/Resources-Services/Office-of-the-State-Courts-Administrator/Publications-References/Forms/Rules-of-Civil-Procedure-Forms"
+  },
+  {
+    "form_no": "Form 1.902",
+    "purpose": "Summons — commands the defendant to respond in county or circuit civil cases. Issued by the clerk.",
+    "source_url": "https://www.flcourts.gov/Resources-Services/Office-of-the-State-Courts-Administrator/Publications-References/Forms/Rules-of-Civil-Procedure-Forms"
+  },
+  {
+    "form_no": "Application for Determination of Civil Indigent Status",
+    "purpose": "Requests a waiver of filing and service fees for those who qualify financially.",
+    "source_url": "https://www.flcourts.gov/Resources-Services/Court-Improvement/Family-Courts/Self-Help-Information/Filing-Fee-Waiver"
+  },
+  {
+    "form_no": "DFS Notice of Intent (NOI)",
+    "purpose": "Notice of Intent to Initiate Litigation under § 627.70152 — the mandatory pre-suit filing with DFS. Must be filed through the DFS online portal at least 10 business days before filing suit.",
+    "source_url": "https://www.myfloridacfo.com/Division/Consumers/understandingCoverage/PropertyInsurance/presentingyourcase"
+  },
+  {
+    "form_no": "DFS Civil Remedy Notice (CRN)",
+    "purpose": "Civil Remedy Notice of Insurer Violation — required before any statutory bad-faith suit under § 624.155. Must be filed with DFS on the DFS-provided form, giving the insurer 60 days to cure.",
+    "source_url": "https://www.myfloridacfo.com/Division/Consumers/understandingCoverage/PropertyInsurance/presentingyourcase"
+  },
+  {
+    "form_no": "DFS Mediation Request",
+    "purpose": "Request for state-administered residential property mediation under § 627.7015. Filed through the DFS Division of Consumer Services. Insurer bears the $350 cost.",
+    "source_url": "https://www.myfloridacfo.com/Division/Consumers/understandingCoverage/PropertyInsurance/mediation"
+  }
+]

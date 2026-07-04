@@ -149,3 +149,139 @@ render, wordmark colors confirmed at the exact target RGB values.
   `phases/reference/` (informational only — not authoritative).
 - The earlier `LegalClear_OneShot_Prompt.md` at repo root is now superseded
   by the per-phase source files but kept for historical context.
+
+---
+
+## v2 Module — Property & Casualty (Module 5)
+
+**Branch:** `feat/property-casualty`
+**Worktree:** `../lc-casualty`
+**Status:** COMPLETE (2026-07-04)
+**Build phases:** 0–7
+
+### Scope — first_party_property
+
+First-party residential property insurance disputes (homeowner/condo/renter
+claim under own policy for hurricane/wind/water/roof/fire/theft). Underlying
+theory: breach of contract. The sub-type `first_party_property` was added
+alongside the existing `insurance_bad_faith` and `premises_liability` —
+three-way taxonomy, NOT a collapse.
+
+**Boundary rule:** A coverage dispute stays first_party_property until an
+explicit Civil Remedy Notice / § 624.155 posture appears — then it is
+insurance_bad_faith. The two are not synonyms.
+
+### Content tree
+
+`src/content/property-casualty/` — 15 MDX pages split from verified source
+content (`_source/property-and-casualty-florida.md`, 434 lines, 40KB):
+
+| File | Content |
+|---|---|
+| `index.mdx` | Scope + disclaimer + two-clock table (the hook) |
+| `00-scope.mdx` through `12-special-situations.mdx` | Full statutory walkthrough |
+| `glossary.mdx` | Key terms |
+| `_refs/statutes.json` | 16 statutes with official flsenate.gov links |
+| `_refs/forms.json` | 10 forms with issuing-authority URLs |
+
+All pages carry the disclaimer. Prose is verbatim from verified source — not
+re-authored. CARRY: `07-filing-suit.mdx` carries a Rule 2.514 note (filing
+deadline landing on weekend/holiday may extend to next business day).
+
+### Deadline engine — calendar-unit support (systemic)
+
+**Added:** `_add_calendar_period()` in `deadline/compute.py` — proper
+anniversary-date math (years + months) replacing fixed day-counts for
+statutory periods. `DeadlineRule` TypedDict extended with `response_years`,
+`response_months`, and `deadline_type`.
+
+**Rules added to `deadline/rules.py`:**
+
+| Rule key | Period | Type | Statute |
+|---|---|---|---|
+| `pc_report_claim` | 1 calendar year | SOL | § 627.70132 |
+| `pc_supplemental_claim` | 18 calendar months | SOL | § 627.70132 |
+| `pc_file_suit` | 5 calendar years | SOL | § 95.11(2)(e) |
+| `pc_pay_or_deny` | 60 days | insurer_deadline | § 627.70131(7)(a) |
+| `pc_notice_of_intent` | 10 business days | pre_suit_gate | § 627.70152 |
+
+**Deadline type taxonomy:** `SOL` (statute of limitations), `insurer_deadline`
+(insurer-conduct deadline), `pre_suit_gate` (procedural gate), `court_filing`
+(court-imposed deadline, existing rules). Propagated through backend → frontend
+so deadline cards carry per-type labels rather than a blanket "statutory
+deadline."
+
+### CARRY-1: 2.514 roll-forward RATIFIED
+
+The engine reports the raw calendar anniversary for statutory SOLs. It does
+NOT apply Fla. R. Jud. Admin. 2.514 weekend/holiday roll-forward to year/month
+deadlines. Rationale: conservative fail-safe — reports the earliest operative
+date; roll-forward only extends, never contracts. Trade-off: on a
+weekend-landing SOL anniversary, the true court-filing deadline may roll to
+the next business day; the reported date is intentionally early. **Ratified,
+not a defect.**
+
+### ⚠️ SYSTEMIC FINDING — OPEN AUDIT ITEM
+
+The deadline engine had NO calendar-unit support prior to this build
+(`compute.py._add_calendar_period` was added here). **Any module with a
+year/month deadline encoded before this commit may carry the same
+fixed-day-count drift (1826-class bug) that caused early SOL dates in P&C.**
+
+**Mandatory:** audit all calendar-interval deadlines platform-wide — small
+claims, criminal procedure, every module with a year/month period. An SOL
+drifting early in criminal procedure is a critical-severity correctness defect.
+
+### Backend
+
+- **Router:** `backend/src/api/routers/property_casualty.py` — extended to
+  accept `first_party_property` sub-type (existing, modify-only).
+- **Agent:** `backend/src/agents/property_casualty.py` — extended with
+  first-party system prompt, deadline-engine integration, UPL middleware
+  (`apply_disclaimer()`), zero local date arithmetic. Bad-faith and premises
+  agents preserved untouched.
+- **Intake router:** `backend/src/api/routers/intake.py` — `first_party_property`
+  added to `VALID_SUB_TYPES`; disambiguation boundary rule added to classifier
+  prompt (MERGE-REVIEW line).
+
+### Frontend
+
+`frontend/src/pages/PropertyCasualtyExplainer.tsx` — extended for three-way
+sub-type handling. Key additions: `DeadlineCard` component (renders
+backend-computed dates verbatim — zero client-side date math), per-type
+deadline labels, resolution options, 48px touch targets, no directive framing.
+
+### Tests
+
+**22 unit tests + 6 integration tests = 28 total.**
+
+| Suite | Tests | Status |
+|---|---|---|
+| `test_pc_deadlines.py` | 11 | ✅ Regression locks for leap-crossing, day-count unchanged, trace integrity |
+| `test_pc_upl.py` | 11 | ✅ UPL enforcement (behavioral), classifier taxonomy, disclaimer via middleware |
+| `test_pc_integration.py` | 6 | ✅ End-to-end: intake → engine → explain → disclaimer |
+
+Regression locks reproduce every bug caught in this build (365-day drift,
+1826-day drift, Feb 29 clamp, weekend-roll-forward on day-count rules).
+
+### MERGE-REVIEW trunk touches
+
+1. **`backend/src/api/routers/intake.py`** — +`first_party_property` to
+   VALID_SUB_TYPES + disambiguation prompt line. Minimal. Isolated commit.
+2. **`backend/deadline/rules.py`** — HEAVY. +5 P&C rules, +3 TypedDict fields
+   (`response_years`, `response_months`, `deadline_type`). Shared computation
+   surface — reconcile with any other branch's additions.
+3. **`backend/deadline/compute.py`** — HEAVY. +`_add_calendar_period()`,
+   calendar-period branch in `_compute_single`. Shared computation surface —
+   if another branch independently added calendar-unit support, reconcile to
+   a SINGLE implementation.
+
+### Frozen components — confirmation
+
+No frozen component modified beyond the sanctioned deadline-engine
+calendar-unit change:
+- `src/core/disclaimer.py` — untouched
+- `src/core/upl.py` — untouched
+- `src/api/routers/intake.py` — minimal additive touch (Phase 5)
+- `src/api/routers/deadline.py` — untouched
+- `backend/deadline/` rules + compute — sanctioned extension (calendar-unit support)

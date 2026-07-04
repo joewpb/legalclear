@@ -92,6 +92,33 @@ def _add_calendar_days(start: date, n: int) -> date:
     return start + timedelta(days=n)
 
 
+def _add_calendar_period(
+    start: date,
+    years: int = 0,
+    months: int = 0,
+) -> date:
+    """Add a calendar year/month period to a date.
+
+    Handles leap-day correctly: Feb 29 + N years → Feb 28 in non-leap years.
+    Month overflow (Jan 31 + 1 month) → last day of target month.
+
+    Returns the anniversary date — e.g. 2023-03-01 + 1 year = 2024-03-01,
+    NOT 2024-02-29 (which a 365-day offset would produce).
+    """
+    total_months = years * 12 + months
+    if total_months == 0:
+        return start
+
+    target_year = start.year + (start.month + total_months - 1) // 12
+    target_month = (start.month + total_months - 1) % 12 + 1
+
+    import calendar as _cal
+    max_day = _cal.monthrange(target_year, target_month)[1]
+    target_day = min(start.day, max_day)
+
+    return date(target_year, target_month, target_day)
+
+
 def compute_deadline_for_event(
     rule_key: str,
     event_date: date,
@@ -122,7 +149,12 @@ def compute_deadline_for_event(
     # summons), so it cannot be derived from a rule period. Surface it as an
     # escalated deadline pointing the user to the document rather than dropping
     # it silently — "unknown" is a first-class output (Core Principle 5).
-    if rule["response_days"] is None:
+    # Calendar-year/month rules have response_days=None but response_years
+    # or response_months set — those ARE computable.
+    _has_calendar_period = (
+        rule.get("response_years") or rule.get("response_months")
+    )
+    if rule["response_days"] is None and not _has_calendar_period:
         note = rule.get("note") or (
             "Date cannot be computed from a rule period — read the document."
         )
@@ -238,40 +270,75 @@ def _compute_single(
         RULE_2514_A,
     )
 
-    response_days: int = rule["response_days"]
+    response_days: int | None = rule.get("response_days")
+    response_years: int | None = rule.get("response_years")
+    response_months: int | None = rule.get("response_months")
     explicitly_business = rule["explicitly_business_days"]
-    use_business_days = explicitly_business or response_days < 7
 
-    if use_business_days:
-        rule_ref = (
-            RULE_2514_B1 if not explicitly_business
-            else f"{rule['governing_rule']} (explicitly business days)"
+    # ── Calendar year/month periods (statutory SOLs, not court deadlines) ──
+    if response_years or response_months:
+        raw_due = _add_calendar_period(
+            event_date,
+            years=response_years or 0,
+            months=response_months or 0,
         )
-        raw_due = _add_business_days(adjusted_start, response_days, closure_dates)
+        period_desc_parts = []
+        if response_years:
+            period_desc_parts.append(f"{response_years} calendar year(s)")
+        if response_months:
+            period_desc_parts.append(f"{response_months} calendar month(s)")
+        period_desc = " + ".join(period_desc_parts)
         _t(
-            f"Count {response_days} business days (weekends/holidays excluded)",
+            f"Add {period_desc} to date of loss (anniversary date — "
+            f"trigger day included per statutory convention)",
             raw_due,
-            rule_ref,
+            rule["governing_rule"],
         )
-    else:
-        raw_due = _add_calendar_days(adjusted_start + timedelta(days=1), response_days - 1)
+        # Statutory deadlines do NOT roll forward for weekends/holidays —
+        # the anniversary date IS the deadline.
+        final_due = raw_due
         _t(
-            f"Count {response_days} calendar days",
-            raw_due,
-            RULE_2514_B2,
-        )
-
-    # Roll forward if endpoint is weekend or holiday
-    final_due = _next_business_day(raw_due, closure_dates)
-    if final_due != raw_due:
-        _t(
-            f"Raw due date {raw_due} falls on {'weekend' if _is_weekend(raw_due) else 'holiday'}; "
-            f"rolling forward to next business day",
+            f"Statutory deadline: {final_due} (no weekend/holiday roll-forward)",
             final_due,
-            RULE_2514_ROLL,
+            rule["governing_rule"],
         )
+    elif response_days is not None:
+        use_business_days = explicitly_business or response_days < 7
+
+        if use_business_days:
+            rule_ref = (
+                RULE_2514_B1 if not explicitly_business
+                else f"{rule['governing_rule']} (explicitly business days)"
+            )
+            raw_due = _add_business_days(adjusted_start, response_days, closure_dates)
+            _t(
+                f"Count {response_days} business days (weekends/holidays excluded)",
+                raw_due,
+                rule_ref,
+            )
+        else:
+            raw_due = _add_calendar_days(adjusted_start + timedelta(days=1), response_days - 1)
+            _t(
+                f"Count {response_days} calendar days",
+                raw_due,
+                RULE_2514_B2,
+            )
+
+        # Roll forward if endpoint is weekend or holiday
+        final_due = _next_business_day(raw_due, closure_dates)
+        if final_due != raw_due:
+            _t(
+                f"Raw due date {raw_due} falls on {'weekend' if _is_weekend(raw_due) else 'holiday'}; "
+                f"rolling forward to next business day",
+                final_due,
+                RULE_2514_ROLL,
+            )
+        else:
+            _t("Due date falls on a business day — no roll-forward needed", final_due, RULE_2514)
     else:
-        _t("Due date falls on a business day — no roll-forward needed", final_due, RULE_2514)
+        # Should not reach here — caught by non-computable check above
+        _t("ERROR: no computable period (days, years, or months)", None, "N/A")
+        final_due = today
 
     _t(f"Final due date: {final_due}", final_due, rule["governing_rule"])
 

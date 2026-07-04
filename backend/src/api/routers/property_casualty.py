@@ -40,7 +40,7 @@ async def explain_property_casualty(
 
     async def _stream():
         async for chunk in _explainer.explain_stream(
-            sub_type=sub_type if sub_type in ("insurance_bad_faith", "premises_liability", "unknown") else "unknown",
+            sub_type=sub_type if sub_type in ("first_party_property", "insurance_bad_faith", "premises_liability", "unknown") else "unknown",
             entities=entities,
             language=language if language in ("en", "es") else "en",
             file_bytes=file_bytes,

@@ -35,6 +35,7 @@ VALID_MODULES = [
 ]
 
 VALID_SUB_TYPES = [
+    "first_party_property",
     "insurance_bad_faith",
     "premises_liability",
     "will",
@@ -69,7 +70,14 @@ SYSTEM_PROMPT = (
     "small_claims, criminal_procedure, police_report, "
     "discovery_motion, property_casualty, wills_trusts, unknown. "
     "For property_casualty also identify sub_type: "
-    "insurance_bad_faith or premises_liability. "
+    "first_party_property, insurance_bad_faith, or premises_liability. "
+    "first_party_property = dispute under the claimant's OWN policy "
+    "for property damage (hurricane/wind/water/roof/fire/theft) — "
+    "underlying theory is breach of contract. A denied claim stays "
+    "first_party_property until an explicit Civil Remedy Notice or "
+    "bad-faith posture appears. insurance_bad_faith = the separate, "
+    "downstream § 624.155 track, gated by a CRN — it FOLLOWS a "
+    "first-party dispute, it is not a synonym. "
     "For wills_trusts also identify sub_type: "
     "will, trust, probate, draft_will, or unknown. "
     "Key indicators for wills_trusts: will, trust, estate, "
