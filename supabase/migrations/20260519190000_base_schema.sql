@@ -1,8 +1,8 @@
 -- Base schema — the original out-of-band "Phase 0" tables.
 --
 -- These six tables (users, sessions, documents, chat_messages, push_tokens,
--- usage_stats) were applied to production directly from deploy/supabase_schema.sql
--- before the migration system existed, so they had no migration file. Fresh
+-- usage_stats) were applied to production out-of-band before the migration
+-- system existed, so they had no migration file. Fresh
 -- Supabase preview branches build schema FROM MIGRATIONS (not from a prod
 -- snapshot), so Phase 1 migrations that reference them failed — e.g.
 -- trigger_events.document_id → public.documents(id) (SQLSTATE 42P01).
@@ -14,9 +14,10 @@
 -- Dated 20260519190000 so it sorts BEFORE the first Phase 1 migration
 -- (20260519200447_phase_1_new_tables.sql) whose FKs depend on these tables.
 --
--- Source: deploy/supabase_schema.sql (the original init script), with one
--- substitution — gen_random_uuid() instead of uuid_generate_v4(), to match
--- every other migration and avoid the uuid-ossp extension dependency.
+-- Source: the original out-of-band init script (deploy/supabase_schema.sql,
+-- since retired in favor of this migration), with one substitution —
+-- gen_random_uuid() instead of uuid_generate_v4(), to match every other
+-- migration and avoid the uuid-ossp extension dependency.
 
 -- 1. Users
 CREATE TABLE IF NOT EXISTS public.users (

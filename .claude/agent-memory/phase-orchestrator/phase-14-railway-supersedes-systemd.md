@@ -26,6 +26,7 @@ The source is permissive — Railway-only is consistent with source.
   are NOT required.
 - Part B per-phase final reports say "Commit + push. Wait for Railway
   deploys" — that's the deployment loop after every Part B phase.
-- The `deploy/` directory may still contain `supabase_schema.sql`
-  (legitimate, Phase 8). Any orphaned systemd unit files there are
-  ignorable.
+- The `deploy/` directory previously contained `supabase_schema.sql`
+  (Phase 8); retired in PR #19 — captured as the idempotent migration
+  `supabase/migrations/20260519190000_base_schema.sql`. Any orphaned
+  systemd unit files there are ignorable.
