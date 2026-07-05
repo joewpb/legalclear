@@ -7,6 +7,15 @@ from src.core.disclaimer import get_disclaimer
 
 logger = logging.getLogger(__name__)
 
+
+def _generic_error_message(language: str) -> str:
+    # Exception details go to the logger only — never into a user-facing
+    # payload (CodeQL: information exposure through an exception).
+    return ("No se pudo procesar la solicitud. Intente de nuevo."
+            if language == "es"
+            else "The request could not be processed. Please try again.")
+
+
 SYSTEM_PROMPT = (
     "You are a plain language legal document explainer "
     "for LegalClear. Your job is to help ordinary people "
@@ -43,7 +52,7 @@ class ExplainerAgent:
             logger.error(f"Explainer error: {e}\n{traceback.format_exc()}")
             return {
                 "error": True,
-                "message": str(e),
+                "message": _generic_error_message(language),
                 "disclaimer": get_disclaimer(language)
             }
 
@@ -62,7 +71,7 @@ class ExplainerAgent:
             logger.error(f"Explainer stream error: {e}\n{traceback.format_exc()}")
             error_json = json.dumps({
                 "error": True,
-                "message": str(e),
+                "message": _generic_error_message(language),
                 "disclaimer": get_disclaimer(language)
             })
             yield f"data: {error_json}\n\n"
@@ -88,6 +97,6 @@ class ExplainerAgent:
             logger.error(f"Question error: {e}\n{traceback.format_exc()}")
             return {
                 "error": True,
-                "message": str(e),
+                "message": _generic_error_message(language),
                 "disclaimer": get_disclaimer(language)
             }

@@ -123,8 +123,10 @@ Document text:
                 repr(e),
                 traceback.format_exc()
             )
-            return {"error": True, "message": str(e),
-                    "exception_type": type(e).__name__,
+            return {"error": True,
+                    "message": ("No se pudo procesar la solicitud. Intente de nuevo."
+                                if lang == "es"
+                                else "The request could not be processed. Please try again."),
                     "disclaimer": get_disclaimer(
                         lang, "standard")}
 
@@ -192,6 +194,5 @@ only and not legal advice"""
                 ],
                 "disclaimer": get_disclaimer(
                     lang, "standard"),
-                "error": str(e),
-                "exception_type": type(e).__name__
+                "error": True
             }
