@@ -16,7 +16,7 @@ Registration lines are in `backend/src/api/routes.py`.
 | Small Claims | `routers/small_claims.py` (reg :73) | `agents/small_claims.py` | `PHASE_16_small_claims.md` | v2-phase | 2026-06-30 | MAJOR | Y |
 | Criminal Procedure | `routers/criminal.py` (reg :74) | `agents/criminal_procedure.py` | **UNDOCUMENTED — v3** | v3-undocumented | 2026-06-30 | N/A — no spec | Y |
 | Motion for Discovery | `routers/discovery.py` (reg :75) | `agents/discovery_motion.py` | **UNDOCUMENTED — v3** | v3-undocumented | 2026-06-30 | N/A — no spec | Y |
-| Property & Casualty | `routers/property_casualty.py` (reg :76) | `agents/property_casualty.py` | **UNDOCUMENTED — v3** | v3-undocumented | 2026-06-30 | N/A — no spec | Y |
+| Property & Casualty | `routers/property_casualty.py` (reg :76) | `agents/property_casualty.py` | **UNDOCUMENTED — v3** | v3-undocumented | 2026-07-05 | N/A — no spec | Y |
 | Expungement | `routers/expungement.py` (reg :77) | `agents/expungement.py` | `PHASE_17_expungement_ui.md` | v2-phase | 2026-06-30 | MAJOR | Y |
 | Landlord/Tenant | `routers/landlord.py` (reg :78) | `services/packet_builder.py` (shared) | `PHASE_18_landlord_tenant.md` | v2-phase | 2026-06-30 | MINOR | N |
 | Traffic | `routers/traffic.py` (reg :79) | `services/packet_builder.py` (shared) | `PHASE_20_traffic.md` | v2-phase | 2026-06-30 | MINOR | N |
@@ -44,7 +44,7 @@ Drift-status basis (MAJOR items): Small Claims = response contract replaced by p
 | **AI Intake Router** (`routers/intake.py`) | Classifies a free-text user situation into one of 6 modules + extracts entities via Haiku; returns module + entities to the client. | A Phase-10-era "intake/routing" spec defining the module taxonomy, the entity schema, and its relationship to the Phase 3 document classifier. | **(b) Reconcile/rebuild.** Defect, not feature: it bypasses the Phase 3 `ClassifierAgent` entirely (two disconnected classifiers), runs an undocumented Haiku model, feeds nothing downstream, swallows errors to HTTP 200, and is unauthenticated. Do not retroactively spec the bypass — spec must describe routing that reuses the canonical classifier, carries auth, and surfaces failures. |
 | **Criminal Procedure** (`routers/criminal.py` + `agents/criminal_procedure.py`) | Streaming plain-language explainer for criminal-procedure documents. | A v3 module spec (parallel to `PHASE_04_explainer_agent.md`) with UPL constraints specific to criminal matter. | **(b) Spec describes correct behavior; code must change.** The module is a legitimate feature, but the spec must mandate third-person framing + disclaimer-on-every-stream, and the code currently emits no disclaimer on the streaming success path (U1). Spec the correct behavior; fix U1 against it. |
 | **Motion for Discovery** (`routers/discovery.py` + `agents/discovery_motion.py`) | Streaming analyzer for discovery motions (PDF/image vision input), structured findings + risk score. | A v3 module spec. | **(b) Same as Criminal Procedure** — legitimate feature, but spec must require disclaimer-on-stream + third-person; code has U1 + the `ask_attorney` directive-schema leak + list-of-strings `.get()` crash. |
-| **Property & Casualty** (`routers/property_casualty.py` + `agents/property_casualty.py`) | Streaming explainer for property/casualty situations. | A v3 module spec. | **(b) Same** — U1 + `ask_attorney` directive schema. |
+| **Property & Casualty** (`routers/property_casualty.py` + `agents/property_casualty.py`) | Streaming explainer for property/casualty situations. First-party property claims compute statutory deadlines from date-of-loss via deterministic deadline engine. | A v3 module spec. | **(b) Same** — U1 + `ask_attorney` directive schema. **API verified live 2026-07-05**: backend returns deadline data with statute references (Fla. Stat. § 627.70132) when called with correct format (see Section 8). |
 | **Wills & Trusts** (`routers/wills_trusts.py` + `agents/wills_trusts.py`) | Streaming explainer for wills/trusts documents. | A v3 module spec. | **(a) Document as intended — with constraints.** This is the one streaming agent that emits a correct `{"done": true}` + disclaimer terminal event. Spec it to match behavior, but bake in auth + the model pin. |
 | **Chat Expert** (`routers/chat.py` + `agents/chat_expert.py`) | Multi-module conversational Q&A across 6 legal topics. | A v3 spec (distinct from Phase 10's single-doc `/api/chat`). | **(a) Document as intended — with constraints.** `chat_expert.py` is the codebase's positive-control template (appends disclaimer after stream on both success and error; prompts enforce third-person + no-directives). Spec it to match, bake in auth + Sonnet pin. Do not let the weaker explainer agents inherit by copying them. |
 
@@ -150,3 +150,67 @@ Deferring further drift handling is now SAFE because every miss leaves a trace.
 **Frontend test infra:** vitest added (Vite-native); `npm test` now runs `vitest run`. CI (`node.js.yml`) runs `npm test --if-present` so this is covered.
 
 **Backend suite scope (reconciled 2026-07-04):** the coverage-scoped unit suite (`tests/` minus the live `test_opinion_retrieval_integration.py`) shows **43 failed / 121 passed**. Per-failure breakdown (`--tb=line`, one exception per failed test): **38 `httpx.ConnectError` + 5 `FileNotFoundError` = 43** — all server-dependent integration tests (live backend / CourtListener / fixture-packet assets) excluded from CI per CLAUDE.md. Zero assertion/import/type errors. **None of the 9 failing files** (`test_full_v1`, `test_phase_2/16/17/18/20/21/22/23`) import `opinion_retrieval` or `police_report_v2` (or `derive_situation_tags`/`get_relevant_opinions`). _(Earlier draft mis-counted by tallying traceback-line occurrences: 61/11; the correct per-failure count is 38/5.)_
+
+---
+
+## 8. PROPERTY & CASUALTY — API ENDPOINT REFERENCE (verified live 2026-07-05)
+
+**Endpoint:** `POST /api/property-casualty/explain`
+
+**Purpose:** Streaming SSE explainer for Florida property/casualty situations. First-party property claims compute statutory deadlines from date-of-loss via deterministic deadline engine.
+
+**Request format:**
+
+```bash
+curl -X POST https://zesty-delight-production-b533.up.railway.app/api/property-casualty/explain \
+  -F 'sub_type=first_party_property' \
+  -F 'entities_json={"situation":"Hurricane roof damage on primary residence, homeowners insurer denied claim, Stuart FL","date_of_loss":"2026-06-01"}'
+```
+
+**Form fields:**
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `sub_type` | string | Yes | One of: `first_party_property`, `insurance_bad_faith`, `premises_liability`, `unknown` |
+| `entities_json` | JSON string | Yes | Must be a JSON string (not individual form fields). Keys: `situation` (string), `date_of_loss` (string, format `YYYY-MM-DD` for deadline computation). |
+| `language` | string | No | `en` (default) or `es` |
+| `file` | file | No | Optional PDF or image upload |
+
+**Response:** Server-Sent Events (SSE) stream. Each event is a JSON object prefixed with `data: `. For first-party property claims with a valid `date_of_loss`, the response includes a `key_deadlines` array with statute references (e.g., `"governing_rule": "Fla. Stat. § 627.70132"`).
+
+**Example response snippet (first-party property with date_of_loss):**
+
+```json
+{
+  "sub_type_identified": "first_party_property",
+  "what_this_is": "...",
+  "key_deadlines": [
+    {
+      "label": "Report Property Insurance Claim",
+      "due_date": "2027-06-01",
+      "governing_rule": "Fla. Stat. § 627.70132",
+      "severity": "high",
+      "consequence": "Missing this deadline may result in claim denial.",
+      "is_past": false,
+      "deadline_type": "insurer_deadline",
+      "computation_trace": [...]
+    }
+  ],
+  "disclaimer": "This is legal information, not legal advice..."
+}
+```
+
+**Critical implementation notes:**
+
+1. **`entities_json` must be a JSON string**, not individual form fields. The router parses it via `json.loads(entities_json)`.
+2. **`date_of_loss` is required for deadline computation.** Without it, `key_deadlines` will be empty (first-party only).
+3. **Date format:** `YYYY-MM-DD` (ISO 8601). Parser also accepts `MM/DD/YYYY`, `MM/DD/YY`, `B d, Y`, `b d, Y`.
+4. **Deadline engine:** Routes through `deadline/compute.py::compute_deadline_for_event` with rule keys from `_PC_DEADLINE_RULES` (report_claim, supplemental_claim, file_suit, pay_or_deny, notice_of_intent).
+5. **Statute references:** Sourced from `backend/deadline/rules.py` (e.g., Fla. Stat. § 627.70132 for weather-event date-of-loss rules).
+
+**Verification (2026-07-05):**
+- Backend (zesty-delight): commit b7348e01, includes deadline engine with P&C rules.
+- Frontend (appealing-victory): commit b7348e01, includes date-of-loss input UI.
+- Artifact test: `627.70132` appears 4 times in response when called with correct format.
+- Build config: Vite build command correct; Nixpacks config correct.
+
