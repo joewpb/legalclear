@@ -1,16 +1,19 @@
 """Florida deadline rule library — Phase 4.
 
 Every rule must cite its source. Never ship a rule without a citation.
-This module is pure data — no LLM, no I/O, no date arithmetic.
+This module is pure data — no LLM, no I/O, no deadline arithmetic.
+(The statewide holiday calendar below generates calendar data for any
+year; deadline computation itself lives only in compute.py.)
 
 Versioned: bump RULES_VERSION when any rule is added or changed.
 """
 
 from __future__ import annotations
 
+from datetime import date, timedelta
 from typing import Literal, TypedDict
 
-RULES_VERSION = "2026-05-19-v1"
+RULES_VERSION = "2026-07-04-v2"
 
 Severity = Literal["fatal", "high", "medium", "low"]
 DayCounting = Literal["calendar", "business"]
@@ -268,3 +271,58 @@ SERVICE_PUBLICATION = "publication"
 SERVICE_UNKNOWN     = "unknown"
 
 MAIL_EXTENSION_DAYS = 5   # Fla. R. Gen. Prac. & Jud. Admin. 2.514(c)
+
+
+# ── Statewide Florida court holiday calendar ─────────────────────────────────
+# Fla. R. Gen. Prac. & Jud. Admin. 2.514(a)(6)(A) defines "legal holiday" as
+# the days set aside by Fla. Stat. § 110.117: New Year's Day, Martin Luther
+# King, Jr.'s Birthday, Memorial Day, Independence Day, Labor Day, Veterans'
+# Day, Thanksgiving Day, the Friday after Thanksgiving Day, and Christmas Day.
+# Observance per § 110.117(2): a holiday falling on Saturday is observed the
+# preceding Friday; one falling on Sunday is observed the following Monday.
+#
+# Generated deterministically for ANY year so deadline computation never
+# depends on which years happen to be seeded in the court_closures table
+# (which carries only LOCAL/per-circuit closures plus seeded statewide rows).
+# 2.514(a)(6)(B) days "observed by the clerk's office" are per-circuit and
+# come from court_closures — they are NOT generated here.
+
+def _nth_weekday(year: int, month: int, weekday: int, n: int) -> date:
+    """The n-th `weekday` (Mon=0..Sun=6) of `month`, e.g. 3rd Monday of January."""
+    first = date(year, month, 1)
+    offset = (weekday - first.weekday()) % 7
+    return first + timedelta(days=offset + 7 * (n - 1))
+
+
+def _last_weekday(year: int, month: int, weekday: int) -> date:
+    """The last `weekday` (Mon=0..Sun=6) of `month`, e.g. last Monday of May."""
+    if month == 12:
+        last = date(year, 12, 31)
+    else:
+        last = date(year, month + 1, 1) - timedelta(days=1)
+    return last - timedelta(days=(last.weekday() - weekday) % 7)
+
+
+def _observed(d: date) -> date:
+    """Apply § 110.117(2) observance: Saturday → preceding Friday, Sunday → following Monday."""
+    if d.weekday() == 5:
+        return d - timedelta(days=1)
+    if d.weekday() == 6:
+        return d + timedelta(days=1)
+    return d
+
+
+def florida_statewide_holidays(year: int) -> frozenset[date]:
+    """Observed statewide FL court holidays for `year` per § 110.117 / 2.514(a)(6)(A)."""
+    thanksgiving = _nth_weekday(year, 11, 3, 4)          # 4th Thursday of November
+    return frozenset({
+        _observed(date(year, 1, 1)),                     # New Year's Day
+        _nth_weekday(year, 1, 0, 3),                     # MLK Day — 3rd Monday of January
+        _last_weekday(year, 5, 0),                       # Memorial Day — last Monday of May
+        _observed(date(year, 7, 4)),                     # Independence Day
+        _nth_weekday(year, 9, 0, 1),                     # Labor Day — 1st Monday of September
+        _observed(date(year, 11, 11)),                   # Veterans Day
+        thanksgiving,                                    # Thanksgiving Day
+        thanksgiving + timedelta(days=1),                # Friday after Thanksgiving
+        _observed(date(year, 12, 25)),                   # Christmas Day
+    })

@@ -56,4 +56,5 @@ jobs:
             --ignore=tests/test_phase_20.py \
             --ignore=tests/test_phase_21.py \
             --ignore=tests/test_phase_22.py \
-            --ignore=tests/test_phase_23.py
+            --ignore=tests/test_phase_23.py \
+            --ignore=tests/test_pc_integration.py

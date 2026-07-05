@@ -27,6 +27,7 @@ from .rules import (
     SERVICE_PUBLICATION,
     SERVICE_UNKNOWN,
     Severity,
+    florida_statewide_holidays,
 )
 
 RULE_2514      = "Fla. R. Gen. Prac. & Jud. Admin. 2.514"
@@ -136,6 +137,19 @@ def compute_deadline_for_event(
     today = today or date.today()
     results: list[ComputedDeadline] = []
     escalation_reasons: list[str] = []
+
+    # Statewide holidays (§ 110.117 / 2.514(a)(6)(A)) are generated in code for
+    # any year, so computation never silently skips holidays just because the
+    # court_closures table only has certain years seeded. The passed-in
+    # closure_dates supplement with per-circuit/local closures. Day-counted
+    # periods run at most ~40 days past the event, so event year + next year
+    # covers every reachable date (including mail extension and roll-forward
+    # across a year boundary).
+    closure_dates = (
+        closure_dates
+        | florida_statewide_holidays(event_date.year)
+        | florida_statewide_holidays(event_date.year + 1)
+    )
 
     rule = RULES.get(rule_key)
     if rule is None:
@@ -350,20 +364,22 @@ def _compute_single(
             "Seek legal assistance immediately."
         )
 
-    # Missing local closure data near a fatal deadline
+    # Missing local closure data near a fatal COURT deadline → escalate rather
+    # than assume the court was open (BUILD_PLAN Phase 4 failure mode #5).
+    # Statutory SOL/anniversary deadlines (response_years/months) never consult
+    # the closure calendar — no roll-forward — so this check does not apply.
     escalate = False
-    if rule["severity"] == "fatal":
-        if not has_local_closure_data:
-            window_start = raw_due - timedelta(days=7)
-            window_end = raw_due + timedelta(days=7)
-            disclosures.append(
-                f"No local court closure data is available for circuit {circuit}. "
-                f"Cannot verify whether the court near the due date "
-                f"({window_start} – {window_end}) was open. Escalating."
-            )
-            escalate = True
-        if rule["severity"] == "fatal" and False:  # confidence check handled in pipeline
-            pass
+    uses_closure_calendar = not (response_years or response_months)
+    if rule["severity"] == "fatal" and uses_closure_calendar and not has_local_closure_data:
+        window_start = raw_due - timedelta(days=7)
+        window_end = raw_due + timedelta(days=7)
+        circuit_desc = f"circuit {circuit}" if circuit is not None else "this court (circuit unknown)"
+        disclosures.append(
+            f"No local court closure data is available for {circuit_desc}. "
+            f"Statewide holidays were applied, but local closures near the due date "
+            f"({window_start} – {window_end}) cannot be verified. Escalating."
+        )
+        escalate = True
 
     if disclosure:
         disclosures.append(disclosure)

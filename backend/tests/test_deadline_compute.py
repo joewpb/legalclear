@@ -245,3 +245,109 @@ def test_notice_of_appeal_30_days():
     # April 1 (event), exclude → start April 2, +30-1=29 more = May 1 (Fri)
     assert d.due_date == date(2026, 5, 1)
     assert d.severity == "fatal"
+
+
+# ── Statewide holiday calendar (any year, generated in code) ──────────────────
+
+def test_statewide_holidays_2026_match_seeded_closures():
+    """Generated 2026 calendar must equal the 9 dates seeded in court_closures
+    (20260519220500_phase_3_seed_2026_closures.sql) — keeps evals stable."""
+    from deadline.rules import florida_statewide_holidays
+    assert florida_statewide_holidays(2026) == frozenset({
+        date(2026, 1, 1),    # New Year's Day
+        date(2026, 1, 19),   # MLK Day (3rd Monday)
+        date(2026, 5, 25),   # Memorial Day (last Monday)
+        date(2026, 7, 3),    # Independence Day observed (Jul 4 = Saturday)
+        date(2026, 9, 7),    # Labor Day (1st Monday)
+        date(2026, 11, 11),  # Veterans Day
+        date(2026, 11, 26),  # Thanksgiving (4th Thursday)
+        date(2026, 11, 27),  # Day after Thanksgiving
+        date(2026, 12, 25),  # Christmas
+    })
+
+
+def test_statewide_holidays_observance_rules():
+    """§ 110.117(2): Saturday holiday → preceding Friday; Sunday → following Monday."""
+    from deadline.rules import florida_statewide_holidays
+    h2027 = florida_statewide_holidays(2027)
+    assert date(2027, 7, 5) in h2027 and date(2027, 7, 4) not in h2027    # Jul 4 2027 = Sun → Mon
+    assert date(2027, 12, 24) in h2027 and date(2027, 12, 25) not in h2027  # Dec 25 2027 = Sat → Fri
+    assert date(2027, 1, 1) in h2027                                       # Jan 1 2027 = Fri, as-is
+
+
+def test_holiday_roll_forward_2025_no_closures_passed():
+    """A 2025 due date landing on July 4 must roll forward even when the caller
+    passes NO closure dates (pre-fix, only seeded-2026 rows were honored).
+
+    notice_of_appeal: event Jun 4 2025 (Wed) → +30 = Jul 4 2025 (Fri, holiday)
+    → Jul 5 (Sat) → Jul 6 (Sun) → Jul 7 (Mon).
+    """
+    d = _deadline("notice_of_appeal", date(2025, 6, 4), SERVICE_PERSONAL,
+                  today=date(2025, 6, 4))
+    assert d.due_date == date(2025, 7, 7)
+
+
+def test_holiday_roll_forward_across_year_boundary_2027():
+    """Event in Dec 2026, due date on New Year's Day 2027 — the year+1 union
+    must catch it. civil_summons: Dec 12 2026 + 20 = Jan 1 2027 (Fri, holiday)
+    → Jan 2 (Sat) → Jan 3 (Sun) → Jan 4 2027 (Mon)."""
+    d = _deadline("civil_summons", date(2026, 12, 12), SERVICE_PERSONAL,
+                  today=date(2026, 12, 12))
+    assert d.due_date == date(2027, 1, 4)
+
+
+def test_floating_holiday_mlk_2027():
+    """MLK 2027 = Jan 18 (3rd Monday). civil_summons: Dec 29 2026 + 20 =
+    Jan 18 2027 (Mon, MLK) → Jan 19 2027 (Tue)."""
+    d = _deadline("civil_summons", date(2026, 12, 29), SERVICE_PERSONAL,
+                  today=date(2026, 12, 29))
+    assert d.due_date == date(2027, 1, 19)
+
+
+# ── Missing local closure data guardrail (fatal court deadlines) ─────────────
+
+def test_fatal_without_local_closure_data_escalates():
+    """Fatal court deadline + no local closure data for the circuit → escalate,
+    with a disclosure. Statewide holidays alone are not local data."""
+    r = compute_deadline_for_event(
+        "civil_summons", ANCHOR, SERVICE_PERSONAL,
+        circuit=19, closure_dates=NO_CLOSURES,
+        has_local_closure_data=False, today=TODAY,
+    )
+    d = r.deadlines[0]
+    assert d.escalation_recommended is True
+    assert r.escalation_needed is True
+    assert any("closure" in disc.lower() for disc in d.assumption_disclosures)
+
+
+def test_fatal_with_local_closure_data_no_escalation():
+    """Same fatal deadline WITH local closure data → no escalation."""
+    r = compute_deadline_for_event(
+        "civil_summons", ANCHOR, SERVICE_PERSONAL,
+        circuit=19, closure_dates=NO_CLOSURES,
+        has_local_closure_data=True, today=TODAY,
+    )
+    assert r.deadlines[0].escalation_recommended is False
+
+
+def test_non_fatal_without_local_closure_data_no_escalation():
+    """Medium-severity deadline without local closure data does NOT escalate."""
+    r = compute_deadline_for_event(
+        "discovery_request", ANCHOR, SERVICE_PERSONAL,
+        circuit=None, closure_dates=NO_CLOSURES,
+        has_local_closure_data=False, today=TODAY,
+    )
+    assert r.deadlines[0].escalation_recommended is False
+
+
+def test_statutory_sol_ignores_missing_closure_data():
+    """SOL/anniversary deadlines never consult the closure calendar, so the
+    missing-local-closure-data guardrail must not fire for them."""
+    r = compute_deadline_for_event(
+        "pc_file_suit", ANCHOR, SERVICE_PERSONAL,
+        circuit=None, closure_dates=NO_CLOSURES,
+        has_local_closure_data=False, today=TODAY,
+    )
+    d = r.deadlines[0]
+    assert d.escalation_recommended is False
+    assert not any("closure" in disc.lower() for disc in d.assumption_disclosures)
