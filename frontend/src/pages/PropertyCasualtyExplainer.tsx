@@ -264,6 +264,10 @@ export default function PropertyCasualtyExplainer() {
   sp.forEach((v, k) => { if (!["sub_type", "language"].includes(k)) entities[k] = v; });
 
   const [file, setFile] = useState<File | null>(null);
+  // date_of_loss — required trigger input for the deterministic deadline engine
+  // (first-party only). Without it the backend cannot compute key_deadlines and
+  // the "Key Deadlines" section never renders. Seeded from ?date_of_loss= if present.
+  const [lossDate, setLossDate] = useState<string>(entities.date_of_loss || "");
   const [drag, setDrag] = useState(false);
   const [resp, setResp] = useState<Partial<ExplainResponse>>({});
   const [streaming, setStreaming] = useState(false);
@@ -281,9 +285,12 @@ export default function PropertyCasualtyExplainer() {
   const analyze = useCallback(async () => {
     setStreaming(true); setError(null); setRaw(""); setResp({});
     const base = (import.meta as any).env?.VITE_API_URL || "http://localhost:8001";
+    // Merge lossDate into entities so the backend can parse date_of_loss and
+    // run the deterministic deadline computation (first-party property only).
+    const effEntities = { ...entities, ...(lossDate ? { date_of_loss: lossDate } : {}) };
     const fd = new FormData();
     fd.append("sub_type", subType);
-    fd.append("entities_json", JSON.stringify(entities));
+    fd.append("entities_json", JSON.stringify(effEntities));
     fd.append("language", language);
     if (file) fd.append("file", file);
 
@@ -309,7 +316,7 @@ export default function PropertyCasualtyExplainer() {
       } catch { if (!full.trim()) setError("Could not parse explanation."); }
     } catch (e: any) { setError(e.message); }
     finally { setStreaming(false); }
-  }, [subType, entities, language, file]);
+  }, [subType, entities, lossDate, language, file]);
 
   const toggleCheck = (i: number) => setChecked(p => {
     const n = new Set(p); n.has(i) ? n.delete(i) : n.add(i); return n;
@@ -352,6 +359,26 @@ export default function PropertyCasualtyExplainer() {
             color: "var(--danger)", cursor: "pointer", fontSize: 18,
             minWidth: TOUCH_MIN, minHeight: TOUCH_MIN, display: "flex",
             alignItems: "center", justifyContent: "center" }}>×</button>
+        </div>
+      )}
+
+      {/* Date of loss — first-party only; required to compute statutory deadlines */}
+      {isFirstParty && !resp.what_this_is && (
+        <div style={{ marginBottom: "var(--space-2)", display: "flex",
+          flexDirection: "column", gap: 6 }}>
+          <label htmlFor="pc-loss-date" style={{ fontSize: 14, fontWeight: 500 }}>
+            Date of loss
+          </label>
+          <input id="pc-loss-date" type="date" value={lossDate}
+            onChange={e => setLossDate(e.target.value)}
+            style={{ padding: "10px 12px", fontSize: 16, minHeight: TOUCH_MIN,
+              border: "1px solid var(--border)", borderRadius: "var(--radius)",
+              background: "#fff", color: "var(--text)" }} />
+          {!lossDate && (
+            <span style={{ fontSize: 12, color: "var(--muted)" }}>
+              Enter your date of loss to see your statutory deadlines.
+            </span>
+          )}
         </div>
       )}
 
