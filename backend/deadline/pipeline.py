@@ -89,6 +89,11 @@ async def run_deadline_pipeline(
             circuits_needed.add(c)
 
     closure_dates: frozenset[date] = frozenset()
+    # Circuits that have their OWN closure rows. Statewide rows (circuit=0)
+    # don't count as local data — compute.py escalates fatal court deadlines
+    # for circuits we have no local closure data on, rather than assuming the
+    # court was open (BUILD_PLAN Phase 4 failure mode #5).
+    local_closure_circuits: set[int] = set()
     if db.client is not None:
         try:
             rows = (db.client.table("court_closures")
@@ -99,6 +104,10 @@ async def run_deadline_pipeline(
                 date.fromisoformat(r["closure_date"])
                 for r in (rows.data or [])
             )
+            local_closure_circuits = {
+                c for r in (rows.data or [])
+                if (c := _safe_int(r.get("circuit"))) not in (None, 0)
+            }
         except Exception as e:
             logger.error("Failed to fetch court closures: %s", e)
 
@@ -152,7 +161,11 @@ async def run_deadline_pipeline(
             service_method=service_method,
             circuit=circuit,
             closure_dates=closure_dates,
-            has_local_closure_data=bool(closure_dates),
+            # True only when THIS event's circuit has its own closure rows.
+            # Statewide holidays alone (or an unknown circuit) don't qualify.
+            has_local_closure_data=(
+                circuit is not None and circuit in local_closure_circuits
+            ),
         )
 
         # Write trigger_event row
