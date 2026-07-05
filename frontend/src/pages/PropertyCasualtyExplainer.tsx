@@ -363,7 +363,7 @@ export default function PropertyCasualtyExplainer() {
       )}
 
       {/* Date of loss — first-party only; required to compute statutory deadlines */}
-      {isFirstParty && !resp.what_this_is && (
+      {!resp.what_this_is && (
         <div style={{ marginBottom: "var(--space-2)", display: "flex",
           flexDirection: "column", gap: 6 }}>
           <label htmlFor="pc-loss-date" style={{ fontSize: 14, fontWeight: 500 }}>
