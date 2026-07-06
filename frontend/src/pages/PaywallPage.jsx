@@ -2,7 +2,7 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
-const API_KEY = import.meta.env.VITE_API_KEY || 'testkey123';
+const API_KEY = import.meta.env.VITE_API_KEY;
 
 export default function PaywallPage() {
   const { documentId } = useParams();

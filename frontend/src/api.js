@@ -8,7 +8,7 @@ if (!baseURL) {
 const api = axios.create({
   baseURL,
   headers: {
-    "X-API-Key": import.meta.env.VITE_API_KEY || "testkey123",
+    "X-API-Key": import.meta.env.VITE_API_KEY,
   },
 });
 

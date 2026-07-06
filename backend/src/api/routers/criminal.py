@@ -3,11 +3,12 @@
 POST /api/criminal/explain — streaming SSE endpoint.
 """
 
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from src.agents.criminal_procedure import CriminalProcedureExplainer
+from src.api.routes import limiter
 
 router = APIRouter(prefix="/api/criminal")
 
@@ -45,7 +46,8 @@ class CriminalExplainRequest(BaseModel):
 
 
 @router.post("/explain")
-async def explain_criminal(payload: CriminalExplainRequest = Body(...)):
+@limiter.limit("10/minute")
+async def explain_criminal(request: Request, payload: CriminalExplainRequest = Body(...)):
     """Stream a plain-English Florida criminal-procedure explanation via SSE."""
 
     async def _stream():

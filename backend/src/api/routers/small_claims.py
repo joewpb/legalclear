@@ -19,12 +19,13 @@ the user's situation description.
 
 from typing import Optional
 
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from src.agents.small_claims import SmallClaimsExplainer
 from src.api.routers.packet import build_packet_with_checkout
+from src.api.routes import limiter
 from src.services.packet_builder import PacketRequest
 
 router = APIRouter(prefix="/api/small-claims")
@@ -54,7 +55,8 @@ class SmallClaimsRequest(BaseModel):
 
 
 @router.post("/generate")
-async def generate_small_claims(req: SmallClaimsRequest):
+@limiter.limit("10/minute")
+async def generate_small_claims(request: Request, req: SmallClaimsRequest):
     try:
         return await build_packet_with_checkout(
             PacketRequest(
@@ -82,7 +84,8 @@ class ExplainRequest(BaseModel):
 
 
 @router.post("/explain")
-async def explain_small_claims(payload: ExplainRequest = Body(...)):
+@limiter.limit("10/minute")
+async def explain_small_claims(request: Request, payload: ExplainRequest = Body(...)):
     """Stream a plain-English Florida small-claims explanation via SSE."""
 
     async def _stream():

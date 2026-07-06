@@ -9,7 +9,7 @@
  * Third-person framing, disclaimer on every render.
  */
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
 
@@ -264,6 +264,61 @@ const css = {
     animation: "pulse 1s infinite",
     marginLeft: 4,
   } as React.CSSProperties,
+
+  /* ── Input form (P2.0-B) — mirrors PropertyCasualtyExplainer ── */
+  inputSection: {
+    background: "#fff",
+    border: "1px solid var(--border, #E5E5E0)",
+    borderRadius: "var(--radius, 4px)",
+    padding: "var(--space-2, 16px)",
+    marginBottom: "var(--space-2, 16px)",
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+  } as React.CSSProperties,
+
+  textarea: {
+    width: "100%",
+    minHeight: 120,
+    padding: "12px",
+    fontSize: 16,
+    lineHeight: 1.6,
+    fontFamily: "var(--font-sans)",
+    background: "#fff",
+    color: "var(--fg, #1A1A1A)",
+    border: "1px solid var(--border, #E5E5E0)",
+    borderRadius: "var(--radius, 4px)",
+    boxSizing: "border-box",
+    outline: "none",
+    resize: "vertical",
+  } as React.CSSProperties,
+
+  textInput: {
+    width: "100%",
+    minHeight: 48,
+    padding: "10px 12px",
+    fontSize: 16,
+    background: "#fff",
+    color: "var(--fg, #1A1A1A)",
+    border: "1px solid var(--border, #E5E5E0)",
+    borderRadius: "var(--radius, 4px)",
+    boxSizing: "border-box",
+    outline: "none",
+  } as React.CSSProperties,
+
+  submitBtn: {
+    display: "block",
+    width: "100%",
+    minHeight: 48,
+    padding: "0 16px",
+    background: "var(--accent, #1E40AF)",
+    color: "#fff",
+    border: "none",
+    borderRadius: "var(--radius, 4px)",
+    fontSize: 15,
+    fontWeight: 500,
+    cursor: "pointer",
+  } as React.CSSProperties,
 };
 
 // ---------------------------------------------------------------------------
@@ -284,10 +339,10 @@ function stageIndex(stage: string): number {
 export default function CriminalProcedureExplainer() {
   const [searchParams] = useSearchParams();
 
-  const chargeType = searchParams.get("charge_type") || "unknown charge";
-  const severity = searchParams.get("severity") || "misdemeanor";
-  const currentStage = searchParams.get("current_stage") || "arraigned";
   const language = (searchParams.get("language") as "en" | "es") || "en";
+  // current_stage is not captured by this form (P2.0-B); defaulted so the
+  // backend's required field is satisfied. Was previously a URL param.
+  const currentStage = "arraigned";
 
   const [response, setResponse] = useState<Partial<ExplainResponse>>({});
   const [streaming, setStreaming] = useState(false);
@@ -295,6 +350,9 @@ export default function CriminalProcedureExplainer() {
   const [rawChunks, setRawChunks] = useState("");
   const abortRef = useRef<AbortController | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
+  const [chargeDescription, setChargeDescription] = useState("");
+  const [severity, setSeverity] = useState("misdemeanor");
+  const [submitted, setSubmitted] = useState(false);
 
   const currentIdx = stageIndex(currentStage);
 
@@ -314,10 +372,10 @@ export default function CriminalProcedureExplainer() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-API-Key": import.meta.env.VITE_API_KEY || "testkey123",
+          "X-API-Key": import.meta.env.VITE_API_KEY,
         },
         body: JSON.stringify({
-          charge_type: chargeType,
+          charge_type: chargeDescription,
           severity,
           current_stage: currentStage,
           language,
@@ -356,12 +414,13 @@ export default function CriminalProcedureExplainer() {
     } finally {
       setStreaming(false);
     }
-  }, [chargeType, severity, currentStage, language]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [chargeDescription, severity, language]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
+  const handleSubmit = () => {
+    if (!chargeDescription.trim()) return;
+    setSubmitted(true);
     startStream();
-    return () => abortRef.current?.abort();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  };
 
   // ── Render ─────────────────────────────────────────────────────────
 
@@ -373,11 +432,47 @@ export default function CriminalProcedureExplainer() {
           ← Back to LegalClear
         </Link>
         <h1 style={css.title}>Criminal Procedure</h1>
-        <p style={css.subtitle}>
-          {chargeType} · {severity} · Florida courts
-        </p>
+        <p style={css.subtitle}>Florida criminal procedure explained</p>
       </header>
 
+      {/* Input form — source of truth (P2.0-B). Shown until explicit submit. */}
+      {!submitted && (
+        <div style={css.inputSection}>
+          <textarea
+            style={css.textarea}
+            value={chargeDescription}
+            onChange={(e) => setChargeDescription(e.target.value)}
+            placeholder="Describe your criminal situation in detail (e.g. charged with petit theft)..."
+            rows={5}
+          />
+          <label style={{ fontSize: 14, fontWeight: 500 }}>Severity</label>
+          <select
+            style={css.textInput}
+            value={severity}
+            onChange={(e) => setSeverity(e.target.value)}
+          >
+            <option value="misdemeanor">Misdemeanor</option>
+            <option value="felony">Felony</option>
+          </select>
+          <button
+            style={css.submitBtn}
+            onClick={handleSubmit}
+            disabled={!chargeDescription.trim()}
+          >
+            Analyze My Situation
+          </button>
+        </div>
+      )}
+
+      {/* Disclaimer — always visible: below the submit button, above any LLM output */}
+      <div style={css.disclaimer}>
+        {response.disclaimer ||
+          "LegalClear provides legal information, not legal advice."}
+      </div>
+
+      {/* Results — only after explicit submit */}
+      {submitted && (
+        <>
       {/* Stage progress bar */}
       <div style={css.progressContainer}>
         {STAGES.map((label, i) => {
@@ -478,12 +573,8 @@ export default function CriminalProcedureExplainer() {
           </p>
         )}
       </div>
-
-      {/* Disclaimer */}
-      <div style={css.disclaimer}>
-        {response.disclaimer ||
-          "LegalClear provides legal information, not legal advice. Nothing here creates an attorney-client relationship. Consult a licensed Florida attorney for your specific situation. If you cannot afford an attorney, you have the right to a public defender."}
-      </div>
+        </>
+      )}
 
       <ChatButton module="criminal_procedure" onClick={() => setChatOpen(true)} />
       {chatOpen && (

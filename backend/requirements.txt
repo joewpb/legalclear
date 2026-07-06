@@ -1,5 +1,6 @@
 anthropic
 fastapi
+slowapi
 uvicorn
 pymupdf
 pytesseract

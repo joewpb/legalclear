@@ -7,6 +7,10 @@ import logging
 import traceback
 import uuid as _uuid
 
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
+
 from src.core.config import settings
 from src.core.escalation import EscalationRouter
 from src.core.notifications import NotificationService
@@ -25,10 +29,19 @@ logger = logging.getLogger(__name__)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://legalclear.app",
+        "https://appealing-victory-production-d519.up.railway.app",
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Rate limiting (P2.0-A). Defined before the router imports below so the
+# routers can resolve `from src.api.routes import limiter` cleanly.
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Singletons
 classifier = ClassifierAgent()

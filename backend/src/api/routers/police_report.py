@@ -10,11 +10,12 @@ import logging
 import traceback
 from typing import List
 
-from fastapi import APIRouter, File, Form, UploadFile
+from fastapi import APIRouter, File, Form, UploadFile, Request
 from fastapi.responses import StreamingResponse
 
 from src.agents.police_report_v2 import PoliceReportAnalyzerV2
 from src.agents.scanner import extract_case_context, scan_documents
+from src.api.routes import limiter
 from src.core.upl import apply_disclaimer
 from src.ingestion import ingest_document
 
@@ -33,7 +34,9 @@ _analyzer_v2 = PoliceReportAnalyzerV2()
 
 
 @router.post("/analyze")
+@limiter.limit("10/minute")
 async def analyze_report_v3(
+    request: Request,
     file: UploadFile = File(...),
     language: str = Form(default="en"),
 ):
@@ -66,7 +69,8 @@ async def analyze_report_v3(
 
 
 @router.post("/analyze/batch")
-async def analyze_report_batch(files: List[UploadFile] = File(...)):
+@limiter.limit("10/minute")
+async def analyze_report_batch(request: Request, files: List[UploadFile] = File(...)):
     """Multi-file police report analysis — Phase 21 legacy endpoint."""
     extracted: list[dict] = []
     for f in files:
