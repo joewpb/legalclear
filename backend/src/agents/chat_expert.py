@@ -182,7 +182,8 @@ class ChatExpertAgent:
         """
 
         # ── Paywall check ──────────────────────────────────────────
-        if message_count >= MAX_FREE_MESSAGES:
+        # Skipped entirely when PAYMENTS_ENABLED is off — chat is free.
+        if settings.PAYMENTS_ENABLED and message_count >= MAX_FREE_MESSAGES:
             paywall_payload = json.dumps({
                 "paywall": True,
                 "message": "You've used all 5 expert questions. Unlock unlimited questions for $9.99.",

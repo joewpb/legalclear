@@ -13,8 +13,11 @@ export default function PaywallPage() {
   const price = state?.price || 10;
   const currency = state?.currency || "USD";
   const reason = state?.detail || "Unlock your full analysis";
+  const paymentsEnabled =
+    import.meta.env.VITE_PAYMENTS_ENABLED === "true";
 
   const handleCheckout = async () => {
+    if (!paymentsEnabled) return;
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/checkout/${documentId}`, {
@@ -44,24 +47,46 @@ export default function PaywallPage() {
       maxWidth: 500, margin: '4rem auto', padding: '2rem',
       textAlign: 'center', fontFamily: 'Inter, sans-serif'
     }}>
-      <h1>Unlock Your Analysis</h1>
-      <p style={{ color: '#666', marginBottom: '2rem' }}>{reason}</p>
-      <div style={{
-        fontSize: '3rem', fontWeight: 700, marginBottom: '2rem'
-      }}>
-        ${price} <span style={{fontSize:'1rem',color:'#999'}}>{currency}</span>
-      </div>
-      <button
-        onClick={handleCheckout}
-        disabled={loading}
-        style={{
-          background: '#000', color: '#fff', padding: '1rem 2rem',
-          fontSize: '1.1rem', border: 'none', borderRadius: '8px',
-          cursor: loading ? 'wait' : 'pointer', width: '100%'
-        }}
-      >
-        {loading ? 'Redirecting...' : 'Continue to Checkout →'}
-      </button>
+      {paymentsEnabled ? (
+        <>
+          <h1>Unlock Your Analysis</h1>
+          <p style={{ color: '#666', marginBottom: '2rem' }}>{reason}</p>
+          <div style={{
+            fontSize: '3rem', fontWeight: 700, marginBottom: '2rem'
+          }}>
+            ${price} <span style={{fontSize:'1rem',color:'#999'}}>{currency}</span>
+          </div>
+          <button
+            onClick={handleCheckout}
+            disabled={loading}
+            style={{
+              background: '#000', color: '#fff', padding: '1rem 2rem',
+              fontSize: '1.1rem', border: 'none', borderRadius: '8px',
+              cursor: loading ? 'wait' : 'pointer', width: '100%'
+            }}
+          >
+            {loading ? 'Redirecting...' : 'Continue to Checkout →'}
+          </button>
+        </>
+      ) : (
+        <>
+          <h1>No Payment Required</h1>
+          <p style={{ color: '#666', marginBottom: '2rem' }}>
+            Payments are currently disabled — every feature on LegalClear is
+            free right now, including this one.
+          </p>
+          <a
+            href="/"
+            style={{
+              display: 'inline-block', background: '#000', color: '#fff',
+              padding: '1rem 2rem', fontSize: '1.1rem', borderRadius: '8px',
+              textDecoration: 'none'
+            }}
+          >
+            Back to Home
+          </a>
+        </>
+      )}
       <p style={{marginTop:'1.5rem',fontSize:'0.85rem',color:'#999'}}>
         Document ID: {documentId}
       </p>

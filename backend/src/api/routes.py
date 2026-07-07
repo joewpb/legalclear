@@ -152,6 +152,11 @@ async def check_eligibility(req: EligibilityRequest):
 
 @app.post("/webhook")
 async def stripe_webhook(request: Request):
+    if not settings.PAYMENTS_ENABLED:
+        # Payments off — no checkouts are created, so no Stripe events are
+        # expected. Accept and ignore to keep the receiver governed by the
+        # single switch.
+        return {"status": "ignored", "reason": "payments_disabled"}
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature", "")
     try:
@@ -225,6 +230,8 @@ async def add_push_token(user_id: str, expo_token: str, platform: str):
 
 @app.post("/subscribe/{user_id}", dependencies=[Depends(verify_api_key)])
 async def subscribe(user_id: str, email: str, success_url: str, cancel_url: str):
+    if not settings.PAYMENTS_ENABLED:
+        return {"checkout_url": "", "payments_enabled": False}
     return stripe_client.create_subscription_checkout(email, user_id, success_url, cancel_url)
 
 @app.post("/upload", dependencies=[Depends(verify_api_key)])
@@ -409,7 +416,7 @@ async def get_documents(user_id: str):
 @app.post("/florida-filing/prepare", dependencies=[Depends(verify_api_key)])
 async def prepare_florida_filing(case_data: dict, user_id: str = Header()):
     filing_count = db.count_filings(user_id)
-    if filing_count >= 1:
+    if settings.PAYMENTS_ENABLED and filing_count >= 1:
         raise HTTPException(
             status_code=402,
             detail="First filing free. Upgrade for expert guidance on next steps."

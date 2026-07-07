@@ -380,9 +380,13 @@ export default function ChatDrawer({
   const abortRef = useRef<AbortController | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const MAX_MESSAGES = 5;
+  // Master payment switch (baked at build). When off, chat is free and the
+  // 5-message limit is not enforced on the client.
+  const paymentsEnabled =
+    (import.meta as any).env?.VITE_PAYMENTS_ENABLED === "true";
 
   const userMessageCount = messages.filter((m) => m.role === "user").length;
-  const atLimit = userMessageCount >= MAX_MESSAGES;
+  const atLimit = paymentsEnabled && userMessageCount >= MAX_MESSAGES;
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -605,10 +609,12 @@ export default function ChatDrawer({
           )}
         </div>
 
-        {/* Counter */}
-        <div style={css.counter}>
-          {userMessageCount} of {MAX_MESSAGES} questions used
-        </div>
+        {/* Counter — only meaningful when the paywall limit is active */}
+        {paymentsEnabled && (
+          <div style={css.counter}>
+            {userMessageCount} of {MAX_MESSAGES} questions used
+          </div>
+        )}
 
         {/* Paywall overlay inside drawer */}
         {paywalled && (
@@ -619,9 +625,13 @@ export default function ChatDrawer({
             <div style={css.paywallText}>
               Unlock unlimited questions for $9.99
             </div>
+            {/* No /upgrade route exists in the app — the link was a dead
+                redirect. Dismiss the overlay instead. Harmless when payments
+                are off: the server never emits a paywall event then, so this
+                overlay never renders. */}
             <button
               style={css.paywallBtn}
-              onClick={() => (window.location.href = "/upgrade")}
+              onClick={onClose}
             >
               Unlock for $9.99
             </button>

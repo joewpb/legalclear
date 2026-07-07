@@ -23,6 +23,13 @@ class Settings:
         "STRIPE_SUBSCRIPTION_PRICE_ID", "")
     API_KEY: str = os.getenv("API_KEY", "testkey123")
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
+    # Master payment switch. False (default) = every paywalled feature runs
+    # FREE (no Stripe checkout, no paywall, no upgrade prompt). True =
+    # billing re-enabled exactly as-is. One switch governs all payment
+    # surfaces: chat limit, $35 packet, filing count, subscription, webhook,
+    # check_access.
+    PAYMENTS_ENABLED: bool = os.getenv(
+        "PAYMENTS_ENABLED", "false").lower() in ("true", "1", "yes", "on")
     # Email provider for the deadline-reminder fallback (web users have no
     # Expo push token). Empty = delivery disabled (reminders fail honestly).
     EMAIL_PROVIDER: str = os.getenv("EMAIL_PROVIDER", "")  # "resend" | "sendgrid" | ""

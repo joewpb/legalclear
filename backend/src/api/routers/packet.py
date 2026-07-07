@@ -29,6 +29,7 @@ from src.services.packet_builder import (
 )
 from src.services.translation_layer import get_walkthrough
 from src.core.upl import apply_disclaimer
+from src.core.config import settings
 
 router = APIRouter(prefix="/api/packet")
 logger = logging.getLogger(__name__)
@@ -42,27 +43,69 @@ _FRONTEND = os.environ.get("FRONTEND_URL", "https://legalclear.app")
 
 
 async def build_packet_with_checkout(req: PacketRequest) -> dict:
-    """Shared helper: build the packet (paywall temporarily bypassed).
+    """Shared helper: build the packet, then either create a Stripe
+    checkout session (PAYMENTS_ENABLED=true) or mark it paid and skip
+    checkout (PAYMENTS_ENABLED=false — features free while off).
 
     Both /api/packet/build (this router) and the tile-generate endpoints
     in small_claims.py / expungement.py / landlord.py / traffic.py call
-    this.
-
-    TODO(paywall): the $35 filing-packet gate is temporarily disabled
-    while the rest of the site is being tested. New packets are marked
-    paid on creation so the download endpoint and the FilingPacket UI
-    unlock automatically. To re-enable, restore the
-    `stripe.checkout.Session.create(...)` call (see git history) and
-    drop the `mark_packet_paid` call below.
+    this. Keeps the Stripe call in exactly one place.
     """
     result = await build_packet(req)
-    mark_packet_paid(result.packet_id)
+
+    if settings.PAYMENTS_ENABLED:
+        checkout_url = _create_checkout(result, req)
+    else:
+        # Payments off — unlock the packet immediately, free of charge.
+        mark_packet_paid(result.packet_id)
+        checkout_url = ""
+
     return apply_disclaimer({
         "packet_id": result.packet_id,
         "fee_usd": result.fee_usd,
         "file_count": result.file_count,
-        "checkout_url": "",
+        "checkout_url": checkout_url,
     }, lang=req.language if req.language in ("en", "es") else "en")
+
+
+def _create_checkout(result, req: PacketRequest) -> str:
+    """Create the $35 Stripe checkout session for a packet. Returns the
+    checkout URL, or "" if creation fails (error logged). Faithful to the
+    original Phase 23 implementation (see git history)."""
+    try:
+        checkout = stripe.checkout.Session.create(
+            mode="payment",
+            payment_method_types=["card"],
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": "usd",
+                        "product_data": {
+                            "name": (
+                                f"LegalClear Filing Packet ({req.packet_type})"
+                            ),
+                        },
+                        "unit_amount": PACKET_PRICE_CENTS,
+                    },
+                    "quantity": 1,
+                }
+            ],
+            metadata={
+                "packet_id": result.packet_id,
+                "user_id": req.user_id,
+                "packet_type": req.packet_type,
+            },
+            success_url=(
+                f"{_FRONTEND}/filing-packet/{result.packet_id}?paid=1"
+            ),
+            cancel_url=(
+                f"{_FRONTEND}/filing-packet/{result.packet_id}?paid=0"
+            ),
+        )
+        return checkout.url
+    except Exception as exc:
+        logger.error(f"Stripe checkout creation failed: {exc}")
+        return ""
 
 
 @router.post("/build")
