@@ -25,12 +25,24 @@ export default function ResultCard({ r }: { r: CaseResult }) {
           >
             {r.case_name}
           </h3>
-          {r.citation && (
+          {r.citation ? (
             <p
               className="mono"
               style={{ color: "var(--muted)", fontSize: 13, margin: 0 }}
             >
               {r.citation}
+            </p>
+          ) : (
+            <p
+              className="mono"
+              style={{
+                color: "var(--muted)",
+                fontSize: 13,
+                margin: 0,
+                fontStyle: "italic",
+              }}
+            >
+              Citation not available
             </p>
           )}
         </div>
@@ -57,21 +69,23 @@ export default function ResultCard({ r }: { r: CaseResult }) {
         </p>
       )}
 
-      <a
-        href={r.courtlistener_url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="btn"
-        style={{
-          justifySelf: "start",
-          textDecoration: "none",
-          padding: "8px 16px",
-          fontSize: 12,
-          marginTop: 4,
-        }}
-      >
-        VIEW ON COURTLISTENER →
-      </a>
+      {r.courtlistener_url && (
+        <a
+          href={r.courtlistener_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn"
+          style={{
+            justifySelf: "start",
+            textDecoration: "none",
+            padding: "8px 16px",
+            fontSize: 12,
+            marginTop: 4,
+          }}
+        >
+          VIEW ON COURTLISTENER →
+        </a>
+      )}
     </article>
   );
 }

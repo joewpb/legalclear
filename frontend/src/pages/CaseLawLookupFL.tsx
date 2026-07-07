@@ -45,10 +45,10 @@ export default function CaseLawLookupFL() {
       <header className="hub-header">
         <h1>FL CASE LAW LOOKUP</h1>
         <p>
-          Search Florida case law via CourtListener. Results are pulled
-          directly from CourtListener — case names, citations, and links are
-          never invented. Plain-English summaries are written by Claude but
-          do not alter the underlying citation.
+          Search 759 curated Florida opinions in LegalClear's case-law
+          corpus. Case names, citations, and summaries come straight from
+          the corpus — nothing is invented. (CourtListener is used only as
+          an optional fallback when configured.)
         </p>
         <p style={{ marginTop: 8 }}>
           <Link to="/" style={{ color: "var(--muted)", fontSize: 12 }}>
@@ -84,8 +84,8 @@ export default function CaseLawLookupFL() {
               margin: 0,
             }}
           >
-            Results from CourtListener public database. Always verify by
-            reading the full opinion.
+            Results from LegalClear's Florida case-law corpus. Always verify
+            by reading the full opinion.
           </p>
 
           {error && (

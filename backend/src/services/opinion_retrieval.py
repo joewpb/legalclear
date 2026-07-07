@@ -57,7 +57,7 @@ def get_relevant_opinions(
         return []
     try:
         result = (
-            client.table("legal_opinions")
+            db.client.table("legal_opinions")
             .select(_OPINION_COLUMNS)
             .overlaps("situation_tags", situation_tags)
             .eq("quality_flagged", False)

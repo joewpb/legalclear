@@ -21,6 +21,10 @@ class Settings:
         "STRIPE_PRICE_LARGE", "")
     STRIPE_SUBSCRIPTION_PRICE_ID: str = os.getenv(
         "STRIPE_SUBSCRIPTION_PRICE_ID", "")
+    # CourtListener v4 token. Empty (default) = the case-law search is
+    # corpus-only (Supabase legal_opinions); CL is never called. Set only to
+    # enable the optional v4 fallback when the corpus returns nothing.
+    COURTLISTENER_TOKEN: str = os.getenv("COURTLISTENER_TOKEN", "")
     API_KEY: str = os.getenv("API_KEY", "testkey123")
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     # Master payment switch. False (default) = every paywalled feature runs

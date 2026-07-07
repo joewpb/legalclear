@@ -19,7 +19,7 @@ export type CaseResult = {
   court: string;
   date_filed: string;
   plain_english_summary: string | null;
-  courtlistener_url: string;
+  courtlistener_url: string | null;
 };
 
 export type CaseSearchResponse = {
