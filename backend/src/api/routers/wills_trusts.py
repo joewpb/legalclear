@@ -6,11 +6,12 @@ POST /api/wills-trusts/explain
   - Returns: SSE streaming response
 """
 
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from src.agents.wills_trusts import WillsTrustsExplainer
+from src.api.routes import limiter
 
 router = APIRouter(prefix="/api/wills-trusts")
 
@@ -48,7 +49,8 @@ class WillsTrustsExplainRequest(BaseModel):
 # ---------------------------------------------------------------------------
 
 @router.post("/explain")
-async def wills_trusts_explain(body: WillsTrustsExplainRequest = Body(...)):
+@limiter.limit("10/minute")
+async def wills_trusts_explain(request: Request, body: WillsTrustsExplainRequest = Body(...)):
     """Stream a wills/trusts/probate explanation via SSE."""
 
     async def _stream():

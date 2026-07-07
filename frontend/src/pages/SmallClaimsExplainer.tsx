@@ -8,7 +8,7 @@
  * Third-person framing, disclaimer on every render.
  */
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
 
@@ -217,6 +217,61 @@ const css = {
     animation: "pulse 1s infinite",
     marginLeft: 4,
   } as React.CSSProperties,
+
+  /* ── Input form (P2.0-B) — mirrors PropertyCasualtyExplainer ── */
+  inputSection: {
+    background: "#fff",
+    border: "1px solid var(--border, #E5E5E0)",
+    borderRadius: "var(--radius, 4px)",
+    padding: "var(--space-2, 16px)",
+    marginBottom: "var(--space-2, 16px)",
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+  } as React.CSSProperties,
+
+  textarea: {
+    width: "100%",
+    minHeight: 120,
+    padding: "12px",
+    fontSize: 16,
+    lineHeight: 1.6,
+    fontFamily: "var(--font-sans)",
+    background: "#fff",
+    color: "var(--fg, #1A1A1A)",
+    border: "1px solid var(--border, #E5E5E0)",
+    borderRadius: "var(--radius, 4px)",
+    boxSizing: "border-box",
+    outline: "none",
+    resize: "vertical",
+  } as React.CSSProperties,
+
+  textInput: {
+    width: "100%",
+    minHeight: 48,
+    padding: "10px 12px",
+    fontSize: 16,
+    background: "#fff",
+    color: "var(--fg, #1A1A1A)",
+    border: "1px solid var(--border, #E5E5E0)",
+    borderRadius: "var(--radius, 4px)",
+    boxSizing: "border-box",
+    outline: "none",
+  } as React.CSSProperties,
+
+  submitBtn: {
+    display: "block",
+    width: "100%",
+    minHeight: 48,
+    padding: "0 16px",
+    background: "var(--accent, #1E40AF)",
+    color: "#fff",
+    border: "none",
+    borderRadius: "var(--radius, 4px)",
+    fontSize: 15,
+    fontWeight: 500,
+    cursor: "pointer",
+  } as React.CSSProperties,
 };
 
 // ---------------------------------------------------------------------------
@@ -231,12 +286,9 @@ export default function SmallClaimsExplainer() {
   const [rawChunks, setRawChunks] = useState("");
   const abortRef = useRef<AbortController | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
-
-  // Read entities from URL query params (passed by intake flow)
-  const entities: Record<string, string> = {};
-  searchParams.forEach((v, k) => {
-    entities[k] = v;
-  });
+  const [claimDescription, setClaimDescription] = useState("");
+  const [claimAmount, setClaimAmount] = useState("");
+  const [submitted, setSubmitted] = useState(false);
 
   const language = (searchParams.get("language") as "en" | "es") || "en";
 
@@ -250,6 +302,12 @@ export default function SmallClaimsExplainer() {
     const controller = new AbortController();
     abortRef.current = controller;
 
+    // Form inputs are the source of truth (P2.0-B).
+    const entities: Record<string, string> = {
+      claim_description: claimDescription,
+      claim_amount: claimAmount,
+    };
+
     const base = import.meta.env.VITE_API_URL || "http://localhost:8001";
 
     try {
@@ -257,7 +315,7 @@ export default function SmallClaimsExplainer() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-API-Key": import.meta.env.VITE_API_KEY || "testkey123",
+          "X-API-Key": import.meta.env.VITE_API_KEY,
         },
         body: JSON.stringify({ entities, language }),
         signal: controller.signal,
@@ -299,16 +357,15 @@ export default function SmallClaimsExplainer() {
     } finally {
       setStreaming(false);
     }
-  }, [entities, language]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [claimDescription, claimAmount, language]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
+  const handleSubmit = () => {
+    if (!claimDescription.trim()) return;
+    setSubmitted(true);
     startStream();
-    return () => abortRef.current?.abort();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  };
 
   // ── Render ─────────────────────────────────────────────────────────
-
-  const entityEntries = Object.entries(entities);
 
   return (
     <div style={css.page}>
@@ -321,21 +378,42 @@ export default function SmallClaimsExplainer() {
         <p style={css.subtitle}>Florida county court — disputes up to $8,000</p>
       </header>
 
-      {/* Top panel — situation summary */}
-      {entityEntries.length > 0 && (
-        <div style={css.summaryCard}>
-          <p style={css.summaryTitle}>Your Situation</p>
-          {entityEntries.map(([k, v]) => (
-            <div key={k} style={css.entityRow}>
-              <span style={css.entityKey}>{k.replace(/_/g, " ")}</span>
-              <span style={css.entityVal}>{v}</span>
-            </div>
-          ))}
+      {/* Input form — source of truth (P2.0-B). Shown until explicit submit. */}
+      {!submitted && (
+        <div style={css.inputSection}>
+          <textarea
+            style={css.textarea}
+            value={claimDescription}
+            onChange={(e) => setClaimDescription(e.target.value)}
+            placeholder="Describe your small claims situation in detail..."
+            rows={5}
+          />
+          <input
+            style={css.textInput}
+            type="text"
+            value={claimAmount}
+            onChange={(e) => setClaimAmount(e.target.value)}
+            placeholder="Claim amount (e.g. $2,500)"
+          />
+          <button
+            style={css.submitBtn}
+            onClick={handleSubmit}
+            disabled={!claimDescription.trim()}
+          >
+            Analyze My Situation
+          </button>
         </div>
       )}
 
-      {/* Bottom panel — streaming response */}
-      <div style={css.streamPanel}>
+      {/* Disclaimer — always visible: below the submit button, above any LLM output */}
+      <div style={css.disclaimer}>
+        {response.disclaimer ||
+          "LegalClear provides legal information, not legal advice."}
+      </div>
+
+      {/* Results — streaming response, only after explicit submit */}
+      {submitted && (
+        <div style={css.streamPanel}>
         {error && (
           <p style={{ color: "var(--danger, #B91C1C)", fontSize: 14 }}>
             {error}
@@ -416,12 +494,7 @@ export default function SmallClaimsExplainer() {
           </p>
         )}
       </div>
-
-      {/* Disclaimer */}
-      <div style={css.disclaimer}>
-        {response.disclaimer ||
-          "LegalClear provides legal information, not legal advice. Nothing here creates an attorney-client relationship. Consult a licensed Florida attorney for your specific situation."}
-      </div>
+      )}
 
       {/* Chat system */}
       <ChatButton module="small_claims" onClick={() => setChatOpen(true)} />

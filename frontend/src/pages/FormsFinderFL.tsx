@@ -17,7 +17,7 @@ import api from "../api";
 
 const API_BASE =
   (import.meta as any).env?.VITE_API_URL || "http://localhost:8001";
-const API_KEY = (import.meta as any).env?.VITE_API_KEY || "testkey123";
+const API_KEY = (import.meta as any).env?.VITE_API_KEY;
 const PAGE_SIZE = 20;
 const FALLBACK_DISCLAIMER =
   "This tool provides legal information only, not legal advice.";

@@ -9,7 +9,7 @@ import {
 import SeverityBadge from '../components/SeverityBadge';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
-const API_KEY = import.meta.env.VITE_API_KEY || 'testkey123';
+const API_KEY = import.meta.env.VITE_API_KEY;
 
 async function fetchDeadlines(documentId) {
   const res = await fetch(`${API_URL}/api/deadline/${documentId}/deadlines`, {

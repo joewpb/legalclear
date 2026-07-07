@@ -39,7 +39,7 @@ export default function UploadFlow() {
     setIsProcessing(true);
 
     const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8001";
-    const apiKey = import.meta.env.VITE_API_KEY || 'testkey123';
+    const apiKey = import.meta.env.VITE_API_KEY;
 
     // Abort controller so we can enforce a client-side timeout on the
     // analysis step (LLM pipeline can legitimately take 60-90 s).

@@ -7,17 +7,20 @@ Accepts entities + optional document upload.
 import json
 from typing import Optional
 
-from fastapi import APIRouter, File, Form, UploadFile
+from fastapi import APIRouter, File, Form, UploadFile, Request
 from fastapi.responses import StreamingResponse
 
 from src.agents.property_casualty import PropertyCasualtyExplainer
+from src.api.routes import limiter
 
 router = APIRouter(prefix="/api/property-casualty")
 _explainer = PropertyCasualtyExplainer()
 
 
 @router.post("/explain")
+@limiter.limit("10/minute")
 async def explain_property_casualty(
+    request: Request,
     sub_type: str = Form(default="unknown"),
     entities_json: str = Form(default="{}"),
     language: str = Form(default="en"),

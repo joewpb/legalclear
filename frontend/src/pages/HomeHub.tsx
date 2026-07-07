@@ -35,6 +35,11 @@ const MODULE_TILES = [
   { title: "Property & Casualty", subtitle: "Insurance and liability", to: "/property-casualty", icon: "🏠" },
   { title: "Wills & Trusts", subtitle: "Wills, trusts & probate explained", to: "/wills-trusts", icon: "📜" },
   { title: "Forms", subtitle: "Find Florida court forms", to: "/forms", icon: "📝" },
+  { title: "Document Upload", subtitle: "Upload and extract deadlines", to: "/upload", icon: "📄" },
+  { title: "Case Law Search", subtitle: "Search 759 Florida opinions", to: "/case-law", icon: "🏛️" },
+  { title: "Expungement Check", subtitle: "Eligibility + filing packet", to: "/expungement", icon: "✅" },
+  { title: "Traffic / Tickets", subtitle: "Pay, contest, or traffic school", to: "/traffic", icon: "🚗" },
+  { title: "Landlord / Tenant", subtitle: "Deposits, repairs, eviction", to: "/landlord", icon: "🏘️" },
 ];
 
 // ---------------------------------------------------------------------------

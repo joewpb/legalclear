@@ -3,17 +3,20 @@
 POST /api/discovery/analyze — single-file upload, SSE streaming.
 """
 
-from fastapi import APIRouter, File, Form, UploadFile
+from fastapi import APIRouter, File, Form, UploadFile, Request
 from fastapi.responses import StreamingResponse
 
 from src.agents.discovery_motion import DiscoveryMotionAnalyzer
+from src.api.routes import limiter
 
 router = APIRouter(prefix="/api/discovery")
 _analyzer = DiscoveryMotionAnalyzer()
 
 
 @router.post("/analyze")
+@limiter.limit("10/minute")
 async def analyze_discovery(
+    request: Request,
     file: UploadFile = File(...),
     language: str = Form(default="en"),
 ):
