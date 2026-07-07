@@ -2,6 +2,11 @@ import { UploadCloud, File, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+// Master payment switch (baked at build). When off, the upload flow never
+// redirects to the paywall — analysis is free.
+const PAYMENTS_ENABLED =
+  import.meta.env.VITE_PAYMENTS_ENABLED === "true";
+
 export default function UploadFlow() {
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState(null);
@@ -81,7 +86,7 @@ export default function UploadFlow() {
         signal: controller.signal,
       });
 
-      if (processRes.status === 402) {
+      if (PAYMENTS_ENABLED && processRes.status === 402) {
         const paywallData = await processRes.json();
         setIsProcessing(false);
         navigate(`/pay/${documentId}`, { state: paywallData });
