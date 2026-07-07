@@ -15,7 +15,8 @@ export default function ResultsList({ query, results, totalResults }: Props) {
           RESULTS FOR &ldquo;{query}&rdquo;
         </h2>
         <p style={{ color: "var(--muted)", fontSize: 12, margin: 0 }}>
-          {results.length} shown · {totalResults} total in CourtListener
+          {results.length} shown · {totalResults} total in the Florida
+          case-law corpus
         </p>
       </header>
 
@@ -27,13 +28,13 @@ export default function ResultsList({ query, results, totalResults }: Props) {
             color: "var(--muted)",
           }}
         >
-          No matches in CourtListener for that query. Try different keywords
-          or broaden your court filter.
+          No matches in the Florida case-law corpus for that query. Try
+          different keywords or broaden your court filter.
         </p>
       ) : (
         <div style={{ display: "grid", gap: 12 }}>
-          {results.map((r) => (
-            <ResultCard key={r.courtlistener_url} r={r} />
+          {results.map((r, i) => (
+            <ResultCard key={`${i}-${r.case_name}`} r={r} />
           ))}
         </div>
       )}
