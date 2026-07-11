@@ -1,4 +1,7 @@
+import logging
 import aiohttp
+
+logger = logging.getLogger(__name__)
 
 
 class NotificationService:
@@ -11,8 +14,10 @@ class NotificationService:
         # To add WhatsApp: implement send_whatsapp()
         # To add Slack: implement send_slack()
         # To add Discord: implement send_discord()
-        print(f"[NOTIFICATION] user={user_id} "
-              f"title={title} message={message}")
+        logger.info(
+            "Notification: user=%s title=%s message=%s",
+            user_id, title, message,
+        )
         return {"sent": True, "method": "log",
                 "message": message}
 
