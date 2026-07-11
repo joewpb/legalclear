@@ -14,7 +14,7 @@ from typing import Optional
 
 import httpx
 from anthropic import AsyncAnthropic
-from fastapi import APIRouter, Body, Depends, HTTPException, Header
+from fastapi import APIRouter, Body, Depends, Header, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 

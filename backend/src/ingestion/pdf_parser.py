@@ -1,6 +1,7 @@
 import asyncio
-import fitz
 import os
+
+import fitz
 
 
 class PDFParser:

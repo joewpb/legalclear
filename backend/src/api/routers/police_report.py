@@ -10,7 +10,7 @@ import logging
 import traceback
 from typing import List
 
-from fastapi import APIRouter, File, Form, UploadFile, Request
+from fastapi import APIRouter, File, Form, Request, UploadFile
 from fastapi.responses import StreamingResponse
 
 from src.agents.police_report_v2 import PoliceReportAnalyzerV2

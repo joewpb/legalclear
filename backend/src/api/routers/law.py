@@ -10,8 +10,8 @@ from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 
-from src.memory.db import DatabaseManager
 from src.core.upl import apply_disclaimer
+from src.memory.db import DatabaseManager
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/law", tags=["law"])

@@ -12,7 +12,7 @@ Guardrail: never send a reminder implying time remains when expired.
 import logging
 from datetime import date, datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, Header, HTTPException
 
 from src.core.config import settings
 from src.core.notifications import NotificationService

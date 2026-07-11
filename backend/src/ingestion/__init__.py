@@ -1,5 +1,5 @@
-from .pdf_parser import PDFParser
 from .ocr import OCRProcessor
+from .pdf_parser import PDFParser
 from .text_cleaner import TextCleaner
 
 _pdf = PDFParser()

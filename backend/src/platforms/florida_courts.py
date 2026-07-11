@@ -1,5 +1,6 @@
-import os
 import json
+import os
+
 from src.core.config import settings
 
 # walkthrough text only — this file references myflcourtaccess.com strictly

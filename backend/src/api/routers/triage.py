@@ -2,11 +2,11 @@
 
 import logging
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Header
+from fastapi import APIRouter, Body, Depends, Header, HTTPException
 
 from src.core.config import settings
-from src.memory.db import DatabaseManager
 from src.core.upl import apply_disclaimer
+from src.memory.db import DatabaseManager
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/triage", tags=["triage"])
@@ -104,8 +104,13 @@ async def confirm_classification(
     Updates documents.classification.document_type and clears the
     requires_human_review flag so the deadline pipeline can proceed.
     """
-    from triage.router import CONFIDENCE_THRESHOLD, DOC_TYPE_TO_DEADLINE_RULES, route, VALID_DOCUMENT_TYPES
     from triage.classify import VALID_DOCUMENT_TYPES as VDT
+    from triage.router import (
+        CONFIDENCE_THRESHOLD,
+        DOC_TYPE_TO_DEADLINE_RULES,
+        VALID_DOCUMENT_TYPES,
+        route,
+    )
 
     if document_type not in VDT:
         raise HTTPException(

@@ -21,7 +21,7 @@ from fastapi import APIRouter, Body, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from src.agents.chat_expert import ChatExpertAgent, VALID_MODULES, MAX_FREE_MESSAGES
+from src.agents.chat_expert import MAX_FREE_MESSAGES, VALID_MODULES, ChatExpertAgent
 
 router = APIRouter(prefix="/api/chat")
 

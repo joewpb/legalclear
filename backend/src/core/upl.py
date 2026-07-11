@@ -19,7 +19,6 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
-
 # ── Disclaimer texts ──────────────────────────────────────────────────────────
 
 _DISCLAIMERS: dict[str, dict[str, str]] = {

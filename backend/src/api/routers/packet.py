@@ -19,6 +19,8 @@ import stripe
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
+from src.core.config import settings
+from src.core.upl import apply_disclaimer
 from src.services.packet_builder import (
     PacketRequest,
     build_packet,
@@ -27,8 +29,6 @@ from src.services.packet_builder import (
     track_packet_filing,
 )
 from src.services.translation_layer import get_walkthrough
-from src.core.upl import apply_disclaimer
-from src.core.config import settings
 
 router = APIRouter(prefix="/api/packet")
 logger = logging.getLogger(__name__)

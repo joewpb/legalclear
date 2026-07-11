@@ -9,7 +9,7 @@ Every redaction produces a structured log entry for traceability.
 """
 
 import re
-from typing import List, Dict
+from typing import Dict, List
 
 
 class PIIRedactor:

@@ -16,10 +16,10 @@ from typing import AsyncGenerator
 
 from anthropic import AsyncAnthropic
 
+from src.agents.police_report_v2 import compute_risk_score
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.ingestion.pdf_parser import PDFParser
-from src.agents.police_report_v2 import compute_risk_score
 
 logger = logging.getLogger(__name__)
 

@@ -11,15 +11,16 @@ deploys (rootDirectory=/backend, no `frontend/` in the image) can resolve
 it via a backend-relative __file__ path. The frontend copy at
 frontend/src/data/ stays in place for client-side use.
 """
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
 import json
 from pathlib import Path
 from typing import Optional
 
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+
 from src.api.routers.packet import build_packet_with_checkout
-from src.services.packet_builder import PacketRequest
 from src.core.upl import apply_disclaimer
+from src.services.packet_builder import PacketRequest
 
 router = APIRouter(prefix="/api/expungement")
 

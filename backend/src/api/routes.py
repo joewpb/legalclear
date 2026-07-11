@@ -1,28 +1,28 @@
-from fastapi import FastAPI, Depends, HTTPException, Header, Request, BackgroundTasks
-from fastapi.middleware.cors import CORSMiddleware
-from typing import List, Dict, Any, Optional
-from pydantic import BaseModel
 import asyncio
 import logging
 import traceback
 import uuid as _uuid
+from typing import Any, Dict, List, Optional
 
+from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
+from src.agents.classifier import ClassifierAgent
+from src.agents.explainer import ExplainerAgent
+from src.agents.expungement import ExpungementAgent
+from src.agents.form_guide import FormGuideAgent
+from src.agents.risk_scanner import RiskScannerAgent
 from src.core.config import settings
 from src.core.escalation import EscalationRouter
 from src.core.notifications import NotificationService
 from src.ingestion import ingest_document
-from src.agents.classifier import ClassifierAgent
-from src.agents.explainer import ExplainerAgent
-from src.agents.form_guide import FormGuideAgent
-from src.agents.risk_scanner import RiskScannerAgent
-from src.agents.expungement import ExpungementAgent
 from src.memory.db import DatabaseManager
-from src.payments.stripe_client import StripeClient
 from src.payments import check_access
+from src.payments.stripe_client import StripeClient
 
 app = FastAPI(title="LegalClear API", version="1.0")
 logger = logging.getLogger(__name__)
@@ -63,25 +63,28 @@ FORM_CATEGORIES = [
 # Part B routers (Phase 15+). Each phase's router declares its own
 # /api/* prefix; HTTP paths match source spec even though the on-disk
 # location is backend/src/api/routers/ rather than .../routes/.
-from src.api.routers.intake import router as intake_router        # noqa: E402
-from src.api.routers.small_claims import router as small_claims_router  # noqa: E402
-from src.api.routers.criminal import router as criminal_router      # noqa: E402
-from src.api.routers.discovery import router as discovery_router    # noqa: E402
-from src.api.routers.property_casualty import router as property_casualty_router  # noqa: E402
-from src.api.routers.expungement import router as expungement_router  # noqa: E402
-from src.api.routers.landlord import router as landlord_router  # noqa: E402
-from src.api.routers.traffic import router as traffic_router  # noqa: E402
-from src.api.routers.police_report import router as police_report_router  # noqa: E402
+from src.api.routers.analysis import router as analysis_router  # noqa: E402
 from src.api.routers.case_law import router as case_law_router  # noqa: E402
-from src.api.routers.packet import router as packet_router  # noqa: E402
-from src.api.routers.forms import router as forms_router  # noqa: E402
-from src.api.routers.law import router as law_router          # noqa: E402
+from src.api.routers.chat import router as chat_router  # noqa: E402
+from src.api.routers.criminal import router as criminal_router  # noqa: E402
 from src.api.routers.deadline import router as deadline_router  # noqa: E402
-from src.api.routers.triage import router as triage_router        # noqa: E402
+from src.api.routers.discovery import router as discovery_router  # noqa: E402
+from src.api.routers.expungement import router as expungement_router  # noqa: E402
+from src.api.routers.forms import router as forms_router  # noqa: E402
+from src.api.routers.intake import router as intake_router  # noqa: E402
+from src.api.routers.landlord import router as landlord_router  # noqa: E402
+from src.api.routers.law import router as law_router  # noqa: E402
+from src.api.routers.packet import router as packet_router  # noqa: E402
+from src.api.routers.police_report import router as police_report_router  # noqa: E402
+from src.api.routers.property_casualty import (
+    router as property_casualty_router,  # noqa: E402
+)
 from src.api.routers.reminders import router as reminders_router  # noqa: E402
-from src.api.routers.analysis import router as analysis_router    # noqa: E402
-from src.api.routers.chat import router as chat_router           # noqa: E402
+from src.api.routers.small_claims import router as small_claims_router  # noqa: E402
+from src.api.routers.traffic import router as traffic_router  # noqa: E402
+from src.api.routers.triage import router as triage_router  # noqa: E402
 from src.api.routers.wills_trusts import router as wills_trusts_router  # noqa: E402
+
 app.include_router(intake_router)
 app.include_router(small_claims_router)
 app.include_router(criminal_router)
@@ -422,7 +425,11 @@ async def prepare_florida_filing(case_data: dict, user_id: str = Header()):
             detail="First filing free. Upgrade for expert guidance on next steps."
         )
 
-    from src.platforms.florida_courts import PDFAGenerator, CountyRouter, ManualFilingHelper
+    from src.platforms.florida_courts import (
+        CountyRouter,
+        ManualFilingHelper,
+        PDFAGenerator,
+    )
     gen = PDFAGenerator()
     router = CountyRouter()
     helper = ManualFilingHelper()
