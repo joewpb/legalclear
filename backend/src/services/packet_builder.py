@@ -14,7 +14,7 @@ import logging
 import uuid
 import zipfile
 from pathlib import Path
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -73,7 +73,7 @@ def _now_iso() -> str:
     return datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z"
 
 
-def get_packet(packet_id: str) -> Optional[dict[str, Any]]:
+def get_packet(packet_id: str) -> dict[str, Any] | None:
     return _PACKETS.get(packet_id)
 
 

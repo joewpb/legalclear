@@ -26,7 +26,6 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
-from typing import Optional
 
 import httpx
 from fastapi import APIRouter
@@ -58,7 +57,7 @@ _SELECT_COLUMNS = "case_name, citation, court, date_filed, cluster_id, summary_p
 # Court filter → ILIKE pattern on the corpus `court` column. The corpus
 # holds only the two Florida state appellate courts (no federal rows were
 # ingested), so federal_fl matches nothing.
-_COURT_FILTER: dict[str, Optional[str]] = {
+_COURT_FILTER: dict[str, str | None] = {
     "fl_supreme": "Supreme Court of Florida",
     "fl_appellate": "District Court of Appeal of Florida",
     "federal_fl": None,  # no federal opinions in the corpus
