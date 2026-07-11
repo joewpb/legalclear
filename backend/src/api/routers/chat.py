@@ -15,13 +15,12 @@ Response is a stream of JSON chunks:
   - {"error": true, "message": "...", "disclaimer": "..."} — on failure
 """
 
-from typing import Optional
 
 from fastapi import APIRouter, Body, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from src.agents.chat_expert import MAX_FREE_MESSAGES, VALID_MODULES, ChatExpertAgent
+from src.agents.chat_expert import VALID_MODULES, ChatExpertAgent
 
 router = APIRouter(prefix="/api/chat")
 

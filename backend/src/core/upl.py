@@ -16,7 +16,7 @@ NOTE: Disclaimer text must be reviewed against the Terms of Service
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Any
 
 # ── Disclaimer texts ──────────────────────────────────────────────────────────

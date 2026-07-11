@@ -2,7 +2,6 @@ import asyncio
 import logging
 import traceback
 import uuid as _uuid
-from typing import Any, Dict, List, Optional
 
 from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,7 +20,6 @@ from src.core.escalation import EscalationRouter
 from src.core.notifications import NotificationService
 from src.ingestion import ingest_document
 from src.memory.db import DatabaseManager
-from src.payments import check_access
 from src.payments.stripe_client import StripeClient
 
 app = FastAPI(title="LegalClear API", version="1.0")

@@ -106,9 +106,6 @@ async def confirm_classification(
     """
     from triage.classify import VALID_DOCUMENT_TYPES as VDT
     from triage.router import (
-        CONFIDENCE_THRESHOLD,
-        DOC_TYPE_TO_DEADLINE_RULES,
-        VALID_DOCUMENT_TYPES,
         route,
     )
 

@@ -14,11 +14,10 @@ says so plainly and directs the user to help — it does not guess.
 import logging
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 
 from src.agents.explainer import ExplainerAgent
-from src.core.config import settings
 from src.core.escalation import EscalationRouter
 from src.core.upl import apply_upl_guardrails, get_disclaimer
 from src.memory.db import DatabaseManager

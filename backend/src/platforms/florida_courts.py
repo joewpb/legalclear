@@ -1,7 +1,5 @@
-import json
 import os
 
-from src.core.config import settings
 
 # walkthrough text only — this file references myflcourtaccess.com strictly
 # as user-facing walkthrough copy (display strings + the public portal
