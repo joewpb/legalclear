@@ -1,7 +1,10 @@
 import json
+import logging
 import os
 
 from .disclaimer import get_disclaimer
+
+logger = logging.getLogger(__name__)
 
 
 def _load_jurisdictions():
@@ -11,7 +14,8 @@ def _load_jurisdictions():
     try:
         with open(path) as f:
             return json.load(f)
-    except Exception:
+    except Exception as e:
+        logger.warning("Failed to load jurisdictions: %s", e)
         return {}
 
 
