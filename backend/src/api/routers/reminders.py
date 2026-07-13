@@ -10,6 +10,7 @@ Guardrail: never send a reminder implying time remains when expired.
 """
 
 import logging
+import traceback
 from datetime import date, datetime, timezone
 
 from fastapi import APIRouter, Depends, Header, HTTPException
@@ -195,4 +196,5 @@ def _extract_user(dl: dict) -> dict:
             users = users[0] if users else {}
         return users
     except Exception:
+        logger.warning("_extract_user failed: %s", traceback.format_exc())
         return {}

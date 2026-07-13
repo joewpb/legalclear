@@ -428,6 +428,7 @@ class PropertyCasualtyExplainer:
                 try:
                     extraction = await self._pdf_parser.extract_from_bytes_async(file_bytes)
                 except Exception:
+                    logger.error("PDF extraction failed in explain:\n%s", traceback.format_exc())
                     return apply_disclaimer({"error": True, "message": "Could not extract text."}, lang=language)
                 doc_text = extraction.get("raw_text", "")
 
