@@ -30,8 +30,7 @@ class NotificationService:
         payload = {"to": expo_token, "title": title,
                    "body": body, "data": data or {}}
         try:
-            async with aiohttp.ClientSession() as s:
-                async with s.post(
+            async with aiohttp.ClientSession() as s, s.post(
                     "https://exp.host/--/api/v2/push/send",
                     json=payload,
                     headers={"Content-Type":

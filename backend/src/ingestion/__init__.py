@@ -41,7 +41,7 @@ async def ingest_document(file_bytes: bytes,
     # Clean text
     try:
         cleaned = _cleaner.clean(raw_text)
-    except Exception as e:
+    except Exception:
         cleaned = raw_text
 
     return {

@@ -13,9 +13,9 @@ import logging
 import traceback
 from datetime import date, datetime, timezone
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
-from src.core.config import settings
+from src.api.dependencies import require_api_key
 from src.core.notifications import NotificationService
 from src.core.reminders import compute_reminder_schedule, get_copy
 from src.memory.db import DatabaseManager
@@ -26,12 +26,7 @@ db = DatabaseManager()
 notifier = NotificationService()
 
 
-def _require_api_key(x_api_key: str = Header(default="")):
-    if x_api_key != settings.API_KEY:
-        raise HTTPException(status_code=401, detail="Invalid API Key")
-
-
-@router.post("/process", dependencies=[Depends(_require_api_key)])
+@router.post("/process", dependencies=[Depends(require_api_key)])
 async def process_reminders():
     """Hourly reminder processing loop.
 

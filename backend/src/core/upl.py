@@ -257,10 +257,7 @@ def _involves_minor_children(cls: dict, deadlines: list[dict]) -> bool:
     if cls.get("document_type") == "family_law_petition":
         # Family law petitions may involve children — surface for review
         return True
-    for dl in deadlines:
-        if "child" in (dl.get("label") or "").lower():
-            return True
-    return False
+    return any("child" in (dl.get("label") or "").lower() for dl in deadlines)
 
 
 def _referral_text(reasons: list[str], urgency: str, lang: str) -> str:

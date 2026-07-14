@@ -14,10 +14,11 @@ from typing import Optional
 
 import httpx
 from anthropic import AsyncAnthropic
-from fastapi import APIRouter, Body, Depends, Header, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+from src.api.dependencies import require_api_key
 from src.core.config import settings
 from src.core.upl import apply_upl_guardrails, get_disclaimer
 from src.memory.db import DatabaseManager
@@ -39,11 +40,6 @@ FL_FAMILY_LAW_FORMS_PAGE = (
 )
 
 BUCKET = "court-forms"
-
-
-def _require_api_key(x_api_key: str = Header(default="")):
-    if x_api_key != settings.API_KEY:
-        raise HTTPException(status_code=401, detail="Invalid API Key")
 
 
 # ── List ──────────────────────────────────────────────────────────────────────
@@ -444,7 +440,7 @@ async def download_form(form_number: str):
 
 # ── Change detection ──────────────────────────────────────────────────────────
 
-@router.post("/check-updates", dependencies=[Depends(_require_api_key)])
+@router.post("/check-updates", dependencies=[Depends(require_api_key)])
 async def check_updates():
     """Lightweight change-detection pass over all active forms.
 
@@ -482,7 +478,7 @@ async def check_updates():
                 head = await client.head(url)
                 etag = head.headers.get("etag", "")
                 content_length = head.headers.get("content-length", "")
-                remote_sig = f"{etag}:{content_length}"
+                remote_sig = f"{etag}:{content_length}"  # noqa: F841 — reserved for future signature comparison
 
                 # Download and compute SHA-256 for content comparison
                 get_resp = await client.get(url)

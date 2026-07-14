@@ -2,9 +2,9 @@
 
 import logging
 
-from fastapi import APIRouter, Body, Depends, Header, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException
 
-from src.core.config import settings
+from src.api.dependencies import require_api_key
 from src.core.upl import apply_disclaimer
 from src.memory.db import DatabaseManager
 
@@ -13,12 +13,7 @@ router = APIRouter(prefix="/api/triage", tags=["triage"])
 db = DatabaseManager()
 
 
-def _require_api_key(x_api_key: str = Header(default="")):
-    if x_api_key != settings.API_KEY:
-        raise HTTPException(status_code=401, detail="Invalid API Key")
-
-
-@router.post("/classify/{document_id}", dependencies=[Depends(_require_api_key)])
+@router.post("/classify/{document_id}", dependencies=[Depends(require_api_key)])
 async def classify_document(document_id: str):
     """Classify a document and return routing instructions.
 
@@ -93,7 +88,7 @@ async def classify_document(document_id: str):
     }, lang="en")
 
 
-@router.post("/confirm/{document_id}", dependencies=[Depends(_require_api_key)])
+@router.post("/confirm/{document_id}", dependencies=[Depends(require_api_key)])
 async def confirm_classification(
     document_id: str,
     document_type: str = Body(..., embed=True),
