@@ -71,7 +71,7 @@ class StripeClient:
                 subscription_id,
                 cancel_at_period_end=True)
             return True
-        except Exception:
+        except stripe.error.StripeError:
             logger.error("stripe cancel_subscription(%s) failed:\n%s", subscription_id, traceback.format_exc())
             return False
 
