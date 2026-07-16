@@ -163,6 +163,7 @@ async def stripe_webhook(request: Request):
     try:
         event = stripe_client.verify_webhook(payload, sig_header)
     except Exception as e:
+        logger.error("Stripe webhook verification failed: %s", e)
         raise HTTPException(status_code=400, detail=str(e))
     
     event_type = event["type"]

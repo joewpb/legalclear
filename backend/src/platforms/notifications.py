@@ -39,6 +39,7 @@ class NotificationService:
                     ticket = await resp.json()
                     return {"sent": True, "ticket": ticket}
         except Exception as e:
+            logger.error("Push notification send failed: %s", e)
             return {"sent": False, "error": str(e)}
 
     async def notify_document_ready(

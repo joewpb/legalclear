@@ -12,6 +12,8 @@ Path note: source put this at backend/src/api/routes/landlord.py; repo
 location is backend/src/api/routers/ (see Phase 10 divergence). HTTP
 endpoints unchanged.
 """
+import logging
+import traceback
 from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException
@@ -19,6 +21,8 @@ from pydantic import BaseModel
 
 from src.api.routers.packet import build_packet_with_checkout
 from src.services.packet_builder import PacketRequest
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/landlord")
 
@@ -71,6 +75,10 @@ async def _build(packet_type: str, req: BaseModel, county: str, language: str, u
     except HTTPException:
         raise
     except Exception as exc:
+        logger.error(
+            "Landlord packet build failed for type=%s:\n%s",
+            packet_type, traceback.format_exc(),
+        )
         raise HTTPException(
             status_code=500, detail=f"Packet build failed: {exc}"
         )

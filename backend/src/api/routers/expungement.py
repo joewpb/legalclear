@@ -12,6 +12,8 @@ it via a backend-relative __file__ path. The frontend copy at
 frontend/src/data/ stays in place for client-side use.
 """
 import json
+import logging
+import traceback
 from pathlib import Path
 from typing import Optional
 
@@ -21,6 +23,8 @@ from pydantic import BaseModel
 from src.api.routers.packet import build_packet_with_checkout
 from src.core.upl import apply_disclaimer
 from src.services.packet_builder import PacketRequest
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/expungement")
 
@@ -115,6 +119,10 @@ async def generate_expungement_packet(req: EligibilityRequest):
     except HTTPException:
         raise
     except Exception as exc:
+        logger.error(
+            "Expungement packet build failed:\n%s",
+            traceback.format_exc(),
+        )
         raise HTTPException(
             status_code=500, detail=f"Packet build failed: {exc}"
         )
