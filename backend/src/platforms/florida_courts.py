@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 # walkthrough text only — this file references myflcourtaccess.com strictly
 # as user-facing walkthrough copy (display strings + the public portal
@@ -8,8 +9,9 @@ import os
 # backend/src/ for the substring "myflcourtaccess" and requiring this
 # marker comment when present. See phases/source/PHASE_23_packet_builder.md.
 
+
 class PDFAGenerator:
-    def generate_complaint(self, case_data, output_path):
+    def generate_complaint(self, case_data: dict[str, Any], output_path: str) -> str:
         import reportlab.pdfgen.canvas as canvas
         c = canvas.Canvas(output_path)
         c.drawString(100, 750, f"Small Claims Complaint - {case_data.get('court_name', 'Court')}")
@@ -19,7 +21,7 @@ class PDFAGenerator:
         c.save()
         return output_path
 
-    def generate_civil_cover_sheet(self, case_data, output_path):
+    def generate_civil_cover_sheet(self, case_data: dict[str, Any], output_path: str) -> str:
         import reportlab.pdfgen.canvas as canvas
         c = canvas.Canvas(output_path)
         c.drawString(100, 750, "Civil Cover Sheet")
@@ -27,7 +29,7 @@ class PDFAGenerator:
         c.save()
         return output_path
 
-    def generate_summons(self, case_data, output_path):
+    def generate_summons(self, case_data: dict[str, Any], output_path: str) -> str:
         import reportlab.pdfgen.canvas as canvas
         c = canvas.Canvas(output_path)
         c.drawString(100, 750, "Summons")
@@ -35,7 +37,7 @@ class PDFAGenerator:
         c.save()
         return output_path
 
-    def generate_packet(self, case_data, output_dir):
+    def generate_packet(self, case_data: dict[str, Any], output_dir: str) -> dict[str, str]:
         os.makedirs(output_dir, exist_ok=True)
         paths = {}
         paths["complaint_path"] = self.generate_complaint(case_data, os.path.join(output_dir, "complaint.pdf"))
@@ -43,26 +45,28 @@ class PDFAGenerator:
         paths["summons_path"] = self.generate_summons(case_data, os.path.join(output_dir, "summons.pdf"))
         return paths
 
+
 class CountyRouter:
-    def __init__(self):
+    def __init__(self) -> None:
         # We load jurisdictions from data/jurisdictions.json
         # Here we do a mock implementation for tests
         pass
 
-    def route(self, county):
+    def route(self, county: str) -> dict[str, str]:
         return {
             "court_name": f"{county} County Court",
             "portal_url": "https://www.myflcourtaccess.com"
         }
 
-    def detect_county_from_address(self, address):
+    def detect_county_from_address(self, address: str) -> str:
         return "Martin"
 
-    def get_deep_link(self, county):
+    def get_deep_link(self, county: str) -> str:
         return "https://www.myflcourtaccess.com"
 
+
 class ManualFilingHelper:
-    def get_instructions(self, county, lang):
+    def get_instructions(self, county: str, lang: str) -> dict[str, Any]:
         if lang == "es":
             return {
                 "steps": [
@@ -85,7 +89,7 @@ class ManualFilingHelper:
             "disclaimer": "Not legal advice."
         }
 
-    def get_deep_link_button(self, county):
+    def get_deep_link_button(self, county: str) -> dict[str, str]:
         return {
             "url": "https://www.myflcourtaccess.com",
             "label_en": "File Now",
