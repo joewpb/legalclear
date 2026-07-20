@@ -74,7 +74,7 @@ from src.api.routers.landlord import router as landlord_router  # noqa: E402
 from src.api.routers.law import router as law_router  # noqa: E402
 from src.api.routers.packet import router as packet_router  # noqa: E402
 from src.api.routers.police_report import router as police_report_router  # noqa: E402
-from src.api.routers.property_casualty import (
+from src.api.routers.property_casualty import (  # noqa: E402
     router as property_casualty_router,  # noqa: E402
 )
 from src.api.routers.reminders import router as reminders_router  # noqa: E402

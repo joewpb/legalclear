@@ -12,11 +12,11 @@ class TextCleaner:
         text = re.sub(r" {3,}", " ", text)
         lines = text.split("\n")
         line_counts = Counter(
-            l.strip() for l in lines if len(l.strip()) > 5)
-        repeated = {l for l, c in line_counts.items()
+            ln.strip() for ln in lines if len(ln.strip()) > 5)
+        repeated = {ln for ln, c in line_counts.items()
                     if c >= 5}
-        cleaned = [l for l in lines
-                   if l.strip() not in repeated]
+        cleaned = [ln for ln in lines
+                   if ln.strip() not in repeated]
         return "\n".join(cleaned).strip()
 
     def detect_language(self, text: str) -> str:
