@@ -56,7 +56,7 @@ async def get_deadlines(document_id: str):
         return apply_disclaimer({"deadlines": result.data or []}, lang="en")
     except Exception as e:
         logger.error("get_deadlines failed: %s", e)
-        raise HTTPException(status_code=500, detail="Could not retrieve deadlines")
+        raise HTTPException(status_code=500, detail="Could not retrieve deadlines") from e
 
 
 @router.get("/{document_id}/trigger-events")
@@ -73,4 +73,4 @@ async def get_trigger_events(document_id: str):
         return apply_disclaimer({"trigger_events": result.data or []}, lang="en")
     except Exception as e:
         logger.error("get_trigger_events failed: %s", e)
-        raise HTTPException(status_code=500, detail="Could not retrieve trigger events")
+        raise HTTPException(status_code=500, detail="Could not retrieve trigger events") from e

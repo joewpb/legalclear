@@ -149,7 +149,7 @@ async def check_eligibility(req: EligibilityRequest):
         )
     except Exception as e:
         logger.error(f"Eligibility check failed: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Eligibility check failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Eligibility check failed: {str(e)}") from e
 
 @app.post("/webhook")
 async def stripe_webhook(request: Request):
@@ -164,7 +164,7 @@ async def stripe_webhook(request: Request):
         event = stripe_client.verify_webhook(payload, sig_header)
     except Exception as e:
         logger.error("Stripe webhook verification failed: %s", e)
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     
     event_type = event["type"]
     obj = event["data"]["object"]
@@ -284,7 +284,7 @@ async def upload_document(
         }
     except Exception as e:
         logger.error(f"Upload failed: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Upload processing failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Upload processing failed: {str(e)}") from e
 
 @app.post("/process/{session_id}", dependencies=[Depends(verify_api_key)])
 async def process_document(session_id: str, background_tasks: BackgroundTasks, lang: str = "en"):
@@ -371,7 +371,7 @@ async def process_document(session_id: str, background_tasks: BackgroundTasks, l
         raise
     except Exception as e:
         logger.error(f"Process failed: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}") from e
 
 @app.post("/chat/{document_id}", dependencies=[Depends(verify_api_key)])
 async def chat(document_id: str, body: ChatRequest):
@@ -401,7 +401,7 @@ async def chat(document_id: str, body: ChatRequest):
         raise
     except Exception as e:
         logger.error(f"Chat failed: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Chat failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Chat failed: {str(e)}") from e
 
 @app.get("/document/{document_id}", dependencies=[Depends(verify_api_key)])
 async def get_document(document_id: str):
@@ -409,7 +409,7 @@ async def get_document(document_id: str):
         return db.get_document(document_id)
     except Exception as e:
         logger.error(f"get_document failed: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Failed to fetch document: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch document: {str(e)}") from e
 
 @app.get("/documents/{user_id}", dependencies=[Depends(verify_api_key)])
 async def get_documents(user_id: str):

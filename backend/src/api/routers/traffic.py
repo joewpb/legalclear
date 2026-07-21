@@ -56,4 +56,4 @@ async def gen_traffic(req: TrafficRequest):
         )
         raise HTTPException(
             status_code=500, detail=f"Packet build failed: {exc}"
-        )
+        ) from exc

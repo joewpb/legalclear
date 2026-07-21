@@ -32,7 +32,7 @@ def _db_lookup(operation: str) -> Generator[None, None, None]:
         raise
     except Exception as e:
         logger.error("%s failed: %s", operation, e)
-        raise HTTPException(status_code=500, detail="Lookup failed")
+        raise HTTPException(status_code=500, detail="Lookup failed") from e
 
 
 # ── Statutes ──────────────────────────────────────────────────────────────────

@@ -85,7 +85,7 @@ class StripeClient:
             return event
         except stripe.error.SignatureVerificationError:
             raise ValueError(
-                "Invalid webhook signature")
+                "Invalid webhook signature") from None
 
     def get_payment_status(
             self, payment_intent_id: str) -> str:

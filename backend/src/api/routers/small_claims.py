@@ -77,7 +77,7 @@ async def generate_small_claims(request: Request, req: SmallClaimsRequest):
             "Small claims packet build failed:\n%s",
             traceback.format_exc(),
         )
-        raise HTTPException(status_code=500, detail=f"Packet build failed: {exc}")
+        raise HTTPException(status_code=500, detail=f"Packet build failed: {exc}") from exc
 
 
 # ---------------------------------------------------------------------------

@@ -125,4 +125,4 @@ async def generate_expungement_packet(req: EligibilityRequest):
         )
         raise HTTPException(
             status_code=500, detail=f"Packet build failed: {exc}"
-        )
+        ) from exc

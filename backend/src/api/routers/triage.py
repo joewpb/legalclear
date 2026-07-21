@@ -132,7 +132,7 @@ async def confirm_classification(
         ).eq("id", document_id).execute()
     except Exception as e:
         logger.error("confirm_classification failed: %s", e)
-        raise HTTPException(status_code=500, detail="Could not update classification")
+        raise HTTPException(status_code=500, detail="Could not update classification") from e
 
     routing = route(updated)
     return apply_disclaimer({

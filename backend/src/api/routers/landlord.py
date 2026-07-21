@@ -81,7 +81,7 @@ async def _build(packet_type: str, req: BaseModel, county: str, language: str, u
         )
         raise HTTPException(
             status_code=500, detail=f"Packet build failed: {exc}"
-        )
+        ) from exc
 
 
 @router.post("/deposit/generate")
