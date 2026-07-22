@@ -1,6 +1,8 @@
 import os
 from typing import Any
 
+import reportlab.pdfgen.canvas as canvas
+
 # walkthrough text only — this file references myflcourtaccess.com strictly
 # as user-facing walkthrough copy (display strings + the public portal
 # landing URL shown in instructions). No automation, no Playwright
@@ -12,7 +14,6 @@ from typing import Any
 
 class PDFAGenerator:
     def generate_complaint(self, case_data: dict[str, Any], output_path: str) -> str:
-        import reportlab.pdfgen.canvas as canvas
         c = canvas.Canvas(output_path)
         c.drawString(100, 750, f"Small Claims Complaint - {case_data.get('court_name', 'Court')}")
         c.drawString(100, 730, f"Plaintiff: {case_data.get('plaintiff_name', '')}")
@@ -22,7 +23,6 @@ class PDFAGenerator:
         return output_path
 
     def generate_civil_cover_sheet(self, case_data: dict[str, Any], output_path: str) -> str:
-        import reportlab.pdfgen.canvas as canvas
         c = canvas.Canvas(output_path)
         c.drawString(100, 750, "Civil Cover Sheet")
         c.drawString(100, 730, f"County: {case_data.get('county', '')}")
@@ -30,7 +30,6 @@ class PDFAGenerator:
         return output_path
 
     def generate_summons(self, case_data: dict[str, Any], output_path: str) -> str:
-        import reportlab.pdfgen.canvas as canvas
         c = canvas.Canvas(output_path)
         c.drawString(100, 750, "Summons")
         c.drawString(100, 730, f"To: {case_data.get('defendant_name', '')}")

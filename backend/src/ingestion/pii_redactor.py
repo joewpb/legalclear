@@ -8,6 +8,7 @@ Uses regex (no external services) — deterministic and auditable.
 Every redaction produces a structured log entry for traceability.
 """
 
+import hashlib
 import re
 from typing import Dict, List
 
@@ -201,7 +202,6 @@ class PIIRedactor:
     @staticmethod
     def _hash_value(value: str) -> str:
         """Non-reversible hash for audit trail (sha256 truncated)."""
-        import hashlib
         return hashlib.sha256(value.encode()).hexdigest()[:16]
 
 
