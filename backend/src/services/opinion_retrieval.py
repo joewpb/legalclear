@@ -47,25 +47,47 @@ def get_relevant_opinions(
 ) -> list[dict]:
     """Return up to `limit` opinions matching any of `situation_tags`.
 
-    Ranked by cite_count desc, quality_flagged=False only. Returns []
-    on empty input, degraded mode, or query error — retrieval never
-    breaks the parent response.
+    Ranking: PRIMARY key = number of derived situation_tags the opinion
+    shares (tag-overlap count, a relevance signal), SECONDARY/tiebreaker =
+    cite_count desc. quality_flagged=False only. Returns [] on empty input,
+    degraded mode, or query error — retrieval never breaks the parent
+    response.
+
+    PostgREST `.overlaps` filters to candidates matching ≥1 tag but cannot
+    express overlap *count*, so we fetch the candidate set and rank in
+    Python. `situation_tags` is selected solely to compute the overlap
+    count and is stripped before returning so the API shape is unchanged.
     """
     if not situation_tags:
         return []
     if db.client is None:
         return []
+    query_tags = set(situation_tags)
     try:
         result = (
             db.client.table("legal_opinions")
-            .select(_OPINION_COLUMNS)
+            .select(_OPINION_COLUMNS + ", situation_tags")
             .overlaps("situation_tags", situation_tags)
             .eq("quality_flagged", False)
-            .order("cite_count", desc=True)
-            .limit(limit)
+            .limit(500)
             .execute()
         )
-        return result.data or []
+        rows = result.data or []
+        # Annotate each row with its overlap count, then sort by
+        # (overlap_count desc, cite_count desc).
+        for row in rows:
+            opinion_tags = set(row.get("situation_tags") or [])
+            row["_overlap"] = len(opinion_tags & query_tags)
+        rows.sort(
+            key=lambda r: (r["_overlap"], r.get("cite_count") or 0),
+            reverse=True,
+        )
+        top = rows[:limit]
+        # Strip helper keys so the returned dicts match _OPINION_COLUMNS.
+        for row in top:
+            row.pop("_overlap", None)
+            row.pop("situation_tags", None)
+        return top
     except Exception as e:  # noqa: BLE001 — fail-soft, never break response
         logger.error("get_relevant_opinions failed: %s", e)
         return []
@@ -74,15 +96,18 @@ def get_relevant_opinions(
 # ---------------------------------------------------------------------------
 # Deterministic mapper: V2 analysis result -> situation_tags.
 #
-# Governing principle: the curated booleans (miranda_noted,
-# probable_cause_present) OWN their signals. Free-text keyword scan is
-# reserved only for signals that have no dedicated boolean (excessive
-# force -> police_misconduct). Searching free text for bare
-# "search"/"miranda" produced false positives (neutral narration), so
-# those branches were removed — precision over recall.
+# Governing principle: the structured `defect_category` enum on each
+# discrepancy is the PRIMARY constitutional signal. The curated booleans
+# (miranda_noted, probable_cause_present) are kept as a SECONDARY,
+# backward-compatible signal. Free-text keyword scan is reserved only for
+# signals that have no dedicated boolean or category (excessive force ->
+# police_misconduct). Searching free text for bare "search"/"miranda"
+# produced false positives (neutral narration), so those branches remain
+# removed — precision over recall on the free-text path.
 #
 # Emits ONLY tags confirmed in the legal_opinions vocabulary (recon
-# Step 1, 2026-07).
+# Step 1, 2026-07), EXCEPT `due_process` and `language_access`, which are
+# emitted ahead of corpus support — see _DEFECT_CATEGORY_TAGS note.
 # ---------------------------------------------------------------------------
 
 _CHARGE_DUI = re.compile(
@@ -112,6 +137,37 @@ _DESC_FORCE = re.compile(
     r"\b(excessive force|beat(?:en)?|taser|tased|choke|choked|"
     r"pepper spray|body ?slam)\b", re.I)
 
+# ---------------------------------------------------------------------------
+# Structured defect_category -> situation_tag mapping.
+#
+# The LLM now emits a `defect_category` enum on each discrepancy (see
+# PoliceReportAnalyzerV2 SYSTEM_PROMPT). This is the PRIMARY constitutional
+# signal: it fires regardless of the miranda_noted / probable_cause_present
+# booleans (which are kept as a secondary, backward-compatible signal).
+# `due_process` and `language_access` have no boolean equivalent, so the
+# category is their only path to retrieval.
+#
+# NOTE (corpus gap, 2026-07-23): `due_process` and `language_access` are
+# emitted as-is but are NOT present in the current Florida-only legal_opinions
+# corpus (the corpus has `due process` with a space; `language_access` is
+# absent entirely). Retrieval will return nothing for those two categories
+# until a separate corpus-scope decision normalizes/adds them. Implemented
+# per instruction; corpus intentionally left untouched.
+# ---------------------------------------------------------------------------
+_DEFECT_CATEGORY_TAGS: dict[str, tuple[str, ...]] = {
+    "miranda": ("fifth_amendment", "sixth_amendment"),
+    "fourth_amendment": (
+        "fourth_amendment",
+        "unlawful_search",
+        "probable_cause",
+    ),
+    "due_process": ("due_process",),
+    "language_access": ("language_access",),
+    # chain_of_custody / procedural have no dedicated opinion vocabulary.
+    "chain_of_custody": (),
+    "procedural": (),
+}
+
 
 def _is_explicit_false(value) -> bool:
     """True only for an explicitly-negated boolean signal.
@@ -130,16 +186,19 @@ def _is_explicit_false(value) -> bool:
 def derive_situation_tags(v2_result: dict) -> list[str]:
     """Map a Police Report V2 analysis result to legal_opinions tags.
 
-    Deterministic — boolean flags + keyword matching only. Returns the
-    deduped, sorted tag list; [] when no signal matches. Booleans own
-    the Miranda / probable-cause signals; free text only contributes
-    excessive-force -> police_misconduct.
+    Deterministic — defect_category enum + boolean flags + keyword matching.
+    Returns the deduped, sorted tag list; [] when no signal matches. The
+    `defect_category` on each discrepancy is the PRIMARY constitutional
+    signal (fires regardless of booleans); booleans are a secondary,
+    backward-compatible signal; free text only contributes excessive-force
+    -> police_misconduct.
 
     V2 result shape (per PoliceReportAnalyzerV2 prompt):
         miranda_noted: bool | None
         probable_cause_present: bool | None
         charges_explained: [{ charge, plain_english }]
-        discrepancies:    [{ severity, description, ask_attorney, page_ref }]
+        discrepancies:    [{ severity, defect_category, description,
+                             ask_attorney, page_ref }]
         missing_fields:   [{ severity, field_name, why_important, page_ref }]
     """
     if not isinstance(v2_result, dict):
@@ -159,6 +218,20 @@ def derive_situation_tags(v2_result: dict) -> list[str]:
         tags |= {"fifth_amendment", "sixth_amendment"}
     if _is_explicit_false(raw_pc):
         tags |= {"probable_cause", "fourth_amendment", "unlawful_search"}
+
+    # --- Structured defect_category signals (PRIMARY constitutional path) ---
+    # Each discrepancy may carry a `defect_category` enum assigned by the
+    # LLM. This is independent of the booleans above: a Miranda defect
+    # flagged via category fires even when miranda_noted is True/null.
+    # Categories map to the full set in _DEFECT_CATEGORY_TAGS; unknown /
+    # out-of-vocab values are ignored (no baseline tag).
+    for d in v2_result.get("discrepancies") or []:
+        if not isinstance(d, dict):
+            continue
+        category = d.get("defect_category")
+        if not isinstance(category, str):
+            continue
+        tags.update(_DEFECT_CATEGORY_TAGS.get(category, ()))
 
     # --- Charge text -> offense-class tags ---
     charge_blob = " ".join(

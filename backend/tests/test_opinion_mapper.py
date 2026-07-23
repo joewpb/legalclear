@@ -28,13 +28,53 @@ def _v2(**overrides) -> dict:
 @pytest.mark.parametrize("v2_result, expected", [
     # 1. Miranda violation via the curated boolean.
     (_v2(miranda_noted=False), ["fifth_amendment", "sixth_amendment"]),
-    # 2. Miranda mentioned only in discrepancy text, boolean True ->
-    #    NOT tagged (recall loss accepted; boolean owns the signal).
+    # 2. Miranda defect via structured defect_category — fires even though
+    #    miranda_noted is True (the default). The category is the PRIMARY
+    #    signal and is independent of the boolean state.
+    (_v2(discrepancies=[{
+        "severity": "high",
+        "defect_category": "miranda",
+        "description": "Officer never gave a Miranda warning before questioning.",
+        "ask_attorney": "Was this custodial?", "page_ref": "p.2",
+    }]), ["fifth_amendment", "sixth_amendment"]),
+    # 2b. Miranda described ONLY in prose, with no defect_category and the
+    #     boolean True, still does NOT tag — free-text alone never fires
+    #     (precision preserved on the prose path).
     (_v2(discrepancies=[{
         "severity": "high",
         "description": "Officer never gave a Miranda warning before questioning.",
         "ask_attorney": "Was this custodial?", "page_ref": "p.2",
     }]), []),
+    # 2c. Fourth-Amendment defect via category (no boolean signal).
+    (_v2(discrepancies=[{
+        "severity": "high",
+        "defect_category": "fourth_amendment",
+        "description": "Vehicle searched without consent or probable cause.",
+        "ask_attorney": "Basis for the search?", "page_ref": "p.1",
+    }]), ["fourth_amendment", "probable_cause", "unlawful_search"]),
+    # 2d. Due-process defect via category — emits due_process tag (note:
+    #     not yet present in the FL-only corpus, so retrieval is empty
+    #     until a corpus-scope decision; mapper behavior is what's tested).
+    (_v2(discrepancies=[{
+        "severity": "high",
+        "defect_category": "due_process",
+        "description": "Defendant denied opportunity to review evidence.",
+        "ask_attorney": "", "page_ref": None,
+    }]), ["due_process"]),
+    # 2e. Language-access defect via category.
+    (_v2(discrepancies=[{
+        "severity": "medium",
+        "defect_category": "language_access",
+        "description": "No interpreter offered to LEP subject during interview.",
+        "ask_attorney": "", "page_ref": None,
+    }]), ["language_access"]),
+    # 2f. defect_category + boolean combine and dedupe (both point at
+    #     Miranda; the resulting tag set is still just the two amendments).
+    (_v2(miranda_noted=False, discrepancies=[{
+        "severity": "high",
+        "defect_category": "miranda",
+        "description": "No Miranda warning.", "ask_attorney": "", "page_ref": None,
+    }]), ["fifth_amendment", "sixth_amendment"]),
     # 3. Felony via stem match on "Burglary" (plain_english blank on purpose).
     (_v2(charges_explained=[
         {"charge": "Armed Burglary of a Dwelling", "plain_english": ""}]),
