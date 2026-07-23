@@ -95,9 +95,26 @@ def _v2(**overrides) -> dict:
     (_v2(charges_explained=[
         {"charge": "Possession of a controlled substance", "plain_english": ""}]),
         []),
-    # 8. Probable-cause boolean False -> the unlawful_search signal path.
-    (_v2(probable_cause_present=False),
-        ["fourth_amendment", "probable_cause", "unlawful_search"]),
+    # 8. probable_cause_present == False alone does NOT fire 4A tags. The
+    #    boolean means "no PC affidavit in the paperwork," not "a search
+    #    occurred without valid PC" — a summons-only report with no search
+    #    can legitimately lack one. 4A coverage is owned by defect_category.
+    (_v2(probable_cause_present=False), []),
+    # 8b. REGRESSION: the Faketown/Doe disorderly-conduct profile — a
+    #     summons-only charge (misdemeanor), no search/seizure, PC
+    #     affidavit absent (paperwork gap), no fourth_amendment defect —
+    #     must produce NO 4A/unlawful_search/probable_cause tags.
+    (_v2(
+        probable_cause_present=False,
+        charges_explained=[
+            {"charge": "Disorderly Conduct", "plain_english": ""}],
+        discrepancies=[{
+            "severity": "medium",
+            "defect_category": "procedural",
+            "description": "No probable-cause affidavit attached to the report.",
+            "ask_attorney": "", "page_ref": None,
+        }],
+    ), []),
     # 9. Excessive force in discrepancy text -> police_misconduct.
     (_v2(discrepancies=[{
         "severity": "high",
@@ -116,10 +133,11 @@ def _v2(**overrides) -> dict:
     (_v2(), []),
     # 12. Null booleans are NOT violations (null != False).
     (_v2(miranda_noted=None, probable_cause_present=None), []),
-    # 13. LLM-JSON drift: string "false"/"False" still counts as negation.
+    # 13. LLM-JSON drift: string "false"/"False" still counts as Miranda
+    #     negation. probable_cause_present="False" no longer contributes
+    #     (boolean→4A mapping removed); only the Miranda boolean path fires.
     (_v2(miranda_noted="false", probable_cause_present="False"),
-        ["fifth_amendment", "fourth_amendment",
-         "probable_cause", "sixth_amendment", "unlawful_search"]),
+        ["fifth_amendment", "sixth_amendment"]),
     # 14. Simple assault is a misdemeanor in FL — bare "assault" must NOT
     #     trigger the felony tag (precision regression fixed).
     (_v2(charges_explained=[
