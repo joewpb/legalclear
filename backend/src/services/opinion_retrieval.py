@@ -216,8 +216,14 @@ def derive_situation_tags(v2_result: dict) -> list[str]:
 
     if _is_explicit_false(raw_miranda):
         tags |= {"fifth_amendment", "sixth_amendment"}
-    if _is_explicit_false(raw_pc):
-        tags |= {"probable_cause", "fourth_amendment", "unlawful_search"}
+    # NOTE: probable_cause_present is deliberately NOT mapped to tags here.
+    # Per the V2 SYSTEM_PROMPT it answers "is a PC affidavit present in the
+    # report paperwork" — not "did a search/seizure occur without valid PC."
+    # The two are unrelated: a summons-only report with no search can
+    # legitimately lack a PC affidavit, so mapping False -> 4A/unlawful_search
+    # tags produced false positives (irrelevant search/seizure case law). The
+    # accurate 4A signal is the defect_category="fourth_amendment" path below.
+    # raw_pc is still captured for the observability log line.
 
     # --- Structured defect_category signals (PRIMARY constitutional path) ---
     # Each discrepancy may carry a `defect_category` enum assigned by the
