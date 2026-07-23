@@ -147,6 +147,8 @@ async def check_eligibility(req: EligibilityRequest):
         return await expungement.check_eligibility(
             req.jurisdiction, req.offense_description, req.years_since_offense, req.lang
         )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Eligibility check failed: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Eligibility check failed: {str(e)}") from e
@@ -407,6 +409,8 @@ async def chat(document_id: str, body: ChatRequest):
 async def get_document(document_id: str):
     try:
         return db.get_document(document_id)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"get_document failed: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch document: {str(e)}") from e
