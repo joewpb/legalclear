@@ -935,20 +935,44 @@ export default function PoliceReportAnalyzer() {
                 </>
               )}
 
-            {/* Relevant Florida case law — retrieved by situation-tag overlap */}
-            {response.relevant_opinions &&
-              response.relevant_opinions.length > 0 && (
-                <>
-                  <h2 style={css.sectionTitle}>Relevant Florida Case Law</h2>
-                  {response.relevant_opinions.map((op, i) => (
-                    <OpinionCard
-                      key={op.citation || i}
-                      opinion={op}
-                      language={language}
-                    />
-                  ))}
-                </>
-              )}
+            {/* Relevant Florida case law — retrieved by situation-tag overlap.
+                Three states: (1) opinions found → cards; (2) defect tags
+                derived but no corpus match → explicit "ask your attorney"
+                message (never a silent empty section); (3) no tags derived
+                → section omitted entirely. */}
+            {(() => {
+              const tags = response.situation_tags_used ?? [];
+              const opinions = response.relevant_opinions ?? [];
+
+              if (opinions.length > 0) {
+                return (
+                  <>
+                    <h2 style={css.sectionTitle}>Relevant Florida Case Law</h2>
+                    {opinions.map((op, i) => (
+                      <OpinionCard
+                        key={op.citation || i}
+                        opinion={op}
+                        language={language}
+                      />
+                    ))}
+                  </>
+                );
+              }
+
+              if (tags.length > 0) {
+                return (
+                  <>
+                    <h2 style={css.sectionTitle}>Relevant Florida Case Law</h2>
+                    <p style={css.bodyText}>
+                      No matching Florida case law in our database yet for
+                      this issue — ask your attorney directly.
+                    </p>
+                  </>
+                );
+              }
+
+              return null;
+            })()}
 
             {/* What happens next */}
             <h2 style={css.sectionTitle}>What Typically Happens Next</h2>
