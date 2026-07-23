@@ -23,6 +23,21 @@ from src.agents.police_report_v2 import compute_risk_score
 
 logger = logging.getLogger(__name__)
 
+
+def _ensure_dict(item, default_key="item"):
+    """Convert dict-like objects to dicts with safe .get() fallbacks.
+
+    If item is already a dict, return it.
+    If item is a string, wrap it as {default_key: item}.
+    Otherwise, return empty dict.
+    """
+    if isinstance(item, dict):
+        return item
+    if isinstance(item, str):
+        return {default_key: item}
+    logger.warning("Unexpected item type in LLM response: %r", item)
+    return {}
+
 # ---------------------------------------------------------------------------
 # System prompt
 # ---------------------------------------------------------------------------
@@ -186,14 +201,16 @@ class DiscoveryMotionAnalyzer:
                         "description": d.get("description", ""),
                     })
                 for m in parsed.get("what_missing", []):
+                    obj = _ensure_dict(m, "item")
                     all_findings.append({
-                        "severity": m.get("severity", "low"),
-                        "description": f"Missing: {m.get('item', 'unknown')} — {m.get('why_important', '')}",
+                        "severity": obj.get("severity", "low"),
+                        "description": f"Missing: {obj.get('item', 'unknown')} — {obj.get('why_important', '')}",
                     })
                 for r in parsed.get("likely_resistance", []):
+                    obj = _ensure_dict(r, "item")
                     all_findings.append({
-                        "severity": r.get("severity", "low"),
-                        "description": f"Likely resisted: {r.get('item', 'unknown')} — {r.get('reason', '')}",
+                        "severity": obj.get("severity", "low"),
+                        "description": f"Likely resisted: {obj.get('item', 'unknown')} — {obj.get('reason', '')}",
                     })
                 risk = compute_risk_score(all_findings)
                 risk["type"] = "risk_analysis"
@@ -255,14 +272,16 @@ class DiscoveryMotionAnalyzer:
                     "description": d.get("description", ""),
                 })
             for m in parsed.get("what_missing", []):
+                obj = _ensure_dict(m, "item")
                 all_findings.append({
-                    "severity": m.get("severity", "low"),
-                    "description": f"Missing: {m.get('item', 'unknown')} — {m.get('why_important', '')}",
+                    "severity": obj.get("severity", "low"),
+                    "description": f"Missing: {obj.get('item', 'unknown')} — {obj.get('why_important', '')}",
                 })
             for r in parsed.get("likely_resistance", []):
+                obj = _ensure_dict(r, "item")
                 all_findings.append({
-                    "severity": r.get("severity", "low"),
-                    "description": f"Likely resisted: {r.get('item', 'unknown')} — {r.get('reason', '')}",
+                    "severity": obj.get("severity", "low"),
+                    "description": f"Likely resisted: {obj.get('item', 'unknown')} — {obj.get('reason', '')}",
                 })
             parsed["risk_analysis"] = compute_risk_score(all_findings)
             return parsed
