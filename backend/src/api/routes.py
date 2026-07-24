@@ -2,6 +2,8 @@ import asyncio
 import logging
 import traceback
 import uuid as _uuid
+from contextlib import contextmanager
+from typing import Generator
 
 from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -38,6 +40,25 @@ app.add_middleware(
 # Rate limiting (P2.0-A) — limiter shared via src.api.limiter
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+@contextmanager
+def _endpoint_guard(operation: str) -> Generator[None, None, None]:
+    """Consistent try/except wrapper for route handlers.
+
+    Re-raises HTTPExceptions as-is; logs unexpected exceptions and wraps
+    them as HTTP 500 with a consistent format.
+    """
+    try:
+        yield
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("%s failed: %s", operation, traceback.format_exc())
+        raise HTTPException(
+            status_code=500, detail=f"{operation} failed: {str(e)}"
+        ) from e
+
 
 # Singletons
 classifier = ClassifierAgent()
@@ -141,15 +162,10 @@ async def health():
 
 @app.post("/eligibility")
 async def check_eligibility(req: EligibilityRequest):
-    try:
+    with _endpoint_guard("Eligibility check"):
         return await expungement.check_eligibility(
             req.jurisdiction, req.offense_description, req.years_since_offense, req.lang
         )
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Eligibility check failed: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Eligibility check failed: {str(e)}") from e
 
 @app.post("/webhook")
 async def stripe_webhook(request: Request):
@@ -288,7 +304,7 @@ async def upload_document(
 
 @app.post("/process/{session_id}", dependencies=[Depends(verify_api_key)])
 async def process_document(session_id: str, background_tasks: BackgroundTasks, lang: str = "en"):
-    try:
+    with _endpoint_guard("Processing"):
         session = db.get_session(session_id)
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
@@ -367,17 +383,12 @@ async def process_document(session_id: str, background_tasks: BackgroundTasks, l
             "expungement": exp_results,
             "escalation": escalation
         }
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Process failed: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}") from e
 
 @app.post("/chat/{document_id}", dependencies=[Depends(verify_api_key)])
 async def chat(document_id: str, body: ChatRequest):
     question = body.message
     lang = body.lang
-    try:
+    with _endpoint_guard("Chat"):
         doc_record = db.get_document(document_id)
         if not doc_record:
             raise HTTPException(status_code=404)
@@ -397,21 +408,11 @@ async def chat(document_id: str, body: ChatRequest):
         db.save_message(document_id, "assistant", qa.get("answer", ""), lang)
 
         return qa
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Chat failed: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Chat failed: {str(e)}") from e
 
 @app.get("/document/{document_id}", dependencies=[Depends(verify_api_key)])
 async def get_document(document_id: str):
-    try:
+    with _endpoint_guard("Document fetch"):
         return db.get_document(document_id)
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"get_document failed: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Failed to fetch document: {str(e)}") from e
 
 @app.get("/documents/{user_id}", dependencies=[Depends(verify_api_key)])
 async def get_documents(user_id: str):
