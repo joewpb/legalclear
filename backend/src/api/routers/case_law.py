@@ -156,6 +156,10 @@ def _courtlistener_v4_fallback(
                     "date_filed": row.get("dateFiled") or "",
                     "cluster_id": None,
                     "summary_plain": None,
+                    # Surface the real CL URL captured from absolute_url —
+                    # _row_to_result prefers this over the (null) cluster_id
+                    # reconstruction so the fallback row keeps its link.
+                    "url": url,
                 }
             )
         return out
@@ -169,11 +173,20 @@ def _courtlistener_v4_fallback(
 
 def _row_to_result(row: dict) -> dict:
     """Map a corpus/CL row to the CaseResult contract. URL reconstructed
-    from cluster_id (a real CourtListener ID); null when absent."""
-    cluster_id = row.get("cluster_id")
-    courtlistener_url = (
-        f"{_CL_BASE}/opinion/{cluster_id}/" if cluster_id else None
-    )
+    from cluster_id (a real CourtListener ID); null when absent.
+
+    A row may carry an explicit ``url`` — the CL v4 fallback captures the
+    opinion's real ``absolute_url`` directly (cluster_id is unknown in that
+    path). When present it is preferred over the cluster_id reconstruction
+    so the fallback row keeps its link instead of degrading to null."""
+    explicit_url = row.get("url")
+    if explicit_url:
+        courtlistener_url = explicit_url
+    else:
+        cluster_id = row.get("cluster_id")
+        courtlistener_url = (
+            f"{_CL_BASE}/opinion/{cluster_id}/" if cluster_id else None
+        )
     return {
         "case_name": row.get("case_name") or "Unknown case name",
         "citation": row.get("citation") or "",
