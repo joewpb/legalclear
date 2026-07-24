@@ -38,6 +38,8 @@ backend/storage/
 dummy.pdf
 doc.txt
 files*/
+# Local diagnostic fixtures (manual test inputs, kept out of git)
+LC-TEST-002.pdf
 # Phase 10 form library — raw form data lives in Supabase storage + DB, not git.
 # Keep the pipeline code + lightweight audit artifacts; ignore the 135MB payload.
 forms/*.pdf
