@@ -51,6 +51,20 @@ class NotificationService:
             logger.error("send_push failed for token %r: %s", expo_token[:20], e)
             return False
 
+    async def send(
+        self,
+        user_id: str,
+        title: str,
+        message: str,
+        data: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Generic notification via log. For Expo push, use send_push()."""
+        logger.info(
+            "Notification: user=%s title=%s message=%s",
+            user_id, title, message,
+        )
+        return {"sent": True, "method": "log", "message": message}
+
     async def send_email(
         self,
         email: str,

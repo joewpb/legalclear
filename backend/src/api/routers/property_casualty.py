@@ -7,11 +7,11 @@ Accepts entities + optional document upload.
 import json
 from typing import Optional
 
-from fastapi import APIRouter, File, Form, UploadFile, Request
+from fastapi import APIRouter, File, Form, Request, UploadFile
 from fastapi.responses import StreamingResponse
 
 from src.agents.property_casualty import PropertyCasualtyExplainer
-from src.api.routes import limiter
+from src.api.limiter import limiter
 
 router = APIRouter(prefix="/api/property-casualty")
 _explainer = PropertyCasualtyExplainer()

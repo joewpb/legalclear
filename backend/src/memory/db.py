@@ -1,9 +1,11 @@
 class DatabaseManager:
 
     def __init__(self):
-        from supabase import create_client
-        from src.core.config import settings
         import logging
+
+        from supabase import create_client
+
+        from src.core.config import settings
         self.logger = logging.getLogger(__name__)
         if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_KEY:
             self.client = None

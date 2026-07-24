@@ -1,5 +1,11 @@
+import logging
+import traceback
+
 import stripe
+
 from src.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -65,7 +71,8 @@ class StripeClient:
                 subscription_id,
                 cancel_at_period_end=True)
             return True
-        except Exception:
+        except stripe.error.StripeError:
+            logger.error("stripe cancel_subscription(%s) failed:\n%s", subscription_id, traceback.format_exc())
             return False
 
     def verify_webhook(
@@ -78,7 +85,7 @@ class StripeClient:
             return event
         except stripe.error.SignatureVerificationError:
             raise ValueError(
-                "Invalid webhook signature")
+                "Invalid webhook signature") from None
 
     def get_payment_status(
             self, payment_intent_id: str) -> str:

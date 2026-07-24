@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 SUPPORTED_LANGUAGES = ["en", "es"]
 
 
@@ -18,5 +22,6 @@ def translate_if_needed(text: str,
         from deep_translator import GoogleTranslator
         return GoogleTranslator(
             source="en", target="es").translate(text)
-    except Exception:
+    except Exception as e:
+        logger.warning("Translation failed: %s", e)
         return text

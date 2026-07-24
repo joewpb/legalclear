@@ -6,16 +6,33 @@ explanation agents, not in this router.
 """
 
 import logging
-from typing import Optional
+from contextlib import contextmanager
+from typing import Generator, Optional
 
 from fastapi import APIRouter, HTTPException
 
-from src.memory.db import DatabaseManager
 from src.core.upl import apply_disclaimer
+from src.memory.db import DatabaseManager
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/law", tags=["law"])
 db = DatabaseManager()
+
+
+@contextmanager
+def _db_lookup(operation: str) -> Generator[None, None, None]:
+    """Context manager that wraps database lookups with consistent error handling.
+
+    Re-raises HTTPExceptions (validation, not-found) as-is; logs and wraps
+    unexpected exceptions as HTTP 500 with a uniform ``detail``.
+    """
+    try:
+        yield
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("%s failed: %s", operation, e)
+        raise HTTPException(status_code=500, detail="Lookup failed") from e
 
 
 # ── Statutes ──────────────────────────────────────────────────────────────────
@@ -37,7 +54,7 @@ async def lookup_statute(citation: Optional[str] = None,
             status_code=400,
             detail="Provide either citation= or both chapter= and section="
         )
-    try:
+    with _db_lookup("statute lookup"):
         q = db.client.table("statutes").select(
             "citation,chapter,section,subsection,title,text,"
             "effective_date,source_url"
@@ -50,11 +67,6 @@ async def lookup_statute(citation: Optional[str] = None,
         if not result.data:
             raise HTTPException(status_code=404, detail="Statute not found")
         return apply_disclaimer({"statutes": result.data}, lang="en")
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error("statute lookup failed: %s", e)
-        raise HTTPException(status_code=500, detail="Lookup failed")
 
 
 # ── Court Rules ───────────────────────────────────────────────────────────────
@@ -76,7 +88,7 @@ async def lookup_rule(citation: Optional[str] = None,
             status_code=400,
             detail="Provide either citation= or both rule_set= and rule_number="
         )
-    try:
+    with _db_lookup("rule lookup"):
         q = db.client.table("court_rules").select(
             "citation,rule_set,rule_number,subsection,title,text,"
             "effective_date,source_url"
@@ -89,11 +101,6 @@ async def lookup_rule(citation: Optional[str] = None,
         if not result.data:
             raise HTTPException(status_code=404, detail="Rule not found")
         return apply_disclaimer({"rules": result.data}, lang="en")
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error("rule lookup failed: %s", e)
-        raise HTTPException(status_code=500, detail="Lookup failed")
 
 
 # ── Local Administrative Orders ───────────────────────────────────────────────
@@ -103,7 +110,7 @@ async def list_administrative_orders(circuit: Optional[int] = None):
     """List local administrative orders, optionally filtered by circuit."""
     if db.client is None:
         raise HTTPException(status_code=503, detail="Database unavailable")
-    try:
+    with _db_lookup("AO lookup"):
         q = db.client.table("local_administrative_orders").select(
             "circuit,ao_number,subject,effective_date,expiration_date,summary,source_url"
         ).order("circuit").order("ao_number")
@@ -111,9 +118,6 @@ async def list_administrative_orders(circuit: Optional[int] = None):
             q = q.eq("circuit", circuit)
         result = q.execute()
         return apply_disclaimer({"administrative_orders": result.data or []}, lang="en")
-    except Exception as e:
-        logger.error("AO lookup failed: %s", e)
-        raise HTTPException(status_code=500, detail="Lookup failed")
 
 
 # ── Court Closures ────────────────────────────────────────────────────────────
@@ -129,7 +133,7 @@ async def list_closures(circuit: Optional[int] = None,
     """
     if db.client is None:
         raise HTTPException(status_code=503, detail="Database unavailable")
-    try:
+    with _db_lookup("closures lookup"):
         q = db.client.table("court_closures").select(
             "circuit,county,closure_date,reason,source"
         ).order("closure_date")
@@ -139,6 +143,3 @@ async def list_closures(circuit: Optional[int] = None,
             q = q.eq("closure_date", date)
         result = q.execute()
         return {"closures": result.data or []}
-    except Exception as e:
-        logger.error("closures lookup failed: %s", e)
-        raise HTTPException(status_code=500, detail="Lookup failed")

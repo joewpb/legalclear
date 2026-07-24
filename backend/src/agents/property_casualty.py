@@ -21,15 +21,14 @@ import json
 import logging
 import traceback
 from datetime import date, datetime
-from typing import AsyncGenerator, Optional
+from typing import AsyncGenerator
 
 from anthropic import AsyncAnthropic
 
+from src.agents.police_report_v2 import compute_risk_score
 from src.core.config import settings
-from src.core.disclaimer import get_disclaimer
 from src.core.upl import apply_disclaimer
 from src.ingestion.pdf_parser import PDFParser
-from src.agents.police_report_v2 import compute_risk_score
 
 logger = logging.getLogger(__name__)
 
@@ -193,7 +192,7 @@ class PropertyCasualtyExplainer:
         return text
 
     @staticmethod
-    def _parse_date_of_loss(entities: dict) -> Optional[date]:
+    def _parse_date_of_loss(entities: dict) -> date | None:
         """Extract date_of_loss from entities dict. Returns None if absent/unparseable.
 
         This is the ONLY date extraction in this module — it reads what was
@@ -283,8 +282,8 @@ class PropertyCasualtyExplainer:
         sub_type: str,
         entities: dict,
         lang_label: str,
-        doc_text: Optional[str] = None,
-        deadlines: Optional[list[dict]] = None,
+        doc_text: str | None = None,
+        deadlines: list[dict] | None = None,
     ) -> str:
         """Assemble the main user prompt text."""
         parts: list[str] = []
@@ -314,17 +313,17 @@ class PropertyCasualtyExplainer:
         sub_type: str,
         entities: dict,
         language: str = "en",
-        file_bytes: Optional[bytes] = None,
-        filename: Optional[str] = None,
+        file_bytes: bytes | None = None,
+        filename: str | None = None,
     ) -> AsyncGenerator[str, None]:
         """Stream a property/casualty explanation as SSE chunks."""
         lang_label = "Spanish" if language == "es" else "English"
         user_content: list[dict] = []
-        doc_text: Optional[str] = None
+        doc_text: str | None = None
         is_first_party = sub_type == "first_party_property"
 
         # ── first-party: compute deadlines from date_of_loss ─────────
-        computed_deadlines: Optional[list[dict]] = None
+        computed_deadlines: list[dict] | None = None
         if is_first_party:
             loss_date = self._parse_date_of_loss(entities)
             if loss_date:
@@ -402,17 +401,17 @@ class PropertyCasualtyExplainer:
         sub_type: str,
         entities: dict,
         language: str = "en",
-        file_bytes: Optional[bytes] = None,
-        filename: Optional[str] = None,
+        file_bytes: bytes | None = None,
+        filename: str | None = None,
     ) -> dict:
         """Non-streaming explanation."""
         lang_label = "Spanish" if language == "es" else "English"
         user_content: list[dict] = []
-        doc_text: Optional[str] = None
+        doc_text: str | None = None
         is_first_party = sub_type == "first_party_property"
 
         # ── first-party: compute deadlines ──────────────────────────
-        computed_deadlines: Optional[list[dict]] = None
+        computed_deadlines: list[dict] | None = None
         if is_first_party:
             loss_date = self._parse_date_of_loss(entities)
             if loss_date:
@@ -429,6 +428,7 @@ class PropertyCasualtyExplainer:
                 try:
                     extraction = await self._pdf_parser.extract_from_bytes_async(file_bytes)
                 except Exception:
+                    logger.error("PDF extraction failed in explain:\n%s", traceback.format_exc())
                     return apply_disclaimer({"error": True, "message": "Could not extract text."}, lang=language)
                 doc_text = extraction.get("raw_text", "")
 

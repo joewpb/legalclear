@@ -2,7 +2,9 @@ import json
 import logging
 import os
 import traceback
+
 from anthropic import AsyncAnthropic
+
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 
@@ -39,7 +41,8 @@ class FormGuideAgent:
         try:
             with open(path) as f:
                 self.forms_library = json.load(f)
-        except Exception:
+        except Exception as e:
+            logger.warning("Failed to load forms library: %s", e)
             self.forms_library = {}
 
     async def guide(self, document: dict,

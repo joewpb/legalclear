@@ -14,16 +14,13 @@ says so plainly and directs the user to help — it does not guess.
 import logging
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 
-from src.core.config import settings
-from src.core.upl import (
-    apply_upl_guardrails, get_disclaimer
-)
-from src.memory.db import DatabaseManager
 from src.agents.explainer import ExplainerAgent
 from src.core.escalation import EscalationRouter
+from src.core.upl import apply_upl_guardrails, get_disclaimer
+from src.memory.db import DatabaseManager
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -71,7 +68,7 @@ async def analyze(
 
     except Exception as e:
         logger.error(f"Analysis error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/api/analyze/stream/{document_id}")

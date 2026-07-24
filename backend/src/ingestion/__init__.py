@@ -1,10 +1,15 @@
-from .pdf_parser import PDFParser
+import logging
+import traceback
+
 from .ocr import OCRProcessor
+from .pdf_parser import PDFParser
 from .text_cleaner import TextCleaner
 
 _pdf = PDFParser()
 _ocr = OCRProcessor()
 _cleaner = TextCleaner()
+
+logger = logging.getLogger(__name__)
 
 
 async def ingest_document(file_bytes: bytes,
@@ -31,6 +36,10 @@ async def ingest_document(file_bytes: bytes,
         page_count = extraction.get("page_count", 1)
 
     except Exception as e:
+        logger.error(
+            "PDF extraction failed for %s:\n%s",
+            filename, traceback.format_exc(),
+        )
         return {
             "error": True,
             "error_code": "pdf_extraction_failed",
@@ -41,7 +50,11 @@ async def ingest_document(file_bytes: bytes,
     # Clean text
     try:
         cleaned = _cleaner.clean(raw_text)
-    except Exception as e:
+    except Exception:
+        logger.warning(
+            "Text cleaning failed for %s — using raw text",
+            filename,
+        )
         cleaned = raw_text
 
     return {

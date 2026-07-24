@@ -2,23 +2,18 @@
 
 import logging
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Header
+from fastapi import APIRouter, Body, Depends, HTTPException
 
-from src.core.config import settings
-from src.memory.db import DatabaseManager
+from src.api.dependencies import require_api_key
 from src.core.upl import apply_disclaimer
+from src.memory.db import DatabaseManager
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/triage", tags=["triage"])
 db = DatabaseManager()
 
 
-def _require_api_key(x_api_key: str = Header(default="")):
-    if x_api_key != settings.API_KEY:
-        raise HTTPException(status_code=401, detail="Invalid API Key")
-
-
-@router.post("/classify/{document_id}", dependencies=[Depends(_require_api_key)])
+@router.post("/classify/{document_id}", dependencies=[Depends(require_api_key)])
 async def classify_document(document_id: str):
     """Classify a document and return routing instructions.
 
@@ -93,7 +88,7 @@ async def classify_document(document_id: str):
     }, lang="en")
 
 
-@router.post("/confirm/{document_id}", dependencies=[Depends(_require_api_key)])
+@router.post("/confirm/{document_id}", dependencies=[Depends(require_api_key)])
 async def confirm_classification(
     document_id: str,
     document_type: str = Body(..., embed=True),
@@ -104,8 +99,10 @@ async def confirm_classification(
     Updates documents.classification.document_type and clears the
     requires_human_review flag so the deadline pipeline can proceed.
     """
-    from triage.router import CONFIDENCE_THRESHOLD, DOC_TYPE_TO_DEADLINE_RULES, route, VALID_DOCUMENT_TYPES
     from triage.classify import VALID_DOCUMENT_TYPES as VDT
+    from triage.router import (
+        route,
+    )
 
     if document_type not in VDT:
         raise HTTPException(
@@ -135,7 +132,7 @@ async def confirm_classification(
         ).eq("id", document_id).execute()
     except Exception as e:
         logger.error("confirm_classification failed: %s", e)
-        raise HTTPException(status_code=500, detail="Could not update classification")
+        raise HTTPException(status_code=500, detail="Could not update classification") from e
 
     routing = route(updated)
     return apply_disclaimer({

@@ -14,10 +14,11 @@ from typing import Optional
 
 import httpx
 from anthropic import AsyncAnthropic
-from fastapi import APIRouter, Body, Depends, HTTPException, Header
+from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+from src.api.dependencies import require_api_key
 from src.core.config import settings
 from src.core.upl import apply_upl_guardrails, get_disclaimer
 from src.memory.db import DatabaseManager
@@ -41,11 +42,6 @@ FL_FAMILY_LAW_FORMS_PAGE = (
 BUCKET = "court-forms"
 
 
-def _require_api_key(x_api_key: str = Header(default="")):
-    if x_api_key != settings.API_KEY:
-        raise HTTPException(status_code=401, detail="Invalid API Key")
-
-
 # ── List ──────────────────────────────────────────────────────────────────────
 
 @router.get("")
@@ -64,7 +60,7 @@ async def list_forms(category: Optional[str] = None):
         return {"forms": result.data or []}
     except Exception as e:
         logger.error("list_forms failed: %s", e)
-        raise HTTPException(status_code=500, detail="Could not list forms")
+        raise HTTPException(status_code=500, detail="Could not list forms") from e
 
 
 # All Florida court forms in this database are valid statewide. The
@@ -198,7 +194,7 @@ async def search_forms(
         rows, total = _search_court_forms(q, category, limit, offset)
     except Exception as e:
         logger.error("search_forms failed: %s", e)
-        raise HTTPException(status_code=500, detail="Could not search forms")
+        raise HTTPException(status_code=500, detail="Could not search forms") from e
 
     return {
         "forms": rows,
@@ -225,7 +221,7 @@ async def form_facets():
         )
     except Exception as e:
         logger.error("form_facets failed: %s", e)
-        raise HTTPException(status_code=500, detail="Could not load facets")
+        raise HTTPException(status_code=500, detail="Could not load facets") from e
 
     category_counts: dict[str, int] = {}
     for row in result.data or []:
@@ -261,7 +257,7 @@ async def form_meta(form_number: str):
         )
     except Exception as e:
         logger.error("form_meta failed for %s: %s", form_number, e)
-        raise HTTPException(status_code=500, detail="Could not load form metadata")
+        raise HTTPException(status_code=500, detail="Could not load form metadata") from e
 
     if not result.data:
         raise HTTPException(status_code=404, detail="Form not found")
@@ -316,7 +312,7 @@ async def suggest_forms(payload: SuggestRequest = Body(...)):
         candidates = _candidate_forms_for_situation(payload.situation, limit=10)
     except Exception as e:
         logger.error("suggest_forms candidate search failed: %s", e)
-        raise HTTPException(status_code=500, detail="Could not retrieve forms")
+        raise HTTPException(status_code=500, detail="Could not retrieve forms") from e
 
     disclaimer = get_disclaimer("en")
 
@@ -432,7 +428,7 @@ async def download_form(form_number: str):
         file_data = db.client.storage.from_(BUCKET).download(storage_path)
     except Exception as e:
         logger.error("Storage download failed for %s: %s", form_number, e)
-        raise HTTPException(status_code=502, detail="Could not retrieve form from storage")
+        raise HTTPException(status_code=502, detail="Could not retrieve form from storage") from e
 
     filename = storage_path.split("/")[-1]
     return StreamingResponse(
@@ -444,7 +440,7 @@ async def download_form(form_number: str):
 
 # ── Change detection ──────────────────────────────────────────────────────────
 
-@router.post("/check-updates", dependencies=[Depends(_require_api_key)])
+@router.post("/check-updates", dependencies=[Depends(require_api_key)])
 async def check_updates():
     """Lightweight change-detection pass over all active forms.
 
@@ -482,7 +478,7 @@ async def check_updates():
                 head = await client.head(url)
                 etag = head.headers.get("etag", "")
                 content_length = head.headers.get("content-length", "")
-                remote_sig = f"{etag}:{content_length}"
+                remote_sig = f"{etag}:{content_length}"  # noqa: F841 — reserved for future signature comparison
 
                 # Download and compute SHA-256 for content comparison
                 get_resp = await client.get(url)

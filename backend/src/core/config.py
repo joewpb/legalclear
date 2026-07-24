@@ -1,4 +1,5 @@
 import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -42,6 +43,7 @@ class Settings:
     MESSAGING_PLATFORM: str = os.getenv(
         "MESSAGING_PLATFORM", "log")
     BACKEND_PORT: int = int(os.getenv("BACKEND_PORT", "8001"))
+    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "https://legalclear.app")
 
     @property
     def is_development(self) -> bool:

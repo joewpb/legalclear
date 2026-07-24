@@ -1,28 +1,28 @@
-from fastapi import FastAPI, Depends, HTTPException, Header, Request, BackgroundTasks
-from fastapi.middleware.cors import CORSMiddleware
-from typing import List, Dict, Any, Optional
-from pydantic import BaseModel
 import asyncio
 import logging
 import traceback
 import uuid as _uuid
+from contextlib import contextmanager
+from typing import Generator
 
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
 
+from src.agents.classifier import ClassifierAgent
+from src.agents.explainer import ExplainerAgent
+from src.agents.expungement import ExpungementAgent
+from src.agents.form_guide import FormGuideAgent
+from src.agents.risk_scanner import RiskScannerAgent
+from src.api.limiter import limiter
 from src.core.config import settings
 from src.core.escalation import EscalationRouter
 from src.core.notifications import NotificationService
 from src.ingestion import ingest_document
-from src.agents.classifier import ClassifierAgent
-from src.agents.explainer import ExplainerAgent
-from src.agents.form_guide import FormGuideAgent
-from src.agents.risk_scanner import RiskScannerAgent
-from src.agents.expungement import ExpungementAgent
 from src.memory.db import DatabaseManager
 from src.payments.stripe_client import StripeClient
-from src.payments import check_access
 
 app = FastAPI(title="LegalClear API", version="1.0")
 logger = logging.getLogger(__name__)
@@ -37,11 +37,28 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Rate limiting (P2.0-A). Defined before the router imports below so the
-# routers can resolve `from src.api.routes import limiter` cleanly.
-limiter = Limiter(key_func=get_remote_address)
+# Rate limiting (P2.0-A) — limiter shared via src.api.limiter
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+@contextmanager
+def _endpoint_guard(operation: str) -> Generator[None, None, None]:
+    """Consistent try/except wrapper for route handlers.
+
+    Re-raises HTTPExceptions as-is; logs unexpected exceptions and wraps
+    them as HTTP 500 with a consistent format.
+    """
+    try:
+        yield
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("%s failed: %s", operation, traceback.format_exc())
+        raise HTTPException(
+            status_code=500, detail=f"{operation} failed: {str(e)}"
+        ) from e
+
 
 # Singletons
 classifier = ClassifierAgent()
@@ -63,25 +80,28 @@ FORM_CATEGORIES = [
 # Part B routers (Phase 15+). Each phase's router declares its own
 # /api/* prefix; HTTP paths match source spec even though the on-disk
 # location is backend/src/api/routers/ rather than .../routes/.
-from src.api.routers.intake import router as intake_router        # noqa: E402
-from src.api.routers.small_claims import router as small_claims_router  # noqa: E402
-from src.api.routers.criminal import router as criminal_router      # noqa: E402
-from src.api.routers.discovery import router as discovery_router    # noqa: E402
-from src.api.routers.property_casualty import router as property_casualty_router  # noqa: E402
-from src.api.routers.expungement import router as expungement_router  # noqa: E402
-from src.api.routers.landlord import router as landlord_router  # noqa: E402
-from src.api.routers.traffic import router as traffic_router  # noqa: E402
-from src.api.routers.police_report import router as police_report_router  # noqa: E402
+from src.api.routers.analysis import router as analysis_router  # noqa: E402
 from src.api.routers.case_law import router as case_law_router  # noqa: E402
-from src.api.routers.packet import router as packet_router  # noqa: E402
-from src.api.routers.forms import router as forms_router  # noqa: E402
-from src.api.routers.law import router as law_router          # noqa: E402
+from src.api.routers.chat import router as chat_router  # noqa: E402
+from src.api.routers.criminal import router as criminal_router  # noqa: E402
 from src.api.routers.deadline import router as deadline_router  # noqa: E402
-from src.api.routers.triage import router as triage_router        # noqa: E402
+from src.api.routers.discovery import router as discovery_router  # noqa: E402
+from src.api.routers.expungement import router as expungement_router  # noqa: E402
+from src.api.routers.forms import router as forms_router  # noqa: E402
+from src.api.routers.intake import router as intake_router  # noqa: E402
+from src.api.routers.landlord import router as landlord_router  # noqa: E402
+from src.api.routers.law import router as law_router  # noqa: E402
+from src.api.routers.packet import router as packet_router  # noqa: E402
+from src.api.routers.police_report import router as police_report_router  # noqa: E402
+from src.api.routers.property_casualty import (  # noqa: E402
+    router as property_casualty_router,  # noqa: E402
+)
 from src.api.routers.reminders import router as reminders_router  # noqa: E402
-from src.api.routers.analysis import router as analysis_router    # noqa: E402
-from src.api.routers.chat import router as chat_router           # noqa: E402
+from src.api.routers.small_claims import router as small_claims_router  # noqa: E402
+from src.api.routers.traffic import router as traffic_router  # noqa: E402
+from src.api.routers.triage import router as triage_router  # noqa: E402
 from src.api.routers.wills_trusts import router as wills_trusts_router  # noqa: E402
+
 app.include_router(intake_router)
 app.include_router(small_claims_router)
 app.include_router(criminal_router)
@@ -142,13 +162,10 @@ async def health():
 
 @app.post("/eligibility")
 async def check_eligibility(req: EligibilityRequest):
-    try:
+    with _endpoint_guard("Eligibility check"):
         return await expungement.check_eligibility(
             req.jurisdiction, req.offense_description, req.years_since_offense, req.lang
         )
-    except Exception as e:
-        logger.error(f"Eligibility check failed: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Eligibility check failed: {str(e)}")
 
 @app.post("/webhook")
 async def stripe_webhook(request: Request):
@@ -162,7 +179,8 @@ async def stripe_webhook(request: Request):
     try:
         event = stripe_client.verify_webhook(payload, sig_header)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        logger.error("Stripe webhook verification failed: %s", e)
+        raise HTTPException(status_code=400, detail=str(e)) from e
     
     event_type = event["type"]
     obj = event["data"]["object"]
@@ -282,11 +300,11 @@ async def upload_document(
         }
     except Exception as e:
         logger.error(f"Upload failed: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Upload processing failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Upload processing failed: {str(e)}") from e
 
 @app.post("/process/{session_id}", dependencies=[Depends(verify_api_key)])
 async def process_document(session_id: str, background_tasks: BackgroundTasks, lang: str = "en"):
-    try:
+    with _endpoint_guard("Processing"):
         session = db.get_session(session_id)
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
@@ -365,17 +383,12 @@ async def process_document(session_id: str, background_tasks: BackgroundTasks, l
             "expungement": exp_results,
             "escalation": escalation
         }
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Process failed: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
 
 @app.post("/chat/{document_id}", dependencies=[Depends(verify_api_key)])
 async def chat(document_id: str, body: ChatRequest):
     question = body.message
     lang = body.lang
-    try:
+    with _endpoint_guard("Chat"):
         doc_record = db.get_document(document_id)
         if not doc_record:
             raise HTTPException(status_code=404)
@@ -395,19 +408,11 @@ async def chat(document_id: str, body: ChatRequest):
         db.save_message(document_id, "assistant", qa.get("answer", ""), lang)
 
         return qa
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Chat failed: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Chat failed: {str(e)}")
 
 @app.get("/document/{document_id}", dependencies=[Depends(verify_api_key)])
 async def get_document(document_id: str):
-    try:
+    with _endpoint_guard("Document fetch"):
         return db.get_document(document_id)
-    except Exception as e:
-        logger.error(f"get_document failed: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Failed to fetch document: {str(e)}")
 
 @app.get("/documents/{user_id}", dependencies=[Depends(verify_api_key)])
 async def get_documents(user_id: str):
@@ -422,7 +427,11 @@ async def prepare_florida_filing(case_data: dict, user_id: str = Header()):
             detail="First filing free. Upgrade for expert guidance on next steps."
         )
 
-    from src.platforms.florida_courts import PDFAGenerator, CountyRouter, ManualFilingHelper
+    from src.platforms.florida_courts import (
+        CountyRouter,
+        ManualFilingHelper,
+        PDFAGenerator,
+    )
     gen = PDFAGenerator()
     router = CountyRouter()
     helper = ManualFilingHelper()

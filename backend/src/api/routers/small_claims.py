@@ -16,7 +16,8 @@ Module 1 wiring: /explain streams a plain-English small-claims explanation
 via SSE from claude-sonnet-4-6.  The intake router feeds it entities from
 the user's situation description.
 """
-
+import logging
+import traceback
 from typing import Optional
 
 from fastapi import APIRouter, Body, HTTPException, Request
@@ -25,8 +26,10 @@ from pydantic import BaseModel, Field
 
 from src.agents.small_claims import SmallClaimsExplainer
 from src.api.routers.packet import build_packet_with_checkout
-from src.api.routes import limiter
+from src.api.limiter import limiter
 from src.services.packet_builder import PacketRequest
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/small-claims")
 
@@ -70,7 +73,11 @@ async def generate_small_claims(request: Request, req: SmallClaimsRequest):
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Packet build failed: {exc}")
+        logger.error(
+            "Small claims packet build failed:\n%s",
+            traceback.format_exc(),
+        )
+        raise HTTPException(status_code=500, detail=f"Packet build failed: {exc}") from exc
 
 
 # ---------------------------------------------------------------------------

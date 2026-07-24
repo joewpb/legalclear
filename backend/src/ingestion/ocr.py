@@ -1,7 +1,8 @@
+import io
+
+import fitz
 import pytesseract
 from PIL import Image, ImageEnhance
-import fitz
-import io
 
 
 class OCRProcessor:

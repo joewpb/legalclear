@@ -10,12 +10,17 @@ Path note: source put this at backend/src/api/routes/traffic.py; repo
 location is backend/src/api/routers/ (see Phase 10 divergence). HTTP
 endpoints unchanged.
 """
+import logging
+import traceback
+from typing import Optional
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Optional
 
 from src.api.routers.packet import build_packet_with_checkout
 from src.services.packet_builder import PacketRequest
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/traffic")
 
@@ -45,6 +50,10 @@ async def gen_traffic(req: TrafficRequest):
     except HTTPException:
         raise
     except Exception as exc:
+        logger.error(
+            "Traffic packet build failed:\n%s",
+            traceback.format_exc(),
+        )
         raise HTTPException(
             status_code=500, detail=f"Packet build failed: {exc}"
-        )
+        ) from exc

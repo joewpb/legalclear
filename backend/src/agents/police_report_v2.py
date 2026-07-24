@@ -12,7 +12,7 @@ import base64
 import json
 import logging
 import traceback
-from typing import AsyncGenerator, Optional
+from typing import AsyncGenerator
 
 from anthropic import AsyncAnthropic
 
@@ -422,6 +422,7 @@ class PoliceReportAnalyzerV2:
             try:
                 extraction = await self._pdf_parser.extract_from_bytes_async(file_bytes)
             except Exception:
+                logger.error("PDF extraction failed in analyze:\n%s", traceback.format_exc())
                 return {
                     "error": True,
                     "message": "Could not extract text from this PDF.",

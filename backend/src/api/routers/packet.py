@@ -13,13 +13,14 @@ source spec — the existing Phase 09 client handles the existing $5/$10/$15
 the same SDK without modifying Phase 09 internals.
 """
 import logging
-import os
 from pathlib import Path
 
 import stripe
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
+from src.core.config import settings
+from src.core.upl import apply_disclaimer
 from src.services.packet_builder import (
     PacketRequest,
     build_packet,
@@ -28,18 +29,16 @@ from src.services.packet_builder import (
     track_packet_filing,
 )
 from src.services.translation_layer import get_walkthrough
-from src.core.upl import apply_disclaimer
-from src.core.config import settings
 
 router = APIRouter(prefix="/api/packet")
 logger = logging.getLogger(__name__)
 
-stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
+stripe.api_key = settings.STRIPE_SECRET_KEY
 PACKET_PRICE_CENTS = 3500  # $35.00 — "LegalClear Filing Packet"
 
 # Success/cancel URLs default to the production domain but can be overridden
 # via env vars (Railway preview deploys, local dev with VITE on :5173, etc.).
-_FRONTEND = os.environ.get("FRONTEND_URL", "https://legalclear.app")
+_FRONTEND = settings.FRONTEND_URL
 
 
 async def build_packet_with_checkout(req: PacketRequest) -> dict:

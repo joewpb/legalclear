@@ -2,9 +2,9 @@
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException
 
-from src.core.config import settings
+from src.api.dependencies import require_api_key
 from src.core.upl import apply_disclaimer
 from src.memory.db import DatabaseManager
 
@@ -13,12 +13,7 @@ router = APIRouter(prefix="/api/deadline", tags=["deadline"])
 db = DatabaseManager()
 
 
-def _require_api_key(x_api_key: str = Header(default="")):
-    if x_api_key != settings.API_KEY:
-        raise HTTPException(status_code=401, detail="Invalid API Key")
-
-
-@router.post("/analyze/{document_id}", dependencies=[Depends(_require_api_key)])
+@router.post("/analyze/{document_id}", dependencies=[Depends(require_api_key)])
 async def analyze_document(document_id: str):
     """Run the deadline pipeline on an already-ingested document.
 
@@ -61,7 +56,7 @@ async def get_deadlines(document_id: str):
         return apply_disclaimer({"deadlines": result.data or []}, lang="en")
     except Exception as e:
         logger.error("get_deadlines failed: %s", e)
-        raise HTTPException(status_code=500, detail="Could not retrieve deadlines")
+        raise HTTPException(status_code=500, detail="Could not retrieve deadlines") from e
 
 
 @router.get("/{document_id}/trigger-events")
@@ -78,4 +73,4 @@ async def get_trigger_events(document_id: str):
         return apply_disclaimer({"trigger_events": result.data or []}, lang="en")
     except Exception as e:
         logger.error("get_trigger_events failed: %s", e)
-        raise HTTPException(status_code=500, detail="Could not retrieve trigger events")
+        raise HTTPException(status_code=500, detail="Could not retrieve trigger events") from e

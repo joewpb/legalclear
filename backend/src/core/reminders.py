@@ -53,7 +53,6 @@ def compute_reminder_schedule(
     if now >= due_dt:
         return []   # caller marks as expired; no future reminders
 
-    days_remaining = (due_dt - now).total_seconds() / 86400
     hours_remaining = (due_dt - now).total_seconds() / 3600
 
     # Urgent window

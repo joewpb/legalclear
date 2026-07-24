@@ -3,11 +3,11 @@
 POST /api/discovery/analyze — single-file upload, SSE streaming.
 """
 
-from fastapi import APIRouter, File, Form, UploadFile, Request
+from fastapi import APIRouter, File, Form, Request, UploadFile
 from fastapi.responses import StreamingResponse
 
 from src.agents.discovery_motion import DiscoveryMotionAnalyzer
-from src.api.routes import limiter
+from src.api.limiter import limiter
 
 router = APIRouter(prefix="/api/discovery")
 _analyzer = DiscoveryMotionAnalyzer()

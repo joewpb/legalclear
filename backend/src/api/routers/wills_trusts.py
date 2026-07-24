@@ -11,7 +11,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from src.agents.wills_trusts import WillsTrustsExplainer
-from src.api.routes import limiter
+from src.api.limiter import limiter
 
 router = APIRouter(prefix="/api/wills-trusts")
 

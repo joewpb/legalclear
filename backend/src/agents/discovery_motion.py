@@ -16,10 +16,10 @@ from typing import AsyncGenerator
 
 from anthropic import AsyncAnthropic
 
+from src.agents.police_report_v2 import compute_risk_score
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.ingestion.pdf_parser import PDFParser
-from src.agents.police_report_v2 import compute_risk_score
 
 logger = logging.getLogger(__name__)
 
@@ -238,6 +238,7 @@ class DiscoveryMotionAnalyzer:
             try:
                 extraction = await self._pdf_parser.extract_from_bytes_async(file_bytes)
             except Exception:
+                logger.error("PDF extraction failed in analyze:\n%s", traceback.format_exc())
                 return {"error": True, "message": "Could not extract text.", "disclaimer": get_disclaimer(language)}
             raw_text = extraction.get("raw_text", "")
             if not raw_text.strip():

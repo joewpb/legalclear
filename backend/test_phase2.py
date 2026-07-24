@@ -5,7 +5,7 @@ from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.core.escalation import EscalationRouter
 from src.core.i18n import get_lang
-from src.platforms.notifications import NotificationService
+from src.core.notifications import NotificationService
 
 
 def test():
