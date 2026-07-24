@@ -53,3 +53,30 @@ def test_known_tag_combo_returns_ranked_opinions():
     # cite_count ordering is descending (PostgREST .order desc).
     counts = [op.get("cite_count") for op in opinions]
     assert counts == sorted(counts, reverse=True)
+
+
+@skip_no_creds
+def test_charge_class_only_tags_return_empty():
+    # A charge-class label alone carries no legal issue — the gate must
+    # short-circuit to [] even though the live corpus is reachable (this is
+    # the real-DB confirmation of the gate; the pre-DB logic is unit-tested
+    # in test_opinion_mapper.py).
+    assert get_relevant_opinions(["misdemeanor"]) == []   # LC-TEST-002 profile
+    assert get_relevant_opinions(["felony"]) == []
+    # Bare DUI charge — dui + traffic_stop are both class tags now.
+    assert get_relevant_opinions(["dui", "traffic_stop"]) == []
+    assert get_relevant_opinions(["felony", "misdemeanor", "dui"]) == []
+
+
+@skip_no_creds
+def test_substantive_alongside_class_still_retrieves():
+    # Regression (Adkins-style): a class tag + a substantive tag must still
+    # retrieve normally — the class gate only suppresses class-ONLY sets.
+    opinions = get_relevant_opinions(["felony", "fourth_amendment"], limit=3)
+    assert len(opinions) > 0, "felony + fourth_amendment must still retrieve"
+    # A DUI charge WITH a real fourth_amendment defect must still retrieve.
+    opinions = get_relevant_opinions(
+        ["dui", "traffic_stop", "fourth_amendment"], limit=3
+    )
+    assert len(opinions) > 0, "DUI + fourth_amendment must still retrieve"
+

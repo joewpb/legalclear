@@ -155,3 +155,82 @@ def test_derive_situation_tags(v2_result, expected):
 def test_derive_non_dict_returns_empty():
     assert derive_situation_tags(None) == []          # type: ignore[arg-type]
     assert derive_situation_tags("not a dict") == []  # type: ignore[arg-type]
+
+
+# ---------------------------------------------------------------------------
+# Charge-class gate on get_relevant_opinions(). These are PURE unit tests — no
+# Supabase credentials required — so they run in CI. They prove the gate fires
+# *before* any DB round-trip (otherwise a class-only set would be impossible to
+# distinguish from degraded-mode []). Strategy: monkeypatch the module-level
+# `db.client` with sentinels that detect / explode on `.table()`.
+# ---------------------------------------------------------------------------
+
+import src.services.opinion_retrieval as opinion_retrieval  # noqa: E402
+from src.services.opinion_retrieval import get_relevant_opinions  # noqa: E402
+
+
+class _ExplodingClient:
+    """DB client whose .table() raises — proves the gate short-circuits
+    before any query for charge-class-only tag sets."""
+
+    def table(self, *args, **kwargs):  # noqa: ANN001
+        raise AssertionError(
+            "db.client.table() was called — the charge-class gate should "
+            "have short-circuited before any DB work"
+        )
+
+
+class _RecordingClient:
+    """DB client whose query chain records that .table() was reached and
+    returns an empty result set. Proves substantive tag sets are NOT
+    short-circuited by the gate."""
+
+    queried = False
+
+    def table(self, *args, **kwargs):  # noqa: ANN001
+        type(self).queried = True
+        return self
+
+    def select(self, *args, **kwargs):  # noqa: ANN001
+        return self
+
+    def overlaps(self, *args, **kwargs):  # noqa: ANN001
+        return self
+
+    def eq(self, *args, **kwargs):  # noqa: ANN001
+        return self
+
+    def limit(self, *args, **kwargs):  # noqa: ANN001
+        return self
+
+    def execute(self):  # noqa: ANN201
+        return type("_Result", (), {"data": []})()
+
+
+def test_class_only_tags_return_empty_without_db_call(monkeypatch):
+    # A charge-class label alone (no substantive tag) must short-circuit to
+    # [] WITHOUT touching the DB. Verified by patching in a client that
+    # explodes if .table() is reached.
+    monkeypatch.setattr(opinion_retrieval.db, "client", _ExplodingClient())
+    # LC-TEST-002 profile: misdemeanor tag alone.
+    assert get_relevant_opinions(["misdemeanor"]) == []
+    # Felony tag alone.
+    assert get_relevant_opinions(["felony"]) == []
+    # Bare DUI charge — dui + traffic_stop (both auto-emitted, both class).
+    assert get_relevant_opinions(["dui", "traffic_stop"]) == []
+    # Multiple class tags, still no substantive tag.
+    assert get_relevant_opinions(["felony", "misdemeanor", "dui"]) == []
+
+
+def test_substantive_tag_set_is_not_gated(monkeypatch):
+    # Regression: a substantive tag (here fourth_amendment) alongside a
+    # class tag must pass through the gate and reach the DB query — the
+    # Adkins-style felony + fourth_amendment match must keep working.
+    _RecordingClient.queried = False
+    monkeypatch.setattr(opinion_retrieval.db, "client", _RecordingClient())
+    opinions = get_relevant_opinions(["felony", "fourth_amendment"])
+    assert _RecordingClient.queried is True, (
+        "expected the query to run for a substantive tag set; the gate "
+        "must not short-circuit when a substantive tag is present"
+    )
+    assert opinions == []  # empty corpus result from the recording client
