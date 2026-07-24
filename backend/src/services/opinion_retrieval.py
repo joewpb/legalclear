@@ -50,8 +50,16 @@ def get_relevant_opinions(
     Ranking: PRIMARY key = number of derived situation_tags the opinion
     shares (tag-overlap count, a relevance signal), SECONDARY/tiebreaker =
     cite_count desc. quality_flagged=False only. Returns [] on empty input,
-    degraded mode, or query error — retrieval never breaks the parent
-    response.
+    a charge-class-only tag set, degraded mode, or query error — retrieval
+    never breaks the parent response.
+
+    Charge-class gate: a tag set consisting ONLY of offense-seriousness
+    labels (`_CHARGE_CLASS_TAGS`: misdemeanor/felony/dui/drug_trafficking)
+    describes the charge grade, not a legal issue, and short-circuits to []
+    before any DB work — same outcome as an empty tag set. At least one
+    substantive tag (anything outside that set) must be present to retrieve.
+    When one is, ALL tags — class tags included — still inform ranking
+    exactly as before (e.g. felony + fourth_amendment is unaffected).
 
     PostgREST `.overlaps` filters to candidates matching ≥1 tag but cannot
     express overlap *count*, so we fetch the candidate set and rank in
@@ -60,9 +68,20 @@ def get_relevant_opinions(
     """
     if not situation_tags:
         return []
+    # Charge-class-only set -> no legal issue to retrieve case law for.
+    # Short-circuit before the DB round-trip. A substantive tag (any tag
+    # outside _CHARGE_CLASS_TAGS) must accompany the class label(s).
+    tag_set = set(situation_tags)
+    if not (tag_set - _CHARGE_CLASS_TAGS):
+        logger.info(
+            "get_relevant_opinions class-only tags=%r -> [] "
+            "(no substantive tag present)",
+            sorted(tag_set),
+        )
+        return []
     if db.client is None:
         return []
-    query_tags = set(situation_tags)
+    query_tags = tag_set
     try:
         result = (
             db.client.table("legal_opinions")
@@ -131,6 +150,20 @@ _CHARGE_FELONY = re.compile(
     r"sexual batter|aggravated assault|aggravated batter|"
     r"arson|manslaughter)", re.I)
 _CHARGE_MISD = re.compile(r"\bmisdemeanor\b", re.I)
+
+# Charge-class / offense-seriousness tags. These describe the *grade* of the
+# charge, not a legal issue. A tag set containing ONLY these carries no
+# constitutional signal — there is no actual legal issue corroborating the
+# class label (e.g. a bare "misdemeanor" disorderly-conduct summons with no
+# defect) — so get_relevant_opinions() short-circuits to [] for class-only
+# sets. When a substantive tag (anything outside this set) is also present,
+# ALL tags including the class tag still inform ranking, unchanged.
+# `traffic_stop` is included because it is emitted automatically whenever a
+# DUI charge is present, so it corroborates nothing beyond the charge itself
+# — a bare DUI with no substantive defect short-circuits like the others.
+_CHARGE_CLASS_TAGS = frozenset(
+    {"misdemeanor", "felony", "dui", "drug_trafficking", "traffic_stop"}
+)
 
 # Free-text keyword scan — ONLY for signals with no dedicated boolean.
 _DESC_FORCE = re.compile(
