@@ -6,15 +6,15 @@ import uuid as _uuid
 from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
 
 from src.agents.classifier import ClassifierAgent
 from src.agents.explainer import ExplainerAgent
 from src.agents.expungement import ExpungementAgent
 from src.agents.form_guide import FormGuideAgent
 from src.agents.risk_scanner import RiskScannerAgent
+from src.api.limiter import limiter
 from src.core.config import settings
 from src.core.escalation import EscalationRouter
 from src.core.notifications import NotificationService
@@ -35,9 +35,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Rate limiting (P2.0-A). Defined before the router imports below so the
-# routers can resolve `from src.api.routes import limiter` cleanly.
-limiter = Limiter(key_func=get_remote_address)
+# Rate limiting (P2.0-A) — limiter shared via src.api.limiter
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 

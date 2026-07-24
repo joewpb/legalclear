@@ -8,7 +8,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from src.agents.criminal_procedure import CriminalProcedureExplainer
-from src.api.routes import limiter
+from src.api.limiter import limiter
 
 router = APIRouter(prefix="/api/criminal")
 

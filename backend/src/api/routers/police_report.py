@@ -15,7 +15,7 @@ from fastapi.responses import StreamingResponse
 
 from src.agents.police_report_v2 import PoliceReportAnalyzerV2
 from src.agents.scanner import extract_case_context, scan_documents
-from src.api.routes import limiter
+from src.api.limiter import limiter
 from src.core.upl import apply_disclaimer
 from src.ingestion import ingest_document
 
