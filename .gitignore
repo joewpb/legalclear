@@ -36,6 +36,7 @@ backend/storage/
 # Scratch / upload artifacts — never commit
 *.zip
 dummy.pdf
+LC-TEST-*.pdf
 doc.txt
 files*/
 # Local diagnostic fixtures (manual test inputs, kept out of git)
