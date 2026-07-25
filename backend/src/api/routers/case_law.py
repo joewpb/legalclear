@@ -142,7 +142,7 @@ def _courtlistener_v4_fallback(
             abs_url = row.get("absolute_url")
             if not abs_url:
                 continue  # HARD RULE: never fabricate a URL
-            url = (  # noqa: F841 — BUG: url computed but not included in output dict; needs fix
+            url = (
                 abs_url
                 if abs_url.startswith(_CL_BASE)
                 else f"{_CL_BASE}{abs_url}"

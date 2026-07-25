@@ -25,8 +25,8 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from src.agents.small_claims import SmallClaimsExplainer
-from src.api.routers.packet import build_packet_with_checkout
 from src.api.limiter import limiter
+from src.api.routers.packet import build_packet_with_checkout
 from src.services.packet_builder import PacketRequest
 
 logger = logging.getLogger(__name__)
