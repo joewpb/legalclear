@@ -10,7 +10,6 @@ Every redaction produces a structured log entry for traceability.
 
 import hashlib
 import re
-from typing import Dict, List
 
 
 class PIIRedactor:
@@ -90,7 +89,7 @@ class PIIRedactor:
         re.IGNORECASE,
     )
 
-    def redact(self, text: str) -> Dict:
+    def redact(self, text: str) -> dict:
         """Run all redaction passes and return redacted text + audit log.
 
         Returns:
@@ -99,7 +98,7 @@ class PIIRedactor:
                 findings: list — structured log of each redaction
                 count: int — total redactions performed
         """
-        findings: List[Dict] = []
+        findings: list[dict] = []
         redacted = text
 
         # Order matters: labeled patterns first (more specific), then bare SSN
@@ -209,7 +208,7 @@ class PIIRedactor:
 _redactor = PIIRedactor()
 
 
-def redact_pii(text: str) -> Dict:
+def redact_pii(text: str) -> dict:
     """Convenience function: redact PII from document text.
 
     Returns same dict as PIIRedactor.redact().

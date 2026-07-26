@@ -1,7 +1,7 @@
 import os
 from typing import Any
 
-import reportlab.pdfgen.canvas as canvas
+from reportlab.pdfgen import canvas
 
 # walkthrough text only — this file references myflcourtaccess.com strictly
 # as user-facing walkthrough copy (display strings + the public portal

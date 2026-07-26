@@ -114,13 +114,13 @@ def _search_opinions_corpus(
             req = req.ilike("court", f"%{court_value}%")
         result = req.order("cite_count", desc=True).limit(limit).execute()
         return result.data or []
-    except Exception as e:  # noqa: BLE001 — fail-soft, never break response
+    except Exception as e:
         logger.error("legal_opinions ILIKE search failed: %s", e)
         return []
 
 
 def _courtlistener_v4_fallback(
-    query: str, court_filter: str  # noqa: ARG001 — court_filter reserved for future v4 mapping
+    query: str, court_filter: str
 ) -> list[dict]:
     """Optional CourtListener v4 fallback. Runs ONLY when a
     COURTLISTENER_TOKEN is configured AND the corpus returned nothing.
@@ -162,7 +162,7 @@ def _courtlistener_v4_fallback(
                 }
             )
         return out
-    except Exception as e:  # noqa: BLE001 — graceful degradation
+    except Exception as e:
         logger.warning(
             "CourtListener v4 fallback failed (%s); corpus-only",
             type(e).__name__,

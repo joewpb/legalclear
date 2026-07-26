@@ -144,8 +144,7 @@ def _strip_fences(raw: str) -> str:
         parts = raw.split("```")
         if len(parts) >= 2:
             raw = parts[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
+            raw = raw.removeprefix("json")
     return raw.strip()
 
 
@@ -232,7 +231,7 @@ async def scan_documents(extracted_texts: list[dict]) -> dict:
             "meta": meta,
             "risk_analysis": risk_analysis,
         }
-    except Exception as e:  # noqa: BLE001 — fail-soft is the contract
+    except Exception as e:
         logger.warning(
             "Scanner agent failed (%s); returning empty findings.\n%s",
             type(e).__name__,
@@ -302,7 +301,7 @@ async def extract_case_context(extracted_texts: list[dict]) -> dict:
         raw = msg.content[0].text if msg.content else ""
         parsed = _parse_case_context_obj(raw)
         return parsed if parsed is not None else empty_case_context()
-    except Exception as e:  # noqa: BLE001 — fail-soft contract
+    except Exception as e:
         logger.warning(
             "CaseContext extraction failed (%s); returning empty context.\n%s",
             type(e).__name__,

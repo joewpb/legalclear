@@ -2,8 +2,8 @@ import asyncio
 import logging
 import traceback
 import uuid as _uuid
+from collections.abc import Generator
 from contextlib import contextmanager
-from typing import Generator
 
 from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -56,7 +56,7 @@ def _endpoint_guard(operation: str) -> Generator[None, None, None]:
     except Exception as e:
         logger.error("%s failed: %s", operation, traceback.format_exc())
         raise HTTPException(
-            status_code=500, detail=f"{operation} failed: {str(e)}"
+            status_code=500, detail=f"{operation} failed: {e!s}"
         ) from e
 
 
@@ -80,27 +80,27 @@ FORM_CATEGORIES = [
 # Part B routers (Phase 15+). Each phase's router declares its own
 # /api/* prefix; HTTP paths match source spec even though the on-disk
 # location is backend/src/api/routers/ rather than .../routes/.
-from src.api.routers.analysis import router as analysis_router  # noqa: E402
-from src.api.routers.case_law import router as case_law_router  # noqa: E402
-from src.api.routers.chat import router as chat_router  # noqa: E402
-from src.api.routers.criminal import router as criminal_router  # noqa: E402
-from src.api.routers.deadline import router as deadline_router  # noqa: E402
-from src.api.routers.discovery import router as discovery_router  # noqa: E402
-from src.api.routers.expungement import router as expungement_router  # noqa: E402
-from src.api.routers.forms import router as forms_router  # noqa: E402
-from src.api.routers.intake import router as intake_router  # noqa: E402
-from src.api.routers.landlord import router as landlord_router  # noqa: E402
-from src.api.routers.law import router as law_router  # noqa: E402
-from src.api.routers.packet import router as packet_router  # noqa: E402
-from src.api.routers.police_report import router as police_report_router  # noqa: E402
-from src.api.routers.property_casualty import (  # noqa: E402
-    router as property_casualty_router,  # noqa: E402
+from src.api.routers.analysis import router as analysis_router
+from src.api.routers.case_law import router as case_law_router
+from src.api.routers.chat import router as chat_router
+from src.api.routers.criminal import router as criminal_router
+from src.api.routers.deadline import router as deadline_router
+from src.api.routers.discovery import router as discovery_router
+from src.api.routers.expungement import router as expungement_router
+from src.api.routers.forms import router as forms_router
+from src.api.routers.intake import router as intake_router
+from src.api.routers.landlord import router as landlord_router
+from src.api.routers.law import router as law_router
+from src.api.routers.packet import router as packet_router
+from src.api.routers.police_report import router as police_report_router
+from src.api.routers.property_casualty import (
+    router as property_casualty_router,
 )
-from src.api.routers.reminders import router as reminders_router  # noqa: E402
-from src.api.routers.small_claims import router as small_claims_router  # noqa: E402
-from src.api.routers.traffic import router as traffic_router  # noqa: E402
-from src.api.routers.triage import router as triage_router  # noqa: E402
-from src.api.routers.wills_trusts import router as wills_trusts_router  # noqa: E402
+from src.api.routers.reminders import router as reminders_router
+from src.api.routers.small_claims import router as small_claims_router
+from src.api.routers.traffic import router as traffic_router
+from src.api.routers.triage import router as triage_router
+from src.api.routers.wills_trusts import router as wills_trusts_router
 
 app.include_router(intake_router)
 app.include_router(small_claims_router)
@@ -130,7 +130,7 @@ try:
     _compliance_src = _Path(__file__).parents[4] / "compliance" / "src"
     if _compliance_src.exists() and str(_compliance_src) not in _sys.path:
         _sys.path.insert(0, str(_compliance_src))
-    from compliance.api.router import router as _compliance_router  # noqa: E402
+    from compliance.api.router import router as _compliance_router
     app.include_router(_compliance_router)
     logger.info("Compliance router mounted at /compliance/*")
 except Exception:
@@ -300,7 +300,7 @@ async def upload_document(
         }
     except Exception as e:
         logger.error(f"Upload failed: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Upload processing failed: {str(e)}") from e
+        raise HTTPException(status_code=500, detail=f"Upload processing failed: {e!s}") from e
 
 @app.post("/process/{session_id}", dependencies=[Depends(verify_api_key)])
 async def process_document(session_id: str, background_tasks: BackgroundTasks, lang: str = "en"):

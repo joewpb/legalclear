@@ -7,7 +7,7 @@ from .risk_scanner import RiskScannerAgent
 __all__ = [
     'ClassifierAgent',
     'ExplainerAgent',
+    'ExpungementAgent',
     'FormGuideAgent',
-    'RiskScannerAgent',
-    'ExpungementAgent'
+    'RiskScannerAgent'
 ]

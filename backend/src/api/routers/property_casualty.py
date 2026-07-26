@@ -5,7 +5,6 @@ Accepts entities + optional document upload.
 """
 
 import json
-from typing import Optional
 
 from fastapi import APIRouter, File, Form, Request, UploadFile
 from fastapi.responses import StreamingResponse
@@ -24,7 +23,7 @@ async def explain_property_casualty(
     sub_type: str = Form(default="unknown"),
     entities_json: str = Form(default="{}"),
     language: str = Form(default="en"),
-    file: Optional[UploadFile] = File(default=None),
+    file: UploadFile | None = File(default=None),
 ):
     """Explain a Florida property/casualty situation with optional document."""
 
@@ -35,8 +34,8 @@ async def explain_property_casualty(
         entities = {}
 
     # Read optional file
-    file_bytes: Optional[bytes] = None
-    filename: Optional[str] = None
+    file_bytes: bytes | None = None
+    filename: str | None = None
     if file is not None:
         file_bytes = await file.read()
         filename = file.filename

@@ -16,7 +16,7 @@ NOTE: Disclaimer text must be reviewed against the Terms of Service
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 # ── Disclaimer texts ──────────────────────────────────────────────────────────
@@ -159,7 +159,7 @@ def check_escalation(
 
     The result is written to documents.escalation by the caller.
     """
-    now = now or datetime.now(tz=timezone.utc)
+    now = now or datetime.now(tz=UTC)
     reasons: list[str] = []
     urgency = "standard"
     disclaimer_level = "standard"
@@ -217,7 +217,7 @@ def check_escalation(
             try:
                 due_dt = datetime(
                     *[int(x) for x in due_date_str.split("-")],
-                    17, 0, 0, tzinfo=timezone.utc
+                    17, 0, 0, tzinfo=UTC
                 )
                 hours_remaining = (due_dt - now).total_seconds() / 3600
                 if 0 < hours_remaining <= URGENT_HOURS:

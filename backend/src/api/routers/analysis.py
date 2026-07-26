@@ -12,7 +12,7 @@ says so plainly and directs the user to help — it does not guess.
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
@@ -62,7 +62,7 @@ async def analyze(
             "classification": classification,
             "analysis": safe_analysis,
             "escalation": escalation,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "disclaimer": get_disclaimer("en")
         }
 

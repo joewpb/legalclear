@@ -8,7 +8,7 @@ Supports sub-types: will | trust | probate | draft_will | unknown
 import json
 import logging
 import traceback
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 from anthropic import AsyncAnthropic
 

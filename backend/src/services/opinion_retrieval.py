@@ -107,7 +107,7 @@ def get_relevant_opinions(
             row.pop("_overlap", None)
             row.pop("situation_tags", None)
         return top
-    except Exception as e:  # noqa: BLE001 — fail-soft, never break response
+    except Exception as e:
         logger.error("get_relevant_opinions failed: %s", e)
         return []
 
@@ -131,15 +131,15 @@ def get_relevant_opinions(
 
 _CHARGE_DUI = re.compile(
     r"\b(dui|dwi|driv(?:er|ing)? under the influence|b\.?a\.?c|"
-    r"breath(?:alizer)?|blood[- ]?alcohol)\b", re.I)
+    r"breath(?:alizer)?|blood[- ]?alcohol)\b", re.IGNORECASE)
 # Stem forms (no trailing \b) so Trafficking / Burglary / Robbery /
 # Kidnapping match. "possess" intentionally excluded — possession is
 # not trafficking, and the corpus has no drug_possession tag.
 _CHARGE_DRUG_VERB = re.compile(
-    r"\b(traffick|deliver|manufactur|distribut)", re.I)
+    r"\b(traffick|deliver|manufactur|distribut)", re.IGNORECASE)
 _DRUG_SUBSTANCE = re.compile(
     r"\b(cocaine|heroin|meth(?:amphetamine)?|cannabis|marijuana|"
-    r"controlled substance|fentanyl|oxycodone|narcotic|opium|mdma)\b", re.I)
+    r"controlled substance|fentanyl|oxycodone|narcotic|opium|mdma)\b", re.IGNORECASE)
 # Felony-class indicators. Bare "assault" is intentionally EXCLUDED — in
 # Florida, simple assault (a threat) is a first-degree misdemeanor, so matching
 # it here would surface felony-level opinions for misdemeanor defendants (a
@@ -148,8 +148,8 @@ _DRUG_SUBSTANCE = re.compile(
 _CHARGE_FELONY = re.compile(
     r"\b(felony|murder|homicide|burglar|robber|kidnap|rape|"
     r"sexual batter|aggravated assault|aggravated batter|"
-    r"arson|manslaughter)", re.I)
-_CHARGE_MISD = re.compile(r"\bmisdemeanor\b", re.I)
+    r"arson|manslaughter)", re.IGNORECASE)
+_CHARGE_MISD = re.compile(r"\bmisdemeanor\b", re.IGNORECASE)
 
 # Charge-class / offense-seriousness tags. These describe the *grade* of the
 # charge, not a legal issue. A tag set containing ONLY these carries no
@@ -168,7 +168,7 @@ _CHARGE_CLASS_TAGS = frozenset(
 # Free-text keyword scan — ONLY for signals with no dedicated boolean.
 _DESC_FORCE = re.compile(
     r"\b(excessive force|beat(?:en)?|taser|tased|choke|choked|"
-    r"pepper spray|body ?slam)\b", re.I)
+    r"pepper spray|body ?slam)\b", re.IGNORECASE)
 
 # ---------------------------------------------------------------------------
 # Structured defect_category -> situation_tag mapping.

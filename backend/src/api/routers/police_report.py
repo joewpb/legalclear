@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import logging
 import traceback
-from typing import List
 
 from fastapi import APIRouter, File, Form, Request, UploadFile
 from fastapi.responses import StreamingResponse
@@ -70,7 +69,7 @@ async def analyze_report_v3(
 
 @router.post("/analyze/batch")
 @limiter.limit("10/minute")
-async def analyze_report_batch(request: Request, files: List[UploadFile] = File(...)):
+async def analyze_report_batch(request: Request, files: list[UploadFile] = File(...)):
     """Multi-file police report analysis — Phase 21 legacy endpoint."""
     extracted: list[dict] = []
     for f in files:

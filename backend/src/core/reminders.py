@@ -10,7 +10,7 @@ when the deadline has already passed.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from typing import Literal
 
 ReminderType = Literal["14d", "7d", "3d", "1d", "urgent", "expired"]
@@ -43,9 +43,9 @@ def compute_reminder_schedule(
     Returns an [expired] spec (no fire_at in future) if due_date is past.
     Returns an [urgent] spec if within URGENT_HOURS hours.
     """
-    now = now or datetime.now(tz=timezone.utc)
+    now = now or datetime.now(tz=UTC)
     due_dt = datetime(due_date.year, due_date.month, due_date.day,
-                      17, 0, 0, tzinfo=timezone.utc)   # 5pm UTC on the due date
+                      17, 0, 0, tzinfo=UTC)   # 5pm UTC on the due date
 
     specs: list[ReminderSpec] = []
 

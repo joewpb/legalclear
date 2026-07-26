@@ -6,8 +6,8 @@ explanation agents, not in this router.
 """
 
 import logging
+from collections.abc import Generator
 from contextlib import contextmanager
-from typing import Generator, Optional
 
 from fastapi import APIRouter, HTTPException
 
@@ -38,9 +38,9 @@ def _db_lookup(operation: str) -> Generator[None, None, None]:
 # ── Statutes ──────────────────────────────────────────────────────────────────
 
 @router.get("/statutes")
-async def lookup_statute(citation: Optional[str] = None,
-                         chapter: Optional[str] = None,
-                         section: Optional[str] = None):
+async def lookup_statute(citation: str | None = None,
+                         chapter: str | None = None,
+                         section: str | None = None):
     """Exact-citation or chapter/section lookup against Florida Statutes.
 
     Examples:
@@ -72,9 +72,9 @@ async def lookup_statute(citation: Optional[str] = None,
 # ── Court Rules ───────────────────────────────────────────────────────────────
 
 @router.get("/rules")
-async def lookup_rule(citation: Optional[str] = None,
-                      rule_set: Optional[str] = None,
-                      rule_number: Optional[str] = None):
+async def lookup_rule(citation: str | None = None,
+                      rule_set: str | None = None,
+                      rule_number: str | None = None):
     """Exact-citation or rule_set/rule_number lookup against FL court rules.
 
     Examples:
@@ -106,7 +106,7 @@ async def lookup_rule(citation: Optional[str] = None,
 # ── Local Administrative Orders ───────────────────────────────────────────────
 
 @router.get("/administrative-orders")
-async def list_administrative_orders(circuit: Optional[int] = None):
+async def list_administrative_orders(circuit: int | None = None):
     """List local administrative orders, optionally filtered by circuit."""
     if db.client is None:
         raise HTTPException(status_code=503, detail="Database unavailable")
@@ -123,8 +123,8 @@ async def list_administrative_orders(circuit: Optional[int] = None):
 # ── Court Closures ────────────────────────────────────────────────────────────
 
 @router.get("/closures")
-async def list_closures(circuit: Optional[int] = None,
-                        date: Optional[str] = None):
+async def list_closures(circuit: int | None = None,
+                        date: str | None = None):
     """List court closures for deadline-engine use.
 
     Pass circuit=0 for statewide closures.

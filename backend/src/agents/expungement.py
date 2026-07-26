@@ -112,8 +112,7 @@ Document text:
             raw = response.content[0].text.strip()
             if raw.startswith("```"):
                 raw = raw.split("```")[1]
-                if raw.startswith("json"):
-                    raw = raw[4:]
+                raw = raw.removeprefix("json")
             result = json.loads(raw)
             result["disclaimer"] = get_disclaimer(
                 lang, "standard")
@@ -174,8 +173,7 @@ only and not legal advice"""
             raw = response.content[0].text.strip()
             if raw.startswith("```"):
                 raw = raw.split("```")[1]
-                if raw.startswith("json"):
-                    raw = raw[4:]
+                raw = raw.removeprefix("json")
             return json.loads(raw)
         except Exception as e:
             logger.error(

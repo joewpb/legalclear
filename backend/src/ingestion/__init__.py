@@ -43,8 +43,8 @@ async def ingest_document(file_bytes: bytes,
         return {
             "error": True,
             "error_code": "pdf_extraction_failed",
-            "message_en": f"Could not extract text: {str(e)}",
-            "message_es": f"No se pudo extraer texto: {str(e)}",
+            "message_en": f"Could not extract text: {e!s}",
+            "message_es": f"No se pudo extraer texto: {e!s}",
         }
 
     # Clean text

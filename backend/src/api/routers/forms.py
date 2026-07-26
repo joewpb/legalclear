@@ -10,7 +10,6 @@ import hashlib
 import json
 import logging
 import re
-from typing import Optional
 
 import httpx
 from anthropic import AsyncAnthropic
@@ -45,7 +44,7 @@ BUCKET = "court-forms"
 # ── List ──────────────────────────────────────────────────────────────────────
 
 @router.get("")
-async def list_forms(category: Optional[str] = None):
+async def list_forms(category: str | None = None):
     """Return all active forms, optionally filtered by category."""
     if db.client is None:
         raise HTTPException(status_code=503, detail="Database unavailable")
@@ -134,8 +133,8 @@ def _candidate_forms_for_situation(situation: str, limit: int = 10) -> list[dict
 
 
 def _search_court_forms(
-    q: Optional[str] = None,
-    category: Optional[str] = None,
+    q: str | None = None,
+    category: str | None = None,
     limit: int = 20,
     offset: int = 0,
 ):
@@ -178,8 +177,8 @@ def _search_court_forms(
 
 @router.get("/search")
 async def search_forms(
-    q: Optional[str] = None,
-    category: Optional[str] = None,
+    q: str | None = None,
+    category: str | None = None,
     limit: int = 20,
     offset: int = 0,
 ):
@@ -475,11 +474,6 @@ async def check_updates():
             stored_hash = form.get("content_hash")
 
             try:
-                head = await client.head(url)
-                etag = head.headers.get("etag", "")
-                content_length = head.headers.get("content-length", "")
-                remote_sig = f"{etag}:{content_length}"  # noqa: F841 — reserved for future signature comparison
-
                 # Download and compute SHA-256 for content comparison
                 get_resp = await client.get(url)
                 get_resp.raise_for_status()

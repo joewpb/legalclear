@@ -11,7 +11,7 @@ Guardrail: never send a reminder implying time remains when expired.
 
 import logging
 import traceback
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -35,7 +35,7 @@ async def process_reminders():
     if db.client is None:
         raise HTTPException(status_code=503, detail="Database unavailable")
 
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     today = now.date()
 
     stats = {
@@ -122,7 +122,7 @@ async def process_reminders():
         due_rows = [
             r for r in existing_rows
             if r["state"] == "scheduled"
-            and datetime.fromisoformat(r["fire_at"]).replace(tzinfo=timezone.utc) <= now
+            and datetime.fromisoformat(r["fire_at"]).replace(tzinfo=UTC) <= now
         ]
 
         for reminder_row in due_rows:

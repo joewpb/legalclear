@@ -22,7 +22,7 @@ Streams responses as SSE text chunks.
 import json
 import logging
 import traceback
-from typing import AsyncGenerator, Optional
+from collections.abc import AsyncGenerator
 
 from anthropic import AsyncAnthropic
 
@@ -159,7 +159,7 @@ class ChatExpertAgent:
         message: str,
         session_id: str,
         language: str = "en",
-        chat_history: Optional[list[dict]] = None,
+        chat_history: list[dict] | None = None,
         message_count: int = 0,
     ) -> AsyncGenerator[str, None]:
         """Stream a per-module conversational response.

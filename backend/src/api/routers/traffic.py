@@ -12,7 +12,6 @@ endpoints unchanged.
 """
 import logging
 import traceback
-from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -32,7 +31,7 @@ class TrafficRequest(BaseModel):
     county: str
     chosen_path: str  # "pay" | "school" | "contest"
     language: str = "en"
-    user_id: Optional[str] = None
+    user_id: str | None = None
 
 
 @router.post("/generate")

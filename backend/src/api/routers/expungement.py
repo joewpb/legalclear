@@ -15,7 +15,6 @@ import json
 import logging
 import traceback
 from pathlib import Path
-from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -37,7 +36,7 @@ class EligibilityRequest(BaseModel):
     years_since_closed: str
     county: str = "Miami-Dade"
     language: str = "en"
-    user_id: Optional[str] = None
+    user_id: str | None = None
 
 
 # Load disqualifiers once at module load.

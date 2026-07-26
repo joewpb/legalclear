@@ -7,7 +7,7 @@ Uses claude-sonnet-4-6 with structured JSON output and SSE streaming.
 import json
 import logging
 import traceback
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 from anthropic import AsyncAnthropic
 
@@ -85,8 +85,7 @@ class SmallClaimsExplainer:
         text = raw.strip()
         if text.startswith("```"):
             text = text.split("```", 2)[1]
-            if text.startswith("json"):
-                text = text[4:]
+            text = text.removeprefix("json")
             text = text.strip()
         return text
 

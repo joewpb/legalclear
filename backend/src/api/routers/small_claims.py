@@ -18,7 +18,6 @@ the user's situation description.
 """
 import logging
 import traceback
-from typing import Optional
 
 from fastapi import APIRouter, Body, HTTPException, Request
 from fastapi.responses import StreamingResponse
@@ -50,11 +49,11 @@ class SmallClaimsRequest(BaseModel):
     defendant_type: str
     defendant_name: str
     defendant_address: str
-    defendant_phone: Optional[str] = None
-    defendant_email: Optional[str] = None
+    defendant_phone: str | None = None
+    defendant_email: str | None = None
     county: str
     language: str = "en"
-    user_id: Optional[str] = None
+    user_id: str | None = None
 
 
 @router.post("/generate")

@@ -14,7 +14,6 @@ endpoints unchanged.
 """
 import logging
 import traceback
-from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -33,11 +32,11 @@ class DepositRequest(BaseModel):
     current_address: str
     landlord_name: str
     landlord_address: str
-    reason_given: Optional[str] = None
-    tenant_response: Optional[str] = None
+    reason_given: str | None = None
+    tenant_response: str | None = None
     county: str = "Miami-Dade"
     language: str = "en"
-    user_id: Optional[str] = None
+    user_id: str | None = None
 
 
 class RepairsRequest(BaseModel):
@@ -48,20 +47,20 @@ class RepairsRequest(BaseModel):
     tenant_intent: str
     county: str = "Miami-Dade"
     language: str = "en"
-    user_id: Optional[str] = None
+    user_id: str | None = None
 
 
 class EvictionRequest(BaseModel):
     eviction_type: str
     notice_type: str
     notice_date: str
-    defenses: List[str]
+    defenses: list[str]
     county: str = "Miami-Dade"
     language: str = "en"
-    user_id: Optional[str] = None
+    user_id: str | None = None
 
 
-async def _build(packet_type: str, req: BaseModel, county: str, language: str, user_id: Optional[str]):
+async def _build(packet_type: str, req: BaseModel, county: str, language: str, user_id: str | None):
     try:
         return await build_packet_with_checkout(
             PacketRequest(

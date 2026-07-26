@@ -7,7 +7,6 @@ LegalClear v3 module routes using claude-haiku-4-5-20251001.
 import json
 import logging
 import traceback
-from typing import Optional
 
 from anthropic import AsyncAnthropic
 from fastapi import APIRouter, Body
@@ -53,10 +52,10 @@ class IntakeRequest(BaseModel):
 
 class IntakeResponse(BaseModel):
     module: str
-    sub_type: Optional[str] = None
+    sub_type: str | None = None
     entities: dict = Field(default_factory=dict)
     confidence: float
-    clarifying_question: Optional[str] = None
+    clarifying_question: str | None = None
     disclaimer: str
 
 
@@ -100,8 +99,7 @@ def _strip_markdown_fences(raw: str) -> str:
     text = raw.strip()
     if text.startswith("```"):
         text = text.split("```", 2)[1]
-        if text.startswith("json"):
-            text = text[4:]
+        text = text.removeprefix("json")
         text = text.strip()
     return text
 
@@ -113,7 +111,7 @@ def _sanitize_module(value: str) -> str:
     return "unknown"
 
 
-def _sanitize_sub_type(value: Optional[str]) -> Optional[str]:
+def _sanitize_sub_type(value: str | None) -> str | None:
     """Coerce sub_type or return None / unknown."""
     if value in VALID_SUB_TYPES:
         return value
@@ -149,10 +147,10 @@ async def intake(payload: IntakeRequest = Body(...)) -> IntakeResponse:
     )
 
     module = "unknown"
-    sub_type: Optional[str] = None
+    sub_type: str | None = None
     entities: dict = {}
     confidence = 0.0
-    clarifying_question: Optional[str] = None
+    clarifying_question: str | None = None
 
     for attempt in range(2):
         try:
