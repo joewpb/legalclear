@@ -63,13 +63,13 @@ The client talks only to the Railway backend. The backend is the sole holder of 
 | Package | Role |
 |---|---|
 | `api/routes.py` | FastAPI app; registers all routers; singleton agents wired here |
-| `api/routers/` | One router per feature (deadline, triage, analysis, forms, law, reminders, small_claims, landlord, traffic, expungement, police_report, case_law, packet) |
-| `agents/` | Claude-backed agents: classifier, explainer, form_guide, risk_scanner, scanner (police report), expungement, case_context |
+| `api/routers/` | One router per feature: analysis, case_law, chat, criminal, deadline, discovery, expungement, forms, intake, landlord, law, packet, police_report, property_casualty, reminders, small_claims, traffic, triage, wills_trusts |
+| `agents/` | Claude-backed agents: classifier, explainer, form_guide, risk_scanner, scanner, expungement, case_context — plus v2 module explainers: chat_expert, criminal_procedure, discovery_motion, police_report_v2 (the primary police-report analyzer), property_casualty, small_claims, wills_trusts |
 | `core/` | Config (Settings from env), UPL wall, escalation router, disclaimer texts (EN/ES), i18n, notifications |
 | `ingestion/` | PDF parser, OCR, text cleaner — entry point is `ingest_document()` |
 | `memory/db.py` | `DatabaseManager` wraps supabase-py with service-role key |
 | `payments/` | Stripe client + `check_access()` guard |
-| `services/` | Packet builder, PDF/A generator, translation layer, county router |
+| `services/` | Packet builder, PDF/A generator, translation layer, county router, opinion_retrieval (759-opinion FL case-law corpus → tag-overlap ranking, powers case-law lookup + Police Report analyzer) |
 | `platforms/` | Florida courts helpers, notifications |
 
 Top-level packages (outside `src/`):
@@ -133,12 +133,12 @@ Stripe product: **"LegalClear Filing Packet"** — $35.00.
 ## CI
 
 Four GitHub Actions workflows:
-- **node.js.yml** — `npm ci && npm run build && npm test` on Node 22.x (from `frontend/`)
+- **node.js.yml** — `npm ci`, `npm run build`, `npm test` on Node 22.x (from `frontend/`)
 - **pytest.yml** — `uv run pytest` backend unit suite; triggers on changes to `backend/**` (server-dependent integration tests excluded)
 - **eval-deadline.yml** — `uv run python -m evals.run_all` (fast mode, no LLM); triggers on changes to `backend/deadline/`, `backend/triage/`, or `backend/evals/`
 - **gitleaks.yml** — secret scan on every push/PR
 
-All workflows use `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true`.
+All workflows set `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true` (forces the GitHub Actions *runtime* to Node 24; the frontend app itself still tests on the Node 22.x matrix above — these are two different things).
 
 ## Key constraints
 
