@@ -27,6 +27,7 @@ export interface PoliceReportState {
   risk_analysis?: unknown;
   relevant_opinions?: RelevantOpinion[];
   situation_tags_used?: string[];
+  case_context?: unknown;
 }
 
 export type PoliceReportSseEvent =
@@ -37,6 +38,11 @@ export type PoliceReportSseEvent =
       type: "relevant_opinions";
       situation_tags_used: string[];
       opinions: RelevantOpinion[];
+    }
+  // Typed event: case context extraction (Phase 9).
+  | {
+      type: "case_context";
+      case_context: unknown;
     }
   // The accumulated analysis JSON, parsed (partial during stream, final after).
   // `object` (not Record<string, unknown>) so callers can pass a precise
@@ -62,6 +68,9 @@ export function applySseEvent<S>(prev: S, event: PoliceReportSseEvent): S {
         relevant_opinions: event.opinions,
       } as S;
 
+    case "case_context":
+      return { ...prev, case_context: event.case_context } as S;
+
     case "analysis_json": {
       const p = prev as Record<string, unknown>;
       const d = event.data as Record<string, unknown>;
@@ -73,6 +82,7 @@ export function applySseEvent<S>(prev: S, event: PoliceReportSseEvent): S {
         risk_analysis: p.risk_analysis ?? d.risk_analysis,
         relevant_opinions: p.relevant_opinions ?? d.relevant_opinions,
         situation_tags_used: p.situation_tags_used ?? d.situation_tags_used,
+        case_context: p.case_context ?? d.case_context,
       } as S;
     }
   }

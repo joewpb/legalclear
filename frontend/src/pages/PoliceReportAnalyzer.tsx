@@ -13,7 +13,8 @@ import { Link, useSearchParams } from "react-router-dom";
 import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
 import OpinionCard from "../components/policereport/OpinionCard";
 import { applySseEvent } from "../components/policereport/sseMerge";
-import type { RelevantOpinion } from "../components/policereport/types";
+import type { CaseContext, RelevantOpinion } from "../components/policereport/types";
+import CaseContextBanner from "../components/policereport/CaseContextBanner";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -69,6 +70,7 @@ interface AnalysisResponse {
   risk_analysis?: RiskAnalysis;
   relevant_opinions?: RelevantOpinion[];
   situation_tags_used?: string[];
+  case_context?: CaseContext;
 }
 
 // ---------------------------------------------------------------------------
@@ -556,6 +558,10 @@ export default function PoliceReportAnalyzer() {
             );
             continue; // typed event — don't accumulate into the analysis JSON
           }
+          if (solo.type === "case_context") {
+            setResponse((prev) => applySseEvent(prev, solo));
+            continue; // typed event — don't accumulate into analysis JSON
+          }
         } catch {
           /* not a complete JSON chunk — will be accumulated */
         }
@@ -677,6 +683,9 @@ export default function PoliceReportAnalyzer() {
       )}
 
       {/* Analysis results */}
+            {response.case_context?.routing && (
+              <CaseContextBanner caseContext={response.case_context} />
+            )}
       <div style={css.contentPanel}>
         {error && (
           <p style={{ color: "var(--danger, #B91C1C)", fontSize: 14 }}>

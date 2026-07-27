@@ -20,6 +20,7 @@ from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.ingestion.pdf_parser import PDFParser
 from src.services.opinion_retrieval import derive_situation_tags, get_relevant_opinions
+from src.agents.scanner import extract_case_context
 
 logger = logging.getLogger(__name__)
 
@@ -375,6 +376,23 @@ class PoliceReportAnalyzerV2:
                 except Exception:
                     logger.error(
                         "relevant_opinions emission failed:\n%s",
+                        traceback.format_exc(),
+                    )
+
+                # ── Post-stream: extract case_context (Phase 9) ──
+                try:
+                    ctx = await extract_case_context([{
+                        "filename": filename,
+                        "text": raw_text if raw_text else "",
+                    }])
+                    ctx_payload = json.dumps({
+                        "type": "case_context",
+                        "case_context": ctx,
+                    })
+                    yield f"data: {ctx_payload}\n\n"
+                except Exception:
+                    logger.error(
+                        "case_context extraction failed:\n%s",
                         traceback.format_exc(),
                     )
 
