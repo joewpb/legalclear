@@ -263,7 +263,7 @@ pie title Form Distribution
 | Version | Status | Phases | Deployed |
 |---------|--------|--------|----------|
 | **v1** | ✅ **SHIPPED** | 24 phases (0–23) | May 15, 2026 |
-| **v2** | 🔨 **IN PROGRESS** | 10 phases (BUILD_PLAN.md) | Phase 0-1 complete |
+| **v2** | 🔨 **Shipped** | 10 phases (BUILD_PLAN.md) | Phase 0-10 June 2, 2026 |
 
 **v1 includes:** Document scanner, deadline extraction, form matching, Small Claims wizard, Eviction defense, Traffic citation, FL Case Law lookup, all 5 explainer modules with chat, Stripe integration, Supabase RLS, push notifications.
 
