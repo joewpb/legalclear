@@ -5,19 +5,20 @@ Queries the 443K Florida court opinions stored on the Orin AGX (Jetson)
 via SSH-tunneled psql. Complements the Supabase legal_opinions table
 (700 opinions with precomputed summaries) with raw search results.
 
-The Orin database has no precomputed situation_tags — search is via
-plain_text full-text match against derived keywords.
-
 Architecture:
-  - SSH tunnel: localhost:5433 → Orin:5432  (managed externally)
+  - SSH tunnel: localhost:5433 → Orin:5432 (managed externally)
   - psql invoked via subprocess (avoids asyncpg auth issues)
-  - Results mapped to RelevantOpinion format (types.ts)
+  - DeepSeek batch extraction for metadata (cheap, one API call per search)
+  - Regex fallback when DeepSeek unavailable
 """
 
 from __future__ import annotations
 
+import csv as _csv
+import io as _io
 import json
 import logging
+import os as _os
 import re
 import subprocess
 from dataclasses import dataclass
@@ -25,8 +26,6 @@ from dataclasses import dataclass
 logger = logging.getLogger(__name__)
 
 # ── Tag → keyword mapping ────────────────────────────────────────────────────
-# Maps situation_tag values to plain_text search terms.
-# Lowercase only; OR'd within each tag group.
 
 TAG_KEYWORDS: dict[str, str] = {
     "fourth_amendment": "search AND seizure OR fourth amendment OR warrantless OR probable cause OR reasonable suspicion",
@@ -56,40 +55,27 @@ TAG_KEYWORDS: dict[str, str] = {
     "speedy_trial": "speedy trial OR rule 3.191 OR demand for speedy trial",
 }
 
-# Simpler fallback: words from the tag itself
-_TAG_WORDS = re.compile(r"[a-z_]+")
-
 
 def _tag_to_search(tag: str) -> str:
-    """Convert a situation_tag to a PostgreSQL tsquery-compatible search string."""
     keywords = TAG_KEYWORDS.get(tag)
     if keywords:
         return keywords
-    # Fallback: use the tag name with underscores replaced by spaces
     return tag.replace("_", " ")
 
 
 def _build_tsquery(tags: list[str]) -> str:
-    """Build a tsquery string from situation_tags."""
     terms = []
     for tag in tags:
         search = _tag_to_search(tag)
-        # Convert "word AND word OR word" to tsquery syntax
-        # PostgreSQL tsquery uses & for AND, | for OR
         ts = search.replace(" AND ", " & ").replace(" OR ", " | ")
         terms.append(f"({ts})")
     return " | ".join(terms) if terms else ""
 
 
-# ── Metadata extraction from plain_text ───────────────────────────────────────
+# ── Metadata extraction ───────────────────────────────────────────────────────
 
-# Florida appellate opinion header patterns
-_RE_CASE_NAME = re.compile(
-    r"^\s+(?:No\.\s*\S+\s+)?\s*"
-    r"([A-Z][A-Za-z\s\'\-]+),\s*\n\s*(?:Appellant|Appellee|Petitioner|Respondent)",
-    re.MULTILINE,
-)
-_RE_DOCKET = re.compile(r"No\.\s*([\dA-Z]+\-[\d]+)", re.MULTILINE)
+# Regex patterns for fallback
+_RE_DOCKET = re.compile(r"No\.\s*([\dA-Z]+-[\d]+)", re.MULTILINE)
 _RE_COURT = re.compile(
     r"(Supreme Court of Florida|District Court of Appeal|"
     r"Circuit Court|County Court)",
@@ -111,42 +97,43 @@ class OrinOpinion:
     summary_legal: str
 
 
-def _extract_metadata(text: str) -> dict[str, str | None]:
-    """Extract case_name, citation, court, date from opinion plain_text header."""
+def _extract_metadata_regex(text: str) -> dict[str, str | None]:
+    """Regex fallback for case metadata extraction."""
     header = text[:600]
-
-    # Case name: try "X vs Y" pattern first
     case_name = None
-    vs_match = re.search(r"^\s+([A-Z][A-Za-z\s\'\-]+),\s*\n\s+(?:Appellant|Petitioner)", header, re.MULTILINE)
+
+    vs_match = re.search(
+        r"^\s+([A-Z][A-Za-z\s'\-]+),\s*\n\s*(?:Appellant|Petitioner)",
+        header, re.MULTILINE,
+    )
     if vs_match:
         case_name = vs_match.group(1).strip()
 
     if not case_name:
         vs_match2 = re.search(
-            r"^\s+([A-Z][A-Za-z\s\'\-]+)\s+(?:v\.|vs\.)\s+", header, re.MULTILINE,
+            r"^\s+([A-Z][A-Za-z\s'\-]+)\s+(?:v\.|vs\.)\s+",
+            header, re.MULTILINE,
         )
         if vs_match2:
             case_name = vs_match2.group(1).strip()
 
     if not case_name:
-        # Fallback: first ALLCAPS name
-        cap_match = re.search(r"^\s+([A-Z][A-Z\s\'\-]{5,}),", header, re.MULTILINE)
+        cap_match = re.search(
+            r"^\s+([A-Z][A-Z\s'\-]{5,}),", header, re.MULTILINE,
+        )
         if cap_match:
             case_name = cap_match.group(1).strip()
 
-    # Docket/citation
     citation = None
     dock_match = _RE_DOCKET.search(header)
     if dock_match:
         citation = dock_match.group(1)
 
-    # Court
     court = None
     court_match = _RE_COURT.search(header)
     if court_match:
         court = court_match.group(0)
 
-    # Date
     date_filed = None
     date_match = _RE_DATE.search(header)
     if date_match:
@@ -160,13 +147,77 @@ def _extract_metadata(text: str) -> dict[str, str | None]:
     }
 
 
+def _batch_extract_metadata(opinions: list[dict]) -> list[dict]:
+    """Extract metadata from multiple opinions in ONE DeepSeek call."""
+    key = _os.getenv("DEEPSEEK_API_KEY", "")
+    if not key:
+        for op in opinions:
+            meta = _extract_metadata_regex(op["plain_text"])
+            op.update(meta)
+        return opinions
+
+    # Build batch prompt from headers
+    headers_text = ""
+    for i, op in enumerate(opinions[:10]):
+        headers_text += f"--- OPINION {i} ---\n{op['plain_text'][:600]}\n\n"
+
+    try:
+        import requests as _requests
+        resp = _requests.post(
+            "https://api.deepseek.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": "deepseek-chat",
+                "messages": [{
+                    "role": "user",
+                    "content": (
+                        "For each opinion header (--- OPINION N ---), extract: "
+                        "case_name, citation (docket), court, date_filed. "
+                        "Return ONLY a JSON array, one object per opinion:\n"
+                        '[{"case_name":"...","citation":"...",'
+                        '"court":"...","date_filed":"..."}]\n\n'
+                        f"{headers_text}"
+                    ),
+                }],
+                "max_tokens": 800,
+                "temperature": 0,
+            },
+            timeout=15,
+        )
+        if resp.status_code == 200:
+            raw = resp.json()["choices"][0]["message"]["content"].strip()
+            raw = raw.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+            data = json.loads(raw) if isinstance(raw, str) else raw
+            if isinstance(data, list):
+                for i, meta in enumerate(data):
+                    if i < len(opinions) and isinstance(meta, dict):
+                        opinions[i].update({
+                            "case_name": str(meta.get("case_name", "Unknown Case")),
+                            "citation": str(meta.get("citation", "N/A")),
+                            "court": str(meta.get("court", "Florida Court")),
+                            "date_filed": meta.get("date_filed"),
+                        })
+                return opinions
+    except Exception:
+        pass
+
+    # Fallback: regex
+    for op in opinions:
+        meta = _extract_metadata_regex(op["plain_text"])
+        op.update(meta)
+    return opinions
+
+
 def _summarize(text: str, max_chars: int = 300) -> str:
-    """Create a plain-English summary by extracting the first substantive paragraph."""
+    """First substantive paragraph as plain-English summary."""
     lines = text.split("\n")
-    # Skip header lines (court name, docket, etc.)
     body_start = 0
     for i, line in enumerate(lines):
-        if len(line.strip()) > 80 and not line.strip().startswith(("No.", "Lower", "Opinion", "Not final")):
+        if (len(line.strip()) > 80
+                and not line.strip().startswith(("No.", "Lower", "Opinion", "Not final"))):
             body_start = i
             break
     body = " ".join(lines[body_start:body_start + 8]).strip()
@@ -180,18 +231,11 @@ def _summarize(text: str, max_chars: int = 300) -> str:
 def search_orin_opinions(
     tags: list[str],
     limit: int = 5,
-    host: str = "127.0.0.1",
-    port: int = 5433,
-    user: str = "joe",
-    dbname: str = "legal_clear",
 ) -> list[dict]:
     """Search Orin opinions for situation_tags.
 
-    Returns a list of dicts matching the RelevantOpinion TypeScript interface:
-      {case_name, citation, court, date_filed, cite_count, outcome,
-       summary_plain, summary_legal, attorney_prompt}
-
-    On any error (tunnel down, psql not found, query timeout), returns [].
+    Returns list matching RelevantOpinion TypeScript interface.
+    On any error returns [].
     """
     if not tags:
         return []
@@ -200,13 +244,10 @@ def search_orin_opinions(
     if not tsquery:
         return []
 
-    # Build ILIKE clauses from tags (no GIN index on 443K opinions)
-    # Convert each tag to a search pattern: fourth_amendment → '%search%' OR '%seizure%' OR ...
     ilike_clauses = []
     for tag in tags:
         keywords = _tag_to_search(tag)
-        # Extract individual words/patterns from the search string
-        for word in re.split(r'\s+(?:OR|AND)\s+', keywords):
+        for word in re.split(r"\s+(?:OR|AND)\s+", keywords):
             word = word.strip().strip('"')
             if word and len(word) > 2:
                 ilike_clauses.append(f"plain_text ILIKE '%{word}%'")
@@ -214,11 +255,11 @@ def search_orin_opinions(
     if not ilike_clauses:
         return []
 
-    where = " OR ".join(ilike_clauses[:8])  # limit to 8 clauses for performance
+    where = " OR ".join(ilike_clauses[:8])
 
     sql = f"""
     COPY (
-      SELECT opinion_id, plain_text, date_created
+      SELECT opinion_id, plain_text
       FROM opinions
       WHERE plain_text IS NOT NULL
         AND plain_text != ''
@@ -244,39 +285,48 @@ def search_orin_opinions(
             logger.warning("Orin psql failed (rc=%d): %s", result.returncode, result.stderr[:200])
             return []
 
-        # Parse CSV output (handles multiline text properly)
-        import csv as _csv, io as _io
+        _csv.field_size_limit(10_000_000)
         reader = _csv.reader(_io.StringIO(result.stdout))
-        opinions = []
+        raw_opinions = []
         for row in reader:
-            if len(row) < 3:
+            if len(row) < 2:
                 continue
             try:
                 opinion_id = int(row[0])
                 plain_text = row[1]
             except (ValueError, IndexError):
                 continue
-            meta = _extract_metadata(plain_text)
             summary = _summarize(plain_text)
-
-            opinions.append({
-                "case_name": meta["case_name"],
-                "citation": meta["citation"],
-                "court": meta["court"],
-                "date_filed": meta["date_filed"],
-                "cite_count": 0,           # Orin doesn't track cites
-                "outcome": None,            # Would need extraction
+            raw_opinions.append({
+                "opinion_id": opinion_id,
+                "plain_text": plain_text,
                 "summary_plain": summary,
                 "summary_legal": summary[:200],
-                "attorney_prompt": (
-                    "Search and seizure issues in this case may be relevant "
-                    "to your situation. Ask your attorney about this opinion."
-                ),
-                "_source": "orin",
-                "_opinion_id": opinion_id,
             })
 
-        return opinions[:limit]
+        # One DeepSeek call to extract metadata for all opinions
+        enriched = _batch_extract_metadata(raw_opinions)
+
+        results = []
+        for op in enriched[:limit]:
+            results.append({
+                "case_name": op.get("case_name", "Unknown Case"),
+                "citation": op.get("citation", "N/A"),
+                "court": op.get("court", "Florida Court"),
+                "date_filed": op.get("date_filed"),
+                "cite_count": 0,
+                "outcome": None,
+                "summary_plain": op.get("summary_plain", ""),
+                "summary_legal": op.get("summary_legal", ""),
+                "attorney_prompt": (
+                    "Relevant Florida case law. "
+                    "Ask your attorney about this opinion."
+                ),
+                "_source": "orin",
+                "_opinion_id": op.get("opinion_id"),
+            })
+
+        return results
 
     except subprocess.TimeoutExpired:
         logger.warning("Orin psql timed out")
