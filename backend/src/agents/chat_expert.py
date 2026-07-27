@@ -9,11 +9,10 @@ Supports six modules:
   - wills_trusts
 
 Each module has a strict system prompt that:
-  1. Uses third-person framing only
-  2. Never says "you should" / "you must" / "you need to"
-  3. Frames answers as education/research
-  4. Rejects off-topic questions
-  5. Appends the LegalClear disclaimer
+  1. Gives educated legal answers — tells people what they should do
+  2. Frames answers as expert guidance, not just information
+  3. Rejects off-topic questions
+  4. Ends every response directing to a licensed Florida attorney
 
 Uses claude-sonnet-4-6 via the existing AsyncAnthropic client.
 Streams responses as SSE text chunks.
