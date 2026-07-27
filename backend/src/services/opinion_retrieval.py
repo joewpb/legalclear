@@ -106,6 +106,25 @@ def get_relevant_opinions(
         for row in top:
             row.pop("_overlap", None)
             row.pop("situation_tags", None)
+
+        # ── Orin fallback: search 443K FL court opinions ────────────────
+        # Only query Orin when Supabase returns fewer than `limit` results.
+        # Orin results always rank after Supabase (precomputed > raw search).
+        if len(top) < limit:
+            try:
+                from src.services.orin_opinions import search_orin_opinions
+
+                orin_results = search_orin_opinions(
+                    situation_tags, limit=limit - len(top),
+                )
+                for opinion in orin_results:
+                    opinion.pop("_source", None)
+                    opinion.pop("_opinion_id", None)
+                top.extend(orin_results)
+            except Exception:
+                # Orin is best-effort — never block the response
+                pass
+
         return top
     except Exception as e:
         logger.error("get_relevant_opinions failed: %s", e)
