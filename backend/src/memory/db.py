@@ -43,7 +43,7 @@ class DatabaseManager:
 
     def update_user_subscription(
             self, user_id: str, status: str,
-            subscription_id: str = None) -> dict:
+            subscription_id: str | None = None) -> dict:
         if self.client is None:
             return {}
         try:
@@ -121,8 +121,8 @@ class DatabaseManager:
 
     def update_payment_status(
             self, session_id: str, status: str,
-            payment_intent: str = None,
-            subscription_id: str = None):
+            payment_intent: str | None = None,
+            subscription_id: str | None = None):
         if self.client is None:
             return
         try:

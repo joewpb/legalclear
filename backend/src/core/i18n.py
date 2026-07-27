@@ -6,7 +6,7 @@ SUPPORTED_LANGUAGES = ["en", "es"]
 
 
 def get_lang(detected: str,
-             user_preference: str = None) -> str:
+             user_preference: str | None = None) -> str:
     if user_preference in SUPPORTED_LANGUAGES:
         return user_preference
     if detected in SUPPORTED_LANGUAGES:

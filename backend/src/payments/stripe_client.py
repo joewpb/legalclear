@@ -15,7 +15,7 @@ class StripeClient:
     def create_payment_intent(
             self, price_usd: int,
             session_id: str, user_email: str,
-            metadata: dict = None) -> dict:
+            metadata: dict | None = None) -> dict:
         intent = stripe.PaymentIntent.create(
             amount=price_usd * 100,
             currency="usd",

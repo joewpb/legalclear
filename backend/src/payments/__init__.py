@@ -2,7 +2,7 @@ from src.core.config import settings
 
 
 def check_access(user: dict,
-                 session: dict = None) -> dict:
+                 session: dict | None = None) -> dict:
     # Master switch: when payments are off, every feature is free.
     if not settings.PAYMENTS_ENABLED:
         return {
