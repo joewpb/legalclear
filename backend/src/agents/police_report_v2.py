@@ -20,7 +20,6 @@ from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.ingestion.pdf_parser import PDFParser
 from src.services.opinion_retrieval import derive_situation_tags, get_relevant_opinions, generate_attorney_questions
-from src.agents.scanner import extract_case_context
 
 logger = logging.getLogger(__name__)
 
@@ -384,6 +383,11 @@ class PoliceReportAnalyzerV2:
                     )
 
                 # ── Post-stream: extract case_context (Phase 9) ──
+                # Lazy import: scanner imports compute_risk_score from this
+                # module, so a top-level import here creates a cycle that
+                # breaks app import (src.api.routes). Defer to call site.
+                from src.agents.scanner import extract_case_context
+
                 try:
                     ctx = await extract_case_context([{
                         "filename": filename,
