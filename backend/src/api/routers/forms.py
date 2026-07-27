@@ -10,6 +10,7 @@ import hashlib
 import json
 import logging
 import re
+from typing import Any
 
 import httpx
 from anthropic import AsyncAnthropic
@@ -21,6 +22,13 @@ from src.api.dependencies import require_api_key
 from src.core.config import settings
 from src.core.upl import apply_upl_guardrails, get_disclaimer
 from src.memory.db import DatabaseManager
+from src.services.form_recommender import (
+    CASE_TYPES,
+    DECISION_TREE,
+    get_case_type,
+    get_form_explanation,
+    list_case_types,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/forms", tags=["forms"])
@@ -171,6 +179,141 @@ def _search_court_forms(
     rows = result.data or []
     total = result.count if result.count is not None else len(rows)
     return rows, total
+
+
+# ── Recommend (deterministic decision tree) ────────────────────────────────
+
+@router.get("/case-types")
+async def get_case_types():
+    """Return all 13 case types with their form requirements and fees."""
+    cases = list_case_types()
+    return {
+        "case_types": [
+            {
+                "id": c.id,
+                "name": c.name,
+                "description": c.description,
+                "court": c.court,
+                "filing_fee": c.filing_fee,
+                "form_numbers": c.form_numbers,
+                "diy_florida": c.diy_florida,
+                "diy_interview": c.diy_interview,
+                "county_specific": c.county_specific,
+                "note": c.note,
+            }
+            for c in cases
+        ]
+    }
+
+
+@router.get("/recommend")
+async def recommend_forms(case: str, county: str = ""):
+    """Return recommended forms for a case type, backed by Supabase.
+
+    Query params:
+        case   — case type ID (e.g. divorce-with-children, small-claims)
+        county — optional county name for circuit lookup and fee info
+
+    Returns the case type metadata, plain-English form explanations,
+    and the actual form records from the court_forms table when available.
+    """
+    case_type = get_case_type(case)
+    if case_type is None:
+        from fastapi import HTTPException as _HTTPException
+        raise _HTTPException(
+            status_code=404,
+            detail=f"Unknown case type: {case}. Use /api/forms/case-types for the full list.",
+        )
+
+    response: dict[str, Any] = {
+        "case": {
+            "id": case_type.id,
+            "name": case_type.name,
+            "description": case_type.description,
+            "court": case_type.court,
+            "filing_fee": case_type.filing_fee,
+            "diy_florida": case_type.diy_florida,
+            "diy_interview": case_type.diy_interview,
+            "county_specific": case_type.county_specific,
+            "note": case_type.note,
+        },
+        "forms": [],
+    }
+
+    # Look up each form in Supabase for full metadata
+    if case_type.form_numbers and db.client is not None:
+        try:
+            result = (
+                db.client.table("court_forms")
+                .select(
+                    "form_number,title,category,plain_language_summary,"
+                    "situation_tags,source_page_url,status"
+                )
+                .in_("form_number", case_type.form_numbers)
+                .in_("status", ["published", "active"])
+                .order("form_number")
+                .execute()
+            )
+            for row in result.data or []:
+                fn = row.get("form_number", "")
+                row["plain_explanation"] = get_form_explanation(fn)
+                response["forms"].append(row)
+        except Exception as e:
+            logger.warning("recommend_forms: Supabase lookup failed — %s", e)
+
+    # Fallback: add form entries not found in Supabase
+    found_numbers = {f.get("form_number") for f in response["forms"]}
+    for fn in case_type.form_numbers:
+        if fn not in found_numbers:
+            response["forms"].append({
+                "form_number": fn,
+                "title": None,
+                "category": None,
+                "plain_language_summary": None,
+                "plain_explanation": get_form_explanation(fn),
+                "source_page_url": None,
+                "status": "not_in_catalog",
+            })
+
+    # County lookup
+    if county and county.strip():
+        from src.services.county_router import get_county_details
+        try:
+            county_info = get_county_details(county.strip())
+            response["county"] = {
+                "name": county_info["name"],
+                "clerk_url": county_info.get("clerk_url", ""),
+                "clerk_phone": county_info.get("clerk_phone", ""),
+            }
+        except Exception:
+            response["county"] = {"name": county, "error": "County not found in lookup table"}
+
+    return response
+
+
+@router.get("/decision-tree")
+async def get_decision_tree():
+    """Return the full decision tree for interactive frontend use."""
+    # Serialize — strip internal node IDs
+    def serialize(node: dict) -> dict:
+        out: dict[str, Any] = {"question": node["question"]}
+        options = []
+        for key, opt in node.get("options", {}).items():
+            serialized: dict[str, Any] = {"id": key, "label": opt.get("label", key)}
+            if "result" in opt:
+                serialized["result"] = opt["result"]
+            if "next" in opt:
+                serialized["next"] = opt["next"]
+            if "note" in opt:
+                serialized["note"] = opt["note"]
+            options.append(serialized)
+        out["options"] = options
+        return out
+
+    return {
+        "tree": {node_id: serialize(node) for node_id, node in DECISION_TREE.items()},
+        "case_type_count": len(CASE_TYPES),
+    }
 
 
 # ── Search ──────────────────────────────────────────────────────────────────
