@@ -6,10 +6,14 @@ via SSH-tunneled psql. Complements the Supabase legal_opinions table
 (700 opinions with precomputed summaries) with raw search results.
 
 Architecture:
-  - SSH tunnel: localhost:5433 → Orin:5432 (managed externally)
+  - No local port-forward is used. Each query SSHes into the Orin box
+    (`ssh joe@100.117.93.67`) and runs `psql -U joe -d legal_clear`
+    there over the Unix socket (peer auth). A localhost:5433 tunnel is
+    NOT required and is not referenced by any code path.
   - psql invoked via subprocess (avoids asyncpg auth issues)
-  - DeepSeek batch extraction for metadata (cheap, one API call per search)
-  - Regex fallback when DeepSeek unavailable
+  - DeepSeek batch extraction for metadata (cheap, one API call per
+    search); requires DEEPSEEK_API_KEY in the environment. Regex
+    fallback (~60% accuracy) when the key is absent or the call fails.
 """
 
 from __future__ import annotations
