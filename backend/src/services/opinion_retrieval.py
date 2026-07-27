@@ -131,6 +131,90 @@ def get_relevant_opinions(
         return []
 
 
+def generate_attorney_questions(
+    analysis_result: dict,
+    opinions: list[dict],
+) -> list[dict]:
+    """Generate specific questions the user should ask their attorney about each opinion.
+
+    Uses DeepSeek to connect each opinion's holding to the user's specific
+    situation (from the police report analysis). Returns the opinions list
+    with enriched attorney_prompt fields.
+
+    On failure, returns opinions unchanged (with generic prompts).
+    """
+    import os as _os, json as _json
+
+    key = _os.getenv("DEEPSEEK_API_KEY", "")
+    if not key or not opinions:
+        return opinions
+
+    # Build context from analysis: discrepancies + charges
+    discrepancies = analysis_result.get("discrepancies", [])
+    charges = analysis_result.get("charges_explained", [])
+
+    ctx = f"User situation:\n"
+    for d in discrepancies[:5]:
+        ctx += f"  - Finding: {d.get('finding','')}. Ask attorney about: {d.get('ask_attorney','')}\n"
+    for c in charges[:3]:
+        ctx += f"  - Charge: {c.get('charge','')}\n"
+
+    # Build opinion summaries
+    opinions_text = ""
+    for i, op in enumerate(opinions[:5]):
+        opinions_text += (
+            f"--- OPINION {i} ---\n"
+            f"Case: {op.get('case_name','')}\n"
+            f"Court: {op.get('court','')}\n"
+            f"Summary: {op.get('summary_plain','')[:300]}\n\n"
+        )
+
+    try:
+        import requests as _requests
+        resp = _requests.post(
+            "https://api.deepseek.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": "deepseek-chat",
+                "messages": [{
+                    "role": "user",
+                    "content": (
+                        "A person had their police report analyzed. Their situation:\n"
+                        f"{ctx}\n"
+                        "These Florida court opinions may relate to their case:\n"
+                        f"{opinions_text}\n"
+                        "For EACH opinion, write 1-2 SPECIFIC questions the person "
+                        "should ask their attorney. Questions must connect the "
+                        "opinion's holding to the person's situation. "
+                        "Example: 'Ask: In State v. X, the court suppressed evidence "
+                        "because no warrant was obtained. In my case, the officer "
+                        "also searched without a warrant. Does the same rule apply?'\n"
+                        "Return ONLY a JSON array, one string per opinion:\n"
+                        '["Question 1", "Question 2", ...]'
+                    ),
+                }],
+                "max_tokens": 600,
+                "temperature": 0.3,
+            },
+            timeout=15,
+        )
+        if resp.status_code == 200:
+            raw = resp.json()["choices"][0]["message"]["content"].strip()
+            raw = raw.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+            questions = _json.loads(raw) if isinstance(raw, str) else raw
+            if isinstance(questions, list):
+                for i, q in enumerate(questions):
+                    if i < len(opinions):
+                        opinions[i]["attorney_prompt"] = str(q)
+    except Exception:
+        pass
+
+    return opinions
+
+
 # ---------------------------------------------------------------------------
 # Deterministic mapper: V2 analysis result -> situation_tags.
 #

@@ -154,23 +154,25 @@ export default function OpinionCard({
         })}
       </div>
 
-      {/* Dual-state next step — the barrier-lowering core */}
+      {/* Questions for your attorney — the accountability core */}
       <div className="oc-next">
-        <div className="oc-next-col">
+        <div className="oc-next-col oc-next-questions">
           <div className="oc-next-head">
             <UserCheck className="oc-next-icon" aria-hidden="true" />
-            If you have a lawyer
+            Questions for your attorney
           </div>
-          <p className="oc-next-body">{attorney_prompt}</p>
+          <p className="oc-next-body oc-attorney-question">
+            {attorney_prompt}
+          </p>
         </div>
         <div className="oc-next-col">
           <div className="oc-next-head">
             <Compass className="oc-next-icon" aria-hidden="true" />
-            If you don't have one yet
+            No attorney yet?
           </div>
           <p className="oc-next-body">
-            Keep this case in mind. It may be worth raising when you speak with
-            an attorney — many offer a free first consultation.
+            Save this question. When you consult an attorney — many offer free
+            first consultations — ask them this directly to understand your options.
           </p>
         </div>
       </div>
@@ -321,6 +323,7 @@ export default function OpinionCard({
           overflow: hidden;
         }
         .oc-next-col { background: var(--paper); padding: 0.875rem 1rem; }
+        .oc-next-questions { background: var(--seal-wash); }
         .oc-next-head {
           display: flex;
           align-items: center;
@@ -338,6 +341,12 @@ export default function OpinionCard({
           font-size: 13.5px;
           line-height: 1.5;
           color: var(--ink-soft);
+        }
+        .oc-attorney-question {
+          font-size: 14.5px;
+          color: var(--ink);
+          font-style: italic;
+          line-height: 1.55;
         }
         .oc-em { font-style: italic; color: var(--ink); }
 
