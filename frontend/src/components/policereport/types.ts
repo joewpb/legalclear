@@ -161,5 +161,6 @@ export interface RelevantOpinion {
   outcome: string | null;
   summary_plain: string;
   summary_legal: string;
+  attorney_explanation?: string;
   attorney_prompt: string;
 }

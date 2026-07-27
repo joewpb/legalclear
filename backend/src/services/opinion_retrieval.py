@@ -186,14 +186,21 @@ def generate_attorney_questions(
                         f"{ctx}\n"
                         "These Florida court opinions may relate to their case:\n"
                         f"{opinions_text}\n"
-                        "For EACH opinion, write 1-2 SPECIFIC questions the person "
-                        "should ask their attorney. Questions must connect the "
-                        "opinion's holding to the person's situation. "
-                        "Example: 'Ask: In State v. X, the court suppressed evidence "
-                        "because no warrant was obtained. In my case, the officer "
-                        "also searched without a warrant. Does the same rule apply?'\n"
-                        "Return ONLY a JSON array, one string per opinion:\n"
-                        '["Question 1", "Question 2", ...]'
+                        "For EACH opinion, provide TWO things:\n"
+                        "1. A PLAIN-LANGUAGE EXPLANATION bridging the opinion to "
+                        "their situation. Explain what the case means for THEM. "
+                        "Use simple language anyone can understand. "
+                        "Example: 'This case is about what happens when police search "
+                        "without a warrant — the court said evidence found that way "
+                        "can be thrown out. In your situation, the officer searched "
+                        "your car without asking permission or getting a warrant, "
+                        "which means this ruling could apply to you.'\n"
+                        "2. A SPECIFIC QUESTION they should ask their attorney. "
+                        "Example: 'Ask: In my case, the officer searched my car "
+                        "without a warrant or my consent. Under Florida v. Jardines, "
+                        "could that evidence be suppressed?'\n"
+                        "Return ONLY a JSON array of objects, one per opinion:\n"
+                        '[{"explanation":"...","question":"..."}]'
                     ),
                 }],
                 "max_tokens": 600,
@@ -206,9 +213,14 @@ def generate_attorney_questions(
             raw = raw.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
             questions = _json.loads(raw) if isinstance(raw, str) else raw
             if isinstance(questions, list):
-                for i, q in enumerate(questions):
-                    if i < len(opinions):
-                        opinions[i]["attorney_prompt"] = str(q)
+                for i, item in enumerate(questions):
+                    if i < len(opinions) and isinstance(item, dict):
+                        opinions[i]["attorney_explanation"] = str(item.get("explanation", ""))
+                        opinions[i]["attorney_prompt"] = str(item.get("question", ""))
+                    elif i < len(opinions):
+                        # Backward compat: plain string = question only
+                        opinions[i]["attorney_explanation"] = ""
+                        opinions[i]["attorney_prompt"] = str(item)
     except Exception:
         pass
 

@@ -87,7 +87,7 @@ export default function OpinionCard({
 
   const {
     case_name, citation, court, date_filed, cite_count,
-    outcome, summary_plain, summary_legal, attorney_prompt,
+    outcome, summary_plain, summary_legal, attorney_explanation, attorney_prompt,
   } = opinion;
 
   const courtLabel = COURT_SHORT[court] || court;
@@ -153,6 +153,17 @@ export default function OpinionCard({
           );
         })}
       </div>
+
+      {/* What this means for you — plain-language bridge */}
+      {attorney_explanation && (
+        <div className="oc-explanation">
+          <div className="oc-explanation-head">
+            <Compass className="oc-next-icon" aria-hidden="true" />
+            What this means for you
+          </div>
+          <p className="oc-explanation-body">{attorney_explanation}</p>
+        </div>
+      )}
 
       {/* Questions for your attorney — the accountability core */}
       <div className="oc-next">
@@ -311,6 +322,31 @@ export default function OpinionCard({
           margin-top: 0.125rem;
         }
         .oc-block-matter .oc-block-label { color: var(--seal); }
+
+        .oc-explanation {
+          background: #F0F7F3;
+          border-left: 3px solid var(--seal);
+          padding: 0.875rem 1rem;
+          margin: 1rem 0;
+          border-radius: 0 3px 3px 0;
+        }
+        .oc-explanation-head {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-family: "Söhne", ui-sans-serif, system-ui, sans-serif;
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.03em;
+          color: var(--seal);
+          margin-bottom: 0.375rem;
+        }
+        .oc-explanation-body {
+          margin: 0;
+          font-size: 14px;
+          line-height: 1.6;
+          color: var(--ink);
+        }
 
         .oc-next {
           display: grid;
