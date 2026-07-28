@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
+from src.core.json_utils import strip_markdown_fences
 
 logger = logging.getLogger(__name__)
 
@@ -94,15 +95,6 @@ SYSTEM_PROMPT = (
 # Internal helpers
 # ---------------------------------------------------------------------------
 
-def _strip_markdown_fences(raw: str) -> str:
-    """Remove optional ``` fences from an LLM response."""
-    text = raw.strip()
-    if text.startswith("```"):
-        text = text.split("```", 2)[1]
-        text = text.removeprefix("json")
-        text = text.strip()
-    return text
-
 
 def _sanitize_module(value: str) -> str:
     """Coerce the classified module into one of the valid slots."""
@@ -178,7 +170,7 @@ async def intake(payload: IntakeRequest = Body(...)) -> IntakeResponse:
             )
 
             raw = response.content[0].text
-            parsed = json.loads(_strip_markdown_fences(raw))
+            parsed = json.loads(strip_markdown_fences(raw))
 
             module = _sanitize_module(parsed.get("module", "unknown"))
             sub_type = _sanitize_sub_type(parsed.get("sub_type"))

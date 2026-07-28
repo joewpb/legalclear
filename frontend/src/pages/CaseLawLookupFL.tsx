@@ -27,7 +27,7 @@ export default function CaseLawLookupFL() {
       });
       if (r.status === 502) {
         throw new Error(
-          "CourtListener is temporarily unavailable. Try again in a moment.",
+          "The case-law service is temporarily unavailable. Try again in a moment.",
         );
       }
       if (!r.ok) throw new Error(`Server returned ${r.status}`);

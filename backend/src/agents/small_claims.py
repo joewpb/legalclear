@@ -13,6 +13,7 @@ from anthropic import AsyncAnthropic
 
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
+from src.core.json_utils import strip_markdown_fences
 
 logger = logging.getLogger(__name__)
 
@@ -79,16 +80,6 @@ class SmallClaimsExplainer:
 
     # ── helpers ─────────────────────────────────────────────────────────
 
-    @staticmethod
-    def _strip_fences(raw: str) -> str:
-        """Remove optional ``` fences from an LLM response."""
-        text = raw.strip()
-        if text.startswith("```"):
-            text = text.split("```", 2)[1]
-            text = text.removeprefix("json")
-            text = text.strip()
-        return text
-
     # ── streaming ───────────────────────────────────────────────────────
 
     async def explain_stream(
@@ -147,7 +138,7 @@ class SmallClaimsExplainer:
                 messages=[{"role": "user", "content": user_prompt}],
             )
             raw = response.content[0].text
-            parsed = json.loads(self._strip_fences(raw))
+            parsed = json.loads(strip_markdown_fences(raw))
             parsed["disclaimer"] = get_disclaimer(language)
             return parsed
 

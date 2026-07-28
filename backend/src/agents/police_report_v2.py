@@ -18,6 +18,7 @@ from anthropic import AsyncAnthropic
 
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
+from src.core.json_utils import strip_markdown_fences
 from src.ingestion.pdf_parser import PDFParser
 from src.services.opinion_retrieval import derive_situation_tags, get_relevant_opinions, generate_attorney_questions
 
@@ -200,15 +201,6 @@ class PoliceReportAnalyzerV2:
 
     # ── helpers ─────────────────────────────────────────────────────────
 
-    @staticmethod
-    def _strip_fences(raw: str) -> str:
-        text = raw.strip()
-        if text.startswith("```"):
-            text = text.split("```", 2)[1]
-            text = text.removeprefix("json")
-            text = text.strip()
-        return text
-
     # ── streaming ───────────────────────────────────────────────────────
 
     async def analyze_stream(
@@ -326,7 +318,7 @@ class PoliceReportAnalyzerV2:
             # ── Post-stream: compute risk score deterministically ──
             parsed = None
             try:
-                parsed = json.loads(self._strip_fences(full_text))
+                parsed = json.loads(strip_markdown_fences(full_text))
                 all_findings = (
                     parsed.get("discrepancies", [])
                     + [
@@ -498,7 +490,7 @@ class PoliceReportAnalyzerV2:
                 messages=[{"role": "user", "content": user_content}],
             )
             raw = response.content[0].text
-            parsed = json.loads(self._strip_fences(raw))
+            parsed = json.loads(strip_markdown_fences(raw))
             parsed["disclaimer"] = get_disclaimer(language)
 
             # Compute deterministic risk score from findings

@@ -6,6 +6,7 @@ from anthropic import AsyncAnthropic
 
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
+from src.core.json_utils import strip_markdown_fences
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +53,7 @@ class ExplainerAgent:
                 messages=[{"role": "user", "content": text}]
             )
             content = response.content[0].text
-            parsed = json.loads(content)
+            parsed = json.loads(strip_markdown_fences(content))
             parsed["disclaimer"] = get_disclaimer(language)
             return parsed
         except Exception as e:
