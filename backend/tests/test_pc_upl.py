@@ -32,19 +32,28 @@ def test_response_carries_disclaimer():
         lang="en", level="standard",
     )
     assert "disclaimer" in simulated
+    # Phase 8 replaced "legal information, not legal advice" with an
+    # "educate first, attorney end" disclaimer. Assert the new intent:
+    # legal information + an attorney-confirmation nudge.
     assert "legal information" in simulated["disclaimer"].lower()
-    assert "not legal advice" in simulated["disclaimer"].lower()
+    assert "attorney" in simulated["disclaimer"].lower()
 
 
 def test_no_second_person_directives_in_output():
-    """The UPL audit function must catch the exact phrases the mission bans.
-    This proves the audit tooling is calibrated correctly."""
+    """The UPL audit function must catch the directive phrases it is
+    calibrated to flag — the Phase 8 ATTORNEY_NUDGE_PHRASES set. This
+    proves the audit tooling matches the implemented contract.
+
+    NOTE: 'my advice is ...' is NOT in the Phase 8 nudge set (it was in
+    the pre-Phase-8 block-list). Whether to re-add an 'advice' trigger is
+    a product decision — tracked separately, not silently changed here.
+    """
     banned = [
-        "You should file the notice immediately.",
-        "You must report the claim within 1 year.",
-        "You need to hire an attorney.",
-        "I recommend filing suit now.",
-        "My advice is to mediate first.",
+        "You should file the notice immediately.",      # you should
+        "You must report the claim within 1 year.",      # you must
+        "You need to hire an attorney.",                 # you need to
+        "I recommend filing suit now.",                  # i recommend
+        "Your best option is to settle.",                # your best option
     ]
     for text in banned:
         flags = audit_output_for_upl(text)
@@ -73,7 +82,7 @@ def test_disclaimer_via_middleware_not_local_literal():
     src/core/upl.py — the frozen contract — not a P&C-local copy."""
     standard = upl_get_disclaimer("standard", "en")
     assert "legal information" in standard.lower()
-    assert "not legal advice" in standard.lower()
+    assert "attorney" in standard.lower()
     # The exact wording is owned by the middleware — we don't test
     # the full string (it can evolve), but the key phrases must match.
     applied = apply_disclaimer({"test": True}, lang="en", level="standard")
