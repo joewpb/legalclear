@@ -21,7 +21,6 @@ returning 200 even when extraction or analysis can't run.
 """
 from __future__ import annotations
 
-import json
 import logging
 import traceback
 from typing import Any
@@ -31,6 +30,7 @@ from anthropic import Anthropic
 from src.agents.case_context import empty_case_context
 from src.agents.police_report_v2 import compute_risk_score
 from src.core.config import settings
+from src.core.json_utils import parse_json_dict, parse_json_list
 
 logger = logging.getLogger(__name__)
 
@@ -137,37 +137,10 @@ For unknown fields use: null (strings), false (booleans), [] (arrays), 0 (number
 _MODEL = "claude-sonnet-4-6"
 
 
-def _strip_fences(raw: str) -> str:
-    """Strip ```json ... ``` fences if present (universal rule)."""
-    raw = raw.strip()
-    if raw.startswith("```"):
-        parts = raw.split("```")
-        if len(parts) >= 2:
-            raw = parts[1]
-            raw = raw.removeprefix("json")
-    return raw.strip()
-
-
 def _parse_findings(raw: str) -> list[dict[str, Any]]:
     """Parse the model's response into a findings list. Retry once on
     JSONDecodeError (AGENTS.md universal rule)."""
-    cleaned = _strip_fences(raw)
-    try:
-        data = json.loads(cleaned)
-    except json.JSONDecodeError:
-        # One retry: try to recover the largest JSON-looking substring.
-        start = cleaned.find("[")
-        end = cleaned.rfind("]")
-        if start != -1 and end != -1 and end > start:
-            try:
-                data = json.loads(cleaned[start : end + 1])
-            except json.JSONDecodeError:
-                return []
-        else:
-            return []
-    if not isinstance(data, list):
-        return []
-    return [d for d in data if isinstance(d, dict)]
+    return parse_json_list(raw)
 
 
 async def scan_documents(extracted_texts: list[dict]) -> dict:
@@ -247,22 +220,7 @@ async def scan_documents(extracted_texts: list[dict]) -> dict:
 
 def _parse_case_context_obj(raw: str) -> dict | None:
     """Parse the model's case-context response into a dict. Retry once."""
-    cleaned = _strip_fences(raw)
-    try:
-        data = json.loads(cleaned)
-    except json.JSONDecodeError:
-        start = cleaned.find("{")
-        end = cleaned.rfind("}")
-        if start != -1 and end != -1 and end > start:
-            try:
-                data = json.loads(cleaned[start : end + 1])
-            except json.JSONDecodeError:
-                return None
-        else:
-            return None
-    if not isinstance(data, dict):
-        return None
-    return data
+    return parse_json_dict(raw)
 
 
 async def extract_case_context(extracted_texts: list[dict]) -> dict:

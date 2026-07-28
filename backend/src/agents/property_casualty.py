@@ -27,6 +27,7 @@ from anthropic import AsyncAnthropic
 
 from src.agents.police_report_v2 import compute_risk_score
 from src.core.config import settings
+from src.core.json_utils import strip_markdown_fences
 from src.core.upl import apply_disclaimer
 from src.ingestion.pdf_parser import PDFParser
 
@@ -180,15 +181,6 @@ class PropertyCasualtyExplainer:
     @staticmethod
     def _is_pdf(filename: str) -> bool:
         return filename.rsplit(".", 1)[-1].lower() == "pdf" if "." in filename else False
-
-    @staticmethod
-    def _strip_fences(raw: str) -> str:
-        text = raw.strip()
-        if text.startswith("```"):
-            text = text.split("```", 2)[1]
-            text = text.removeprefix("json")
-            text = text.strip()
-        return text
 
     @staticmethod
     def _parse_date_of_loss(entities: dict) -> date | None:
@@ -371,7 +363,7 @@ class PropertyCasualtyExplainer:
 
             # ── Post-stream: inject computed deadlines if LLM dropped them ──
             try:
-                parsed = json.loads(self._strip_fences(full_text))
+                parsed = json.loads(strip_markdown_fences(full_text))
                 if is_first_party and computed_deadlines:
                     parsed["key_deadlines"] = computed_deadlines
                 # ── Compute risk score from watch_out_for ──
@@ -441,7 +433,7 @@ class PropertyCasualtyExplainer:
                 system=[{"type": "text", "text": system_prompt, "cache_control": {"type": "ephemeral"}}],
                 messages=[{"role": "user", "content": user_content}],
             )
-            parsed = json.loads(self._strip_fences(response.content[0].text))
+            parsed = json.loads(strip_markdown_fences(response.content[0].text))
 
             # ── Inject computed deadlines ──
             if is_first_party and computed_deadlines:

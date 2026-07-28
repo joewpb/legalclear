@@ -7,6 +7,7 @@ from anthropic import AsyncAnthropic
 
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
+from src.core.json_utils import strip_markdown_fences
 
 logger = logging.getLogger(__name__)
 
@@ -108,11 +109,8 @@ Document text:
                     "content": user_prompt
                 }]
             )
-            raw = response.content[0].text.strip()
-            if raw.startswith("```"):
-                raw = raw.split("```")[1]
-                raw = raw.removeprefix("json")
-            result = json.loads(raw)
+            raw = response.content[0].text
+            result = json.loads(strip_markdown_fences(raw))
             result["disclaimer"] = get_disclaimer(
                 lang, "standard")
             return result
@@ -123,7 +121,11 @@ Document text:
                 repr(e),
                 traceback.format_exc()
             )
-            return {"error": True, "message": "An error occurred. Please try again.",
+            return {"error": True,
+                    "message": (
+                        "Ocurrió un error. Por favor intente de nuevo."
+                        if lang == "es"
+                        else "An error occurred. Please try again."),
                     "disclaimer": get_disclaimer(
                         lang, "standard")}
 

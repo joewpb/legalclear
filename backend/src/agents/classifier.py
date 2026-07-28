@@ -5,6 +5,7 @@ import traceback
 from anthropic import AsyncAnthropic
 
 from src.core.config import settings
+from src.core.json_utils import strip_markdown_fences
 
 logger = logging.getLogger(__name__)
 
@@ -99,11 +100,8 @@ Document text:
                             else user_prompt)
                     }]
                 )
-                raw = response.content[0].text.strip()
-                if raw.startswith("```"):
-                    raw = raw.split("```")[1]
-                    raw = raw.removeprefix("json")
-                return json.loads(raw)
+                raw = response.content[0].text
+                return json.loads(strip_markdown_fences(raw))
             except Exception as e:
                 logger.error(
                     "Anthropic call failed in %s: %s\n%s",

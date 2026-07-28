@@ -64,8 +64,10 @@ export default function ResultCard({ r }: { r: CaseResult }) {
         <p style={{ margin: 0, lineHeight: 1.5 }}>{r.plain_english_summary}</p>
       ) : (
         <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>
-          No plain-English summary available. Read the full opinion on
-          CourtListener for context.
+          No plain-English summary available
+          {r.courtlistener_url
+            ? ". Read the full opinion on CourtListener for context."
+            : "."}
         </p>
       )}
 
