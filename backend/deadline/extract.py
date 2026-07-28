@@ -9,9 +9,11 @@ Retry once on schema-invalid output; escalate on second failure.
 
 from __future__ import annotations
 
+import calendar
 import json
 import logging
 import re
+from datetime import date
 from typing import Any
 
 import anthropic
@@ -68,7 +70,82 @@ Rules you must follow:
    set escalation_needed to true.
 6. "unknown" is always a valid output. A confident wrong answer is worse than
    admitting uncertainty.
+7. NEVER invent or guess a date. Do NOT output placeholder dates such as
+   2025-01-01, 1970-01-01, or any January 1 / round-number date. Every
+   non-null event_date MUST be a date that appears verbatim in the document
+   text — if no date is stated, set event_date to null. The raw_text_excerpt
+   must contain that exact date. A returned date that cannot be found in the
+   document is treated as a hallucination and will be discarded.
 """
+
+
+def _date_appears_in_text(iso_date_str: str, text: str) -> bool:
+    """Return True if the ISO date appears in `text` in any common format.
+
+    The LLM is instructed to extract only dates stated verbatim in the document.
+    If the date it returned cannot be located in the text — e.g. an invented
+    placeholder like 2025-01-01 — it is a hallucination and must be rejected.
+    """
+    try:
+        d = date.fromisoformat(iso_date_str)
+    except (TypeError, ValueError):
+        return False
+
+    haystack = text.lower()
+    yr = str(d.year)
+    mm, dd = f"{d.month:02d}", f"{d.day:02d}"
+    m, day = str(d.month), str(d.day)
+    m_full = calendar.month_name[d.month]
+    m_abbr = calendar.month_abbr[d.month]
+
+    variants = {
+        iso_date_str,                        # 2025-01-01
+        iso_date_str.replace("-", "/"),      # 2025/01/01
+    }
+    # US numeric: 01/01/2025, 1/1/2025, 01-01-2025, 1-1-2025
+    for sep in ("/", "-"):
+        variants.add(f"{mm}{sep}{dd}{sep}{yr}")
+        variants.add(f"{m}{sep}{day}{sep}{yr}")
+    # Textual: January 1, 2025 / Jan 1, 2025 (with/without comma)
+    for name in (m_full, m_abbr):
+        variants.add(f"{name} {day}, {yr}")
+        variants.add(f"{name} {dd}, {yr}")
+        variants.add(f"{name} {day} {yr}")
+        variants.add(f"{name} {dd} {yr}")
+
+    return any(v.lower() in haystack for v in variants)
+
+
+def _sanitize_events(data: dict[str, Any], document_text: str) -> dict[str, Any]:
+    """Nullify any extracted event_date that does not appear in the document text.
+
+    The LLM is told to extract only verbatim dates, but it sometimes fabricates
+    a plausible-looking placeholder (e.g. 2025-01-01) when no date is present.
+    Deterministically discarding such a date — and escalating — keeps a fake
+    date from flowing into the deterministic deadline computation (Core
+    Principle: LLMs extract, deterministic code computes; "unknown" is a
+    first-class output). This mirrors the Stage-2 escalation path that a
+    genuinely missing date takes in pipeline.py.
+    """
+    for ev in data.get("events", []):
+        ev_date = ev.get("event_date")
+        if not ev_date:
+            continue
+        if not _date_appears_in_text(ev_date, document_text):
+            logger.warning(
+                "Rejected event_date %r not found in document text — likely "
+                "hallucination; nullifying and escalating.", ev_date,
+            )
+            ev["event_date"] = None
+            ev["confidence"] = 0.0
+            data["escalation_needed"] = True
+            note = (
+                f"Extractor returned a date ({ev_date}) that does not appear in "
+                "the document; it has been discarded as a likely hallucination."
+            )
+            existing = data.get("escalation_reason") or ""
+            data["escalation_reason"] = f"{existing} {note}".strip()
+    return data
 
 
 def _strip_fences(text: str) -> str:
@@ -113,9 +190,11 @@ async def extract_trigger_events(document_text: str) -> dict[str, Any]:
     'escalation_reason'. Retries once on schema failure; escalates on second.
     """
     client = _get_client()
+    # Truncate once so the model and the sanitization guard see the same text.
+    text_slice = document_text[:15000]
     prompt = (
         f"Extract trigger events from this legal document:\n\n"
-        f"{document_text[:15000]}"
+        f"{text_slice}"
     )
 
     for attempt in range(2):
@@ -134,7 +213,7 @@ async def extract_trigger_events(document_text: str) -> dict[str, Any]:
             data = json.loads(_strip_fences(raw))
             errors = _validate_schema(data)
             if not errors:
-                return data
+                return _sanitize_events(data, text_slice)
             logger.warning(
                 "extract_trigger_events schema errors (attempt %d): %s",
                 attempt + 1, errors,
