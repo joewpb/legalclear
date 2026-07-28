@@ -20,7 +20,11 @@ from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.core.json_utils import strip_markdown_fences
 from src.ingestion.pdf_parser import PDFParser
-from src.services.opinion_retrieval import derive_situation_tags, get_relevant_opinions, generate_attorney_questions
+from src.services.opinion_retrieval import (
+    derive_situation_tags,
+    generate_attorney_questions,
+    get_relevant_opinions,
+)
 
 logger = logging.getLogger(__name__)
 

@@ -22,10 +22,11 @@ import csv as _csv
 import io as _io
 import json
 import logging
-import os as _os
 import re
 import subprocess
 from dataclasses import dataclass
+
+from src.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -153,7 +154,7 @@ def _extract_metadata_regex(text: str) -> dict[str, str | None]:
 
 def _batch_extract_metadata(opinions: list[dict]) -> list[dict]:
     """Extract metadata from multiple opinions in ONE DeepSeek call."""
-    key = _os.getenv("DEEPSEEK_API_KEY", "")
+    key = settings.DEEPSEEK_API_KEY
     if not key:
         for op in opinions:
             meta = _extract_metadata_regex(op["plain_text"])
@@ -206,7 +207,7 @@ def _batch_extract_metadata(opinions: list[dict]) -> list[dict]:
                         })
                 return opinions
     except Exception:
-        pass
+        logger.warning("DeepSeek batch metadata extraction failed, falling back to regex", exc_info=True)
 
     # Fallback: regex
     for op in opinions:
@@ -339,5 +340,5 @@ def search_orin_opinions(
         logger.warning("ssh not found — Orin opinions unavailable")
         return []
     except Exception:
-        logger.error("Orin opinion search failed", exc_info=True)
+        logger.exception("Orin opinion search failed")
         return []

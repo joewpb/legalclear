@@ -70,7 +70,7 @@ _PACKETS: dict[str, dict[str, Any]] = {}
 
 
 def _now_iso() -> str:
-    return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def get_packet(packet_id: str) -> dict[str, Any] | None:

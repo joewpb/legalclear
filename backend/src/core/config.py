@@ -27,6 +27,7 @@ class Settings:
     # enable the optional v4 fallback when the corpus returns nothing.
     COURTLISTENER_TOKEN: str = os.getenv("COURTLISTENER_TOKEN", "")
     API_KEY: str = os.getenv("API_KEY", "testkey123")
+    DEEPSEEK_API_KEY: str = os.getenv("DEEPSEEK_API_KEY", "")
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     # Master payment switch. False (default) = every paywalled feature runs
     # FREE (no Stripe checkout, no paywall, no upgrade prompt). True =
