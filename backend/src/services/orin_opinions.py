@@ -285,6 +285,7 @@ def search_orin_opinions(
             capture_output=True,
             text=True,
             timeout=15,
+            check=False,
         )
         if result.returncode != 0:
             logger.warning("Orin psql failed (rc=%d): %s", result.returncode, result.stderr[:200])
