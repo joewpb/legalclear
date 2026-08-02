@@ -166,6 +166,7 @@ def test_derive_non_dict_returns_empty():
 # ---------------------------------------------------------------------------
 
 import src.services.opinion_retrieval as opinion_retrieval  # noqa: E402
+import src.services.orin_opinions as orin_opinions  # noqa: E402
 from src.services.opinion_retrieval import get_relevant_opinions  # noqa: E402
 
 
@@ -228,6 +229,10 @@ def test_substantive_tag_set_is_not_gated(monkeypatch):
     # Adkins-style felony + fourth_amendment match must keep working.
     _RecordingClient.queried = False
     monkeypatch.setattr(opinion_retrieval.db, "client", _RecordingClient())
+    # Orin fallback (added in 1335d88) must return [] in unit tests —
+    # otherwise real Supabase/Orin results leak through when the
+    # recording client's empty result triggers the fallback path.
+    monkeypatch.setattr(orin_opinions, "search_orin_opinions", lambda *a, **kw: [])
     opinions = get_relevant_opinions(["felony", "fourth_amendment"])
     assert _RecordingClient.queried is True, (
         "expected the query to run for a substantive tag set; the gate "
