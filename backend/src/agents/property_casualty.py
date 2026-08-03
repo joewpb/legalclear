@@ -194,7 +194,7 @@ class PropertyCasualtyExplainer:
             return None
         for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%m/%d/%y", "%B %d, %Y", "%b %d, %Y"):
             try:
-                return datetime.strptime(raw.strip(), fmt).date()
+                return datetime.strptime(raw.strip(), fmt).date()  # noqa: DTZ007
             except ValueError:
                 continue
         return None
@@ -219,7 +219,7 @@ class PropertyCasualtyExplainer:
                     circuit=None,
                     closure_dates=closure_dates,
                     has_local_closure_data=True,
-                    today=date.today(),
+                    today=date.today(),  # noqa: DTZ011
                 )
                 for dl in result.deadlines:
                     results.append({
