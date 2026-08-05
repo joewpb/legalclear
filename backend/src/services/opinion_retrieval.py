@@ -19,6 +19,7 @@ from __future__ import annotations
 import logging
 import re
 
+from src.core.config import settings
 from src.memory.db import DatabaseManager
 
 logger = logging.getLogger(__name__)
@@ -122,8 +123,8 @@ def get_relevant_opinions(
                     opinion.pop("_opinion_id", None)
                 top.extend(orin_results)
             except Exception:
+                logger.warning("Orin opinion search failed, continuing with Supabase-only results")
                 # Orin is best-effort — never block the response
-                pass
 
         return top
     except Exception as e:
@@ -143,9 +144,9 @@ def generate_attorney_questions(
 
     On failure, returns opinions unchanged (with generic prompts).
     """
-    import os as _os, json as _json
+    import json as _json
 
-    key = _os.getenv("DEEPSEEK_API_KEY", "")
+    key = settings.DEEPSEEK_API_KEY
     if not key or not opinions:
         return opinions
 
@@ -153,7 +154,7 @@ def generate_attorney_questions(
     discrepancies = analysis_result.get("discrepancies", [])
     charges = analysis_result.get("charges_explained", [])
 
-    ctx = f"User situation:\n"
+    ctx = "User situation:\n"
     for d in discrepancies[:5]:
         ctx += f"  - Finding: {d.get('finding','')}. Ask attorney about: {d.get('ask_attorney','')}\n"
     for c in charges[:3]:
@@ -222,7 +223,7 @@ def generate_attorney_questions(
                         opinions[i]["attorney_explanation"] = ""
                         opinions[i]["attorney_prompt"] = str(item)
     except Exception:
-        pass
+        logger.warning("DeepSeek attorney question generation failed, returning opinions unchanged", exc_info=True)
 
     return opinions
 

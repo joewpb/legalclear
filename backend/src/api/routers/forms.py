@@ -286,6 +286,7 @@ async def recommend_forms(case: str, county: str = ""):
                 "clerk_phone": county_info.get("clerk_phone", ""),
             }
         except Exception:
+            logger.warning("County '%s' not found in lookup table, returning error", county, exc_info=True)
             response["county"] = {"name": county, "error": "County not found in lookup table"}
 
     return response
