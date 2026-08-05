@@ -21,6 +21,7 @@ from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.core.json_utils import strip_markdown_fences
 from src.ingestion.pdf_parser import PDFParser
+from src.utils.file_utils import guess_media_type, is_image, is_pdf
 
 logger = logging.getLogger(__name__)
 
@@ -100,23 +101,6 @@ class DiscoveryMotionAnalyzer:
 
     # ── content builders ────────────────────────────────────────────────
 
-    @staticmethod
-    def _guess_media_type(filename: str) -> str:
-        ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
-        return {
-            "jpg": "image/jpeg", "jpeg": "image/jpeg",
-            "png": "image/png", "gif": "image/gif",
-            "webp": "image/webp",
-        }.get(ext, "image/jpeg")
-
-    @staticmethod
-    def _is_image(filename: str) -> bool:
-        ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
-        return ext in {"jpg", "jpeg", "png", "gif", "webp", "bmp", "tiff", "tif"}
-
-    @staticmethod
-    def _is_pdf(filename: str) -> bool:
-        return filename.rsplit(".", 1)[-1].lower() == "pdf" if "." in filename else False
 
     def _build_text_message(self, text: str, lang_label: str) -> str:
         return (
@@ -135,8 +119,8 @@ class DiscoveryMotionAnalyzer:
         lang_label = "Spanish" if language == "es" else "English"
         user_content: list[dict] = []
 
-        if self._is_image(filename):
-            media_type = self._guess_media_type(filename)
+        if is_image(filename):
+            media_type = guess_media_type(filename)
             b64 = base64.b64encode(file_bytes).decode("ascii")
             user_content.append({
                 "type": "image",
@@ -151,7 +135,7 @@ class DiscoveryMotionAnalyzer:
                 ),
             })
 
-        elif self._is_pdf(filename):
+        elif is_pdf(filename):
             try:
                 extraction = await self._pdf_parser.extract_from_bytes_async(file_bytes)
             except Exception:
@@ -219,13 +203,13 @@ class DiscoveryMotionAnalyzer:
         lang_label = "Spanish" if language == "es" else "English"
         user_content: list[dict] = []
 
-        if self._is_image(filename):
+        if is_image(filename):
             b64 = base64.b64encode(file_bytes).decode("ascii")
             user_content.append({
                 "type": "image",
-                "source": {"type": "base64", "media_type": self._guess_media_type(filename), "data": b64},
+                "source": {"type": "base64", "media_type": guess_media_type(filename), "data": b64},
             })
-        elif self._is_pdf(filename):
+        elif is_pdf(filename):
             try:
                 extraction = await self._pdf_parser.extract_from_bytes_async(file_bytes)
             except Exception:
@@ -243,7 +227,7 @@ class DiscoveryMotionAnalyzer:
                 f"Analyze this Florida Motion for Discovery. "
                 f"Respond entirely in {lang_label}. "
                 "Return ONLY a valid JSON object. No markdown. No preamble."
-                + (f"\n\nMotion text:\n{raw_text[:24000]}" if self._is_pdf(filename) else "")
+                + (f"\n\nMotion text:\n{raw_text[:24000]}" if is_pdf(filename) else "")
             ),
         })
 

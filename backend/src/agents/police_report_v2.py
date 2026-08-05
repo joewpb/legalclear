@@ -25,6 +25,7 @@ from src.services.opinion_retrieval import (
     generate_attorney_questions,
     get_relevant_opinions,
 )
+from src.utils.file_utils import guess_media_type, is_image, is_pdf
 
 logger = logging.getLogger(__name__)
 
@@ -180,32 +181,6 @@ class PoliceReportAnalyzerV2:
 
     # ── content builders ────────────────────────────────────────────────
 
-    @staticmethod
-    def _guess_media_type(filename: str) -> str:
-        """Guess MIME type from file extension."""
-        ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
-        mapping = {
-            "jpg": "image/jpeg",
-            "jpeg": "image/jpeg",
-            "png": "image/png",
-            "gif": "image/gif",
-            "webp": "image/webp",
-        }
-        return mapping.get(ext, "image/jpeg")
-
-    @staticmethod
-    def _is_image(filename: str) -> bool:
-        ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
-        return ext in {"jpg", "jpeg", "png", "gif", "webp", "bmp", "tiff", "tif"}
-
-    @staticmethod
-    def _is_pdf(filename: str) -> bool:
-        ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
-        return ext == "pdf"
-
-    # ── helpers ─────────────────────────────────────────────────────────
-
-    # ── streaming ───────────────────────────────────────────────────────
 
     async def analyze_stream(
         self,
@@ -221,9 +196,9 @@ class PoliceReportAnalyzerV2:
         lang_label = "Spanish" if language == "es" else "English"
         user_content: list[dict] = []
 
-        if self._is_image(filename):
+        if is_image(filename):
             # ── Vision path ──────────────────────────────────────────
-            media_type = self._guess_media_type(filename)
+            media_type = guess_media_type(filename)
             b64 = base64.b64encode(file_bytes).decode("ascii")
 
             user_content.append(
@@ -248,7 +223,7 @@ class PoliceReportAnalyzerV2:
                 }
             )
 
-        elif self._is_pdf(filename):
+        elif is_pdf(filename):
             # ── PDF text-extraction path ─────────────────────────────
             try:
                 extraction = await self._pdf_parser.extract_from_bytes_async(file_bytes)
@@ -426,8 +401,8 @@ class PoliceReportAnalyzerV2:
         lang_label = "Spanish" if language == "es" else "English"
         user_content: list[dict] = []
 
-        if self._is_image(filename):
-            media_type = self._guess_media_type(filename)
+        if is_image(filename):
+            media_type = guess_media_type(filename)
             b64 = base64.b64encode(file_bytes).decode("ascii")
             user_content.append(
                 {
@@ -439,7 +414,7 @@ class PoliceReportAnalyzerV2:
                     },
                 }
             )
-        elif self._is_pdf(filename):
+        elif is_pdf(filename):
             try:
                 extraction = await self._pdf_parser.extract_from_bytes_async(file_bytes)
             except Exception:
@@ -473,7 +448,7 @@ class PoliceReportAnalyzerV2:
                     "No markdown. No preamble."
                     + (
                         f"\n\nReport text:\n{raw_text[:24000]}"
-                        if self._is_pdf(filename)
+                        if is_pdf(filename)
                         else ""
                     )
                 ),
