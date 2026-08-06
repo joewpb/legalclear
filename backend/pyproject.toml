@@ -36,3 +36,9 @@ dependencies = [
 dev = [
     "ruff>=0.16.0",
 ]
+
+[tool.ruff]
+# B008: FastAPI requires Depends()/Body()/File() in function signatures — not a bug.
+# BLE001: Project policy — bare Exception catches are intentional and every one
+#         has an accompanying logger call (verified by refactor scan).
+lint.ignore = ["B008", "BLE001"]
