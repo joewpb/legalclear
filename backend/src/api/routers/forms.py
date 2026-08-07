@@ -457,7 +457,7 @@ async def suggest_forms(payload: SuggestRequest = Body(...)):
         logger.error("suggest_forms candidate search failed: %s", e)
         raise HTTPException(status_code=500, detail="Could not retrieve forms") from e
 
-    disclaimer = get_disclaimer("en")
+    disclaimer = get_disclaimer(lang="en")
 
     if not candidates:
         async def _empty():

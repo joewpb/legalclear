@@ -47,7 +47,7 @@ async def analyze(
             return {
                 "error": True,
                 "message": "Document classification missing. Please contact support.",
-                "disclaimer": get_disclaimer("en")
+                "disclaimer": get_disclaimer(lang="en")
             }
 
         # Run escalation checks
@@ -63,7 +63,7 @@ async def analyze(
             "analysis": safe_analysis,
             "escalation": escalation,
             "timestamp": datetime.now(UTC).isoformat(),
-            "disclaimer": get_disclaimer("en")
+            "disclaimer": get_disclaimer(lang="en")
         }
 
     except Exception as e:
