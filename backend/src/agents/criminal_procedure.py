@@ -4,6 +4,7 @@ Explains Florida criminal procedure in plain English for pro se litigants.
 Uses claude-sonnet-4-6 with structured JSON output and SSE streaming.
 """
 
+import asyncio
 import json
 import logging
 import traceback
@@ -14,6 +15,11 @@ from anthropic import AsyncAnthropic
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.core.json_utils import strip_markdown_fences
+from src.services.opinion_retrieval import (
+    derive_criminal_tags,
+    generate_attorney_questions,
+    get_relevant_opinions,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -130,12 +136,18 @@ class CriminalProcedureExplainer:
         current_stage: str,
         language: str = "en",
     ) -> AsyncGenerator[str, None]:
-        """Stream a criminal-procedure explanation as SSE chunks."""
+        """Stream a criminal-procedure explanation as SSE chunks.
+
+        After the LLM stream completes, derives situation_tags from the
+        parsed result, fetches relevant FL court opinions, generates
+        attorney questions, and emits a ``relevant_opinions`` SSE event.
+        """
         user_prompt = self._build_user_prompt(
             charge_type, severity, current_stage, language
         )
 
         try:
+            full_text = ""
             async with self.client.messages.stream(
                 model=self.model,
                 max_tokens=4096,
@@ -149,7 +161,49 @@ class CriminalProcedureExplainer:
                 messages=[{"role": "user", "content": user_prompt}],
             ) as stream:
                 async for chunk in stream.text_stream:
+                    full_text += chunk
                     yield f"data: {chunk}\n\n"
+
+            # ── Post-stream: retrieve relevant opinions ──
+            parsed = None
+            try:
+                parsed = json.loads(strip_markdown_fences(full_text))
+            except (json.JSONDecodeError, KeyError):
+                logger.error(
+                    "CriminalProcedureExplainer JSON parse failed"
+                )
+                # Opinion retrieval is best-effort — the explanation
+                # JSON has already been streamed to the client, so a
+                # parse failure here must not emit a misleading error
+                # event.  Log + return without opinions.
+                return
+
+            if parsed:
+                try:
+                    tags = derive_criminal_tags(
+                        parsed,
+                        charge_type=charge_type,
+                        severity=severity,
+                        current_stage=current_stage,
+                    )
+                    opinions = await asyncio.to_thread(
+                        get_relevant_opinions, tags
+                    )
+                    opinions = await asyncio.to_thread(
+                        generate_attorney_questions, parsed, opinions,
+                    )
+                    opinions_payload = json.dumps({
+                        "type": "relevant_opinions",
+                        "situation_tags_used": tags,
+                        "opinions": opinions,
+                    })
+                    yield f"data: {opinions_payload}\n\n"
+                except Exception:
+                    logger.error(
+                        "CriminalProcedureExplainer opinion "
+                        "retrieval failed:\n%s",
+                        traceback.format_exc(),
+                    )
 
         except Exception:
             logger.error(

@@ -12,6 +12,8 @@
 import { useState, useRef, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
+import OpinionCard from "../components/policereport/OpinionCard";
+import type { RelevantOpinion } from "../components/policereport/types";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -353,6 +355,8 @@ export default function CriminalProcedureExplainer() {
   const [chargeDescription, setChargeDescription] = useState("");
   const [severity, setSeverity] = useState("misdemeanor");
   const [submitted, setSubmitted] = useState(false);
+  const [relevantOpinions, setRelevantOpinions] = useState<RelevantOpinion[]>([]);
+  const [situationTagsUsed, setSituationTagsUsed] = useState<string[]>([]);
 
   const currentIdx = stageIndex(currentStage);
 
@@ -361,6 +365,8 @@ export default function CriminalProcedureExplainer() {
     setError(null);
     setRawChunks("");
     setResponse({});
+    setRelevantOpinions([]);
+    setSituationTagsUsed([]);
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -390,6 +396,20 @@ export default function CriminalProcedureExplainer() {
 
       let full = "";
       for await (const chunk of readSSE(reader)) {
+        // Try parsing the individual chunk first — ``relevant_opinions``
+        // events arrive as a complete single-line JSON after the
+        // streaming explanation JSON finishes.
+        try {
+          const solo = JSON.parse(chunk);
+          if (solo.type === "relevant_opinions") {
+            setRelevantOpinions(solo.opinions ?? []);
+            setSituationTagsUsed(solo.situation_tags_used ?? []);
+            continue; // typed event — don't accumulate into the explanation JSON
+          }
+        } catch {
+          /* not a complete JSON chunk — will be accumulated */
+        }
+
         full += chunk;
         setRawChunks(full);
         try {
@@ -564,6 +584,21 @@ export default function CriminalProcedureExplainer() {
                   ))}
                 </>
               )}
+
+            {/* Relevant Florida case law — retrieved by situation-tag overlap
+                from the criminal procedure context. */}  
+            {relevantOpinions.length > 0 && (
+              <>
+                <h2 style={css.sectionTitle}>Relevant Florida Case Law</h2>
+                {relevantOpinions.map((op, i) => (
+                  <OpinionCard
+                    key={op.citation || i}
+                    opinion={op}
+                    language={language}
+                  />
+                ))}
+              </>
+            )}
           </>
         )}
 

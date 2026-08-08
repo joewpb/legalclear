@@ -425,3 +425,58 @@ def derive_situation_tags(v2_result: dict) -> list[str]:
     )
 
     return sorted(tags)
+
+
+# ---------------------------------------------------------------------------
+# Criminal Procedure mapper: explainer result -> situation_tags.
+#
+# Deterministic precision-over-recall — maps the structured input params
+# (severity, current_stage) to the verified legal_opinions vocabulary.
+# The LLM output text is NOT keyword-scanned because the explainer always
+# discusses Miranda/search/probable cause as standard criminal-procedure
+# topics, producing false positives. Only stage-derived tags that describe
+# a concrete legal context (bail, plea, sentencing, public defender) plus
+# the charge class (felony/misdemeanor) are emitted.
+# ---------------------------------------------------------------------------
+
+
+def derive_criminal_tags(
+    criminal_result: dict,
+    charge_type: str = "",
+    severity: str = "",
+    current_stage: str = "",
+) -> list[str]:
+    """Map a Criminal Procedure explainer result to legal_opinions tags.
+
+    Deterministic — no LLM, no free-text scan. Returns the deduped, sorted
+    tag list; [] when no signal matches.  Precision over recall: prefer []
+    over wrong tags.
+    """
+    if not isinstance(criminal_result, dict):
+        return []
+    tags: set[str] = set()
+
+    # ── Charge class tags (from severity) ──
+    if severity == "felony":
+        tags.add("felony")
+    elif severity == "misdemeanor":
+        tags.add("misdemeanor")
+    # infraction ↔ no tag
+
+    # ── Stage-derived tags ──
+    stage = current_stage.lower().strip() if current_stage else ""
+    if stage == "sentencing":
+        tags.add("criminal_sentencing")
+    if stage in ("pretrial", "trial"):
+        tags.add("plea_bargain")
+    if stage in ("arrested", "charged", "arraigned"):
+        tags.add("bail_bond")
+        tags.add("public_defender")
+
+    logger.info(
+        "derive_criminal_tags severity=%r current_stage=%r tags=%r",
+        severity,
+        current_stage,
+        sorted(tags),
+    )
+    return sorted(tags)
