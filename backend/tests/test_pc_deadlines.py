@@ -88,6 +88,62 @@ def test_pc_leap_to_leap_preserved():
     )
 
 
+def test_pc_file_suit_2023_crosses_leaps():
+    """loss 2023-03-01 + 5yr = 2028-03-01, NOT 2028-02-29 (1826-day drift).
+
+    The period crosses two leap days (2024, 2028). A 365×5=1825-day or
+    1826-day constant would land on 2028-02-29 or 2028-03-01 — close
+    but wrong if the anniversary falls on the wrong side of the leap day.
+    This IS the canonical test from the audit brief."""
+    dl = _deadline("pc_file_suit", date(2023, 3, 1))
+    assert dl.due_date == date(2028, 3, 1), (
+        f"Expected 2028-03-01 (5-year anniversary), got {dl.due_date}. "
+        f"1826-day drift would return 2028-02-29."
+    )
+    assert dl.governing_rule == "Fla. Stat. § 95.11(2)(e)"
+    assert dl.severity == "fatal"
+
+
+def test_pc_report_claim_jan31_plus_1yr():
+    """loss 2023-01-31 + 1yr = 2024-01-31 (anniversary, not Jan 30)."""
+    dl = _deadline("pc_report_claim", date(2023, 1, 31))
+    assert dl.due_date == date(2024, 1, 31), (
+        f"Expected 2024-01-31, got {dl.due_date}"
+    )
+
+
+def test_pc_supplemental_jan31_plus_18mo():
+    """loss 2023-01-31 + 18mo = 2024-07-31."""
+    dl = _deadline("pc_supplemental_claim", date(2023, 1, 31))
+    assert dl.due_date == date(2024, 7, 31), (
+        f"Expected 2024-07-31, got {dl.due_date}"
+    )
+
+
+def test_pc_file_suit_dec31_plus_5yr():
+    """loss 2020-12-31 + 5yr = 2025-12-31."""
+    dl = _deadline("pc_file_suit", date(2020, 12, 31))
+    assert dl.due_date == date(2025, 12, 31), (
+        f"Expected 2025-12-31, got {dl.due_date}"
+    )
+
+
+def test_pc_monthly_edge_days_chain():
+    """Anniversary math: Jan 31 + 1mo = Feb 28 (clamp), + 1mo = Mar 28 (stays)."""
+    from deadline.compute import _add_calendar_period
+    assert _add_calendar_period(date(2023, 1, 31), months=1) == date(2023, 2, 28)
+    assert _add_calendar_period(date(2023, 2, 28), months=1) == date(2023, 3, 28)
+    assert _add_calendar_period(date(2023, 1, 31), months=2) == date(2023, 3, 31)
+
+
+def test_pc_supplemental_mar31_plus_18mo():
+    """loss 2023-03-31 + 18mo = 2024-09-30 (month overflow clamp)."""
+    dl = _deadline("pc_supplemental_claim", date(2023, 3, 31))
+    assert dl.due_date == date(2024, 9, 30), (
+        f"Expected 2024-09-30, got {dl.due_date}"
+    )
+
+
 # ══════════════════════════════════════════════════════════════════════
 # DAY-COUNT RULES UNCHANGED — calendar branch must not leak into them
 # ══════════════════════════════════════════════════════════════════════
