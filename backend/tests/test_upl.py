@@ -5,20 +5,21 @@ Pure Python — no LLM, no DB calls.
 Run: cd backend && uv run python -m pytest tests/test_upl.py -v
 """
 
-import sys, os
+import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from datetime import datetime, timedelta, timezone
 
 import pytest
 
+from src.core.disclaimer import get_disclaimer
 from src.core.upl import (
     FATAL_CONFIDENCE_THRESHOLD,
-    URGENT_HOURS,
     apply_disclaimer,
     audit_output_for_upl,
     check_escalation,
-    get_disclaimer,
 )
 
 UTC = timezone.utc
@@ -161,7 +162,7 @@ def test_standard_disclaimer_present():
     # information ... not a substitute for a licensed attorney ...
     # confirm with a Florida attorney." Assert the new intent:
     # legal information + an attorney-confirmation/referral nudge.
-    d = get_disclaimer("standard", "en")
+    d = get_disclaimer("en", "standard")
     assert "legal information" in d.lower()
     assert "attorney" in d.lower()
 
@@ -171,14 +172,18 @@ def test_standard_disclaimer_present():
            "generated); re-enable and assert the finalized ES phrasing then."
 )
 def test_spanish_disclaimer_present():
-    d = get_disclaimer("standard", "es")
+    d = get_disclaimer("es", "standard")
     assert "información legal" in d.lower()
     assert "asesoramiento legal" in d.lower()
 
 
-def test_urgent_disclaimer_present():
-    d = get_disclaimer("urgent", "en")
-    assert "immediately" in d.lower() or "deadline" in d.lower()
+def test_short_disclaimer_present():
+    """The canonical disclaimer module supports a 'short' level for concise output."""
+    d = get_disclaimer("en", "short")
+    assert "attorney" in d.lower()
+    # Short disclaimer is shorter than standard
+    d_std = get_disclaimer("en", "standard")
+    assert len(d) < len(d_std)
 
 
 def test_apply_disclaimer_adds_field():
@@ -196,8 +201,8 @@ def test_apply_disclaimer_does_not_overwrite_existing():
 
 
 def test_unknown_lang_falls_back_to_english():
-    d = get_disclaimer("standard", "zh")
-    d_en = get_disclaimer("standard", "en")
+    d = get_disclaimer("zh", "standard")
+    d_en = get_disclaimer("en", "standard")
     assert d == d_en
 
 

@@ -20,7 +20,8 @@ from pydantic import BaseModel, Field
 
 from src.api.dependencies import require_api_key
 from src.core.config import settings
-from src.core.upl import apply_upl_guardrails, get_disclaimer
+from src.core.disclaimer import get_disclaimer
+from src.core.upl import apply_upl_guardrails
 from src.memory.db import DatabaseManager
 from src.services.form_recommender import (
     CASE_TYPES,

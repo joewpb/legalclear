@@ -92,19 +92,14 @@ ATTORNEY_REFERRAL_LINKS = {
 }
 
 
-def get_disclaimer(level: str = "standard", lang: str = "en") -> str:
-    """Return a disclaimer: standard | urgent | criminal."""
-    lang = lang if lang in ("en", "es") else "en"
-    level = level if level in _DISCLAIMERS else "standard"
-    return _DISCLAIMERS[level][lang]
-
-
 def apply_disclaimer(output: dict[str, Any], lang: str = "en",
                      level: str = "standard") -> dict[str, Any]:
     """Add disclaimer + attorney referral links to any output dict."""
+    _lang = lang if lang in ("en", "es") else "en"
+    _level = level if level in _DISCLAIMERS else "standard"
     return {
         **output,
-        "disclaimer": get_disclaimer(level, lang),
+        "disclaimer": _DISCLAIMERS[_level][_lang],
         "attorney_referral_links": ATTORNEY_REFERRAL_LINKS.get(lang, ATTORNEY_REFERRAL_LINKS["en"]),
         "language": lang,
     }

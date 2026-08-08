@@ -18,8 +18,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 
 from src.agents.explainer import ExplainerAgent
+from src.core.disclaimer import get_disclaimer
 from src.core.escalation import EscalationRouter
-from src.core.upl import apply_upl_guardrails, get_disclaimer
+from src.core.upl import apply_upl_guardrails
 from src.memory.db import DatabaseManager
 
 logger = logging.getLogger(__name__)
