@@ -137,7 +137,6 @@
 |---|------|----------|-------|
 | 12 | **Terms of Service** | Legal | Draft + review. Gates public launch. |
 | 14 | **Tech E&O insurance** | Legal/Ops | Obtain before public launch. |
-| 15 | **Operating entity** | Legal/Ops | LLC/corp formation. |
 | 16 | **Group B eviction/probate forms** | Data | Synthetic keys — need real form numbers assigned. |
 | 17 | **Group C circuit_local forms** | Data | Need review/filtering. |
 | 18 | **`12.980(o)` scanned form** | Data | Empty text extraction — needs OCR or manual entry. |

@@ -26,8 +26,8 @@ Recommended placement: `phases/BUILD_PLAN.md`.
 - Multilingual: architecture is language-parameterized now; English at v2 launch,
   Spanish in v2.1 as a fast-follow.
 - `risk_scan`: CUT from v2. The `documents.risk_scan` column stays unused.
-- Business liability (ToS, disclaimer enforceability, E&O insurance, operating
-  entity): a parallel NON-engineering workstream owned by Joe with his attorneys
+- Business liability (ToS, disclaimer enforceability, E&O insurance):
+  a parallel NON-engineering workstream owned by Joe with his attorneys
   and an insurance broker. It gates public launch, not the build. Its only build
   touchpoint: the Phase 8 disclaimer must be drafted consistently with the ToS.
 
@@ -673,7 +673,7 @@ moving on.**
 
 ## Parallel Workstream — Not Engineering, But Gates Launch
 
-The business liability layer — operating entity (LLC/corp), Terms of Service,
+The business liability layer — Terms of Service,
 disclaimer enforceability, and tech E&O insurance — runs alongside Phases 0-9 and
 is owned by Joe with his attorneys and an insurance broker. It does not block the
 build. It must be resolved before public launch. Its only build touchpoint: the
