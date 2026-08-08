@@ -77,3 +77,23 @@ Development continued beyond v2 phases, enhancing the platform with new capabili
 12. **Tech E&O insurance** — obtain before public launch.
 13. **Operating entity** — LLC/corp formation.
 14. **Form enrichment** — DONE 2026-06-15. DeepSeek enrichment + writeback complete. 443 published forms with AI suggestion. DeepSeek enrichment (cheap agent, off-box) → `forms/enrichment_output.json` (109 records); `scripts/writeback_form_enrichment.py --execute` updated 106 rows (plain_language_summary + situation_tags + corrected titles). `situation_tags` normalized to snake_case in DB. `12.980(g)` re-enriched as a single record (Claude, DeepSeek key not on this box). Model QA flagged 2 `published` forms as not-single-form → demoted to `review` (`12.931(a)`, `12.980(j)`). State (2026-06-15): **58 published** (all enriched), 96 review. Promoted 35 Group-A `suspect_metadata` forms (clean statewide numbers + corrected titles) after title eyeball; 4 bad titles fixed first (`12.980(n)` + 3 circuit5 packets). **Follow-ups:** (a) still on `review` by design — 9 `12.980` DV/injunction forms (HOLD for attorney review), Group B eviction/probate (synthetic keys — assign real form numbers?), Group C circuit_local, Group D `12.980(o)` scanned (empty text); (b) 3 enrichment records had no catalog row (`12.930(a)`, `12.980(k)`×2) — skipped; (c) 32 `unverified` seed stubs + 1 legacy `active` row still unreconciled; (d) **`12.980` series file→number scramble** — `12.980_g_.txt` header reads `12.980(k)`, `12.980(j)`'s text was `(g)`'s; likely legacy FL renumbering, verify file→number mapping against official FL forms before trusting the numbers.
+
+---
+
+## v2 Finalization — 2026-08-08
+
+All v2 phases (0–9) complete. Three post-v2 improvements applied:
+
+| # | Improvement | Branch | Commit | Status |
+|---|-------------|--------|--------|--------|
+| A | Calendar-unit audit: all deadline rules verified clean. +7 leap-crossing regression tests. | `feat/calendar-audit` | `1d27d3d` | MERGED |
+| B | Opinion retrieval wired to criminal_procedure module. `derive_criminal_tags()` mapper. `OpinionCard.tsx` reused. | `feat/opinion-criminal` | `39e240b` | MERGED |
+| C | All 20 FL circuits' court closures seeded. 99 entries. 19th Circuit verified via official AO 2025-04. Migration `20260808000000_seed_local_court_closures.sql`. | `feat/circuit-closures` | `f21fe4b` | MERGED |
+
+**Branch cleanup:** 30 stale refactor branches deleted (local + remote). Feature branches (feat/property-casualty, feature/chat-system, fix/date-of-loss-visibility) merged and deleted.
+
+**Test results:** 77/77 backend unit tests pass. Frontend build clean (141 KB gzip JS).
+
+**Deploy:** Railway auto-deploys from main. Backend: `zesty-delight`, Frontend: `appealing-victory`.
+
+**Refactor agent:** Re-enabled (cron `419ef9f8307f`, daily 7 AM ET).
