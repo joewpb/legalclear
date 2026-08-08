@@ -85,10 +85,14 @@
       "counties": ["Martin", "St. Lucie", "Indian River", "Okeechobee"],
       "court_name": "Nineteenth Judicial Circuit of Florida",
       "ao_source_url": "https://www.circuit19.org/administrative-orders/",
-      "robots_status": "VERIFY_BEFORE_SCRAPE",
-      "acquisition_method": "browser_review",
+      "ao_holiday_order": "AO 2025-04",
+      "ao_holiday_url": "https://www.circuit19.org/wp-content/uploads/2025/07/2025-04.pdf",
+      "chief_judge": "Charles A. Schwab",
+      "robots_status": "VERIFIED",
+      "acquisition_method": "PDF download",
       "priority": "HIGH",
-      "note": "Stuart (Martin County) is the founding service area. Start here."
+      "note": "Stuart (Martin County) is the founding service area. AO 2025-04 verified 2026-08-08: Good Friday, Yom Kippur, Christmas Eve, New Year's Eve.",
+      "last_verified": "2026-08-08"
     }
   },
   "court_closures": {
@@ -96,6 +100,14 @@
       "source": "Fla. Stat. § 110.117",
       "seeded_years": ["2026"],
       "note": "Seed next year's holidays before December 31 each year."
+    },
+    "local_closures": {
+      "seeded_years": ["2026", "2027"],
+      "circuits_seeded": 20,
+      "seed_file": "backend/src/data/court_closures_seed.json",
+      "migration": "20260808000000_seed_local_court_closures.sql",
+      "last_updated": "2026-08-08",
+      "notes": "All 20 FL circuits have verified local closure data. Circuits 15, 16, 17, 19 re-verified 2026-08-08 from official sources."
     }
   }
 }
