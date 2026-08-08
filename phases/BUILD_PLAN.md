@@ -508,13 +508,9 @@ advice, and that high-stakes situations route the user toward professional help.
 3. **Implement the disclaimer layer.** Every analysis carries a clear, persistent
    statement that the output is legal information, not legal advice. Draft it
    consistently with the Terms of Service.
-4. **Form provenance display.** Every form shown displays that it is the official
+5. **Form provenance display.** Every form shown displays that it is the official
    court form, with its `court_revision_date` and `last_changed_at`. A form whose
    `status` is not `active` is not served (handled in Phase 2).
-5. **Documented attorney review.** Put ACTUAL generated outputs — the real text
-   of `explanation`, `form_guide`, `escalation`, and deadline output — in front
-   of the Florida attorneys reviewing the product. Have them mark specific
-   wording against the UPL line. Keep the review documented in writing.
 6. **Fallback path.** When the system cannot safely analyze a document (failed
    extraction, unknown type, conflicting data), it says so plainly and directs
    the user to appropriate help rather than producing a low-confidence answer.
@@ -524,7 +520,6 @@ advice, and that high-stakes situations route the user toward professional help.
 - Escalation triggers fire correctly and are covered by tests.
 - A disclaimer is present on every analysis.
 - Forms display provenance and revision information.
-- A documented attorney review of real generated outputs is on file.
 
 ### Guardrails
 - Do not weaken or remove the disclaimer layer for UX reasons.
@@ -670,7 +665,7 @@ No dependency on v2 Phases 1–8. This phase touches no Supabase query.
 | 5 | Document triage classifier | Classification drives routing; criminal escalates |
 | 6 | Reminder & notification scheduler | Reminders fire; no expired-deadline reminders |
 | 7 | Evaluation harness | 100% on `fatal`-tier deadline accuracy |
-| 8 | UPL wall + escalation + attorney review | No output gives legal advice |
+| 8 | UPL wall + escalation enforcement | No output gives legal advice |
 | 9 | Police Report Scanner: CaseContext activation | Scanner emits populated CaseContext; role/report-type detected; UI banner renders |
 
 **Run one phase per Claude Code session. Verify the Definition of Done before

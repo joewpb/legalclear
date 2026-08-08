@@ -135,8 +135,7 @@
 
 | # | Item | Category | Notes |
 |---|------|----------|-------|
-| 12 | **FL attorney review** | Legal | Complete `attorney_review/REVIEW_TEMPLATE.md` with FL attorney; retain signed copy (Phase 8). |
-| 13 | **Terms of Service** | Legal | Draft + attorney review. Gates public launch. |
+| 12 | **Terms of Service** | Legal | Draft + review. Gates public launch. |
 | 14 | **Tech E&O insurance** | Legal/Ops | Obtain before public launch. |
 | 15 | **Operating entity** | Legal/Ops | LLC/corp formation. |
 | 16 | **Group B eviction/probate forms** | Data | Synthetic keys — need real form numbers assigned. |

@@ -134,7 +134,7 @@ graph LR
 
 | Module | What It Does | UPL Guardrail | Risk Scoring |
 |--------|-------------|---------------|--------------|
-| **Document Scanner** | Upload a PDF → classified, explained, deadlines extracted | ✅ All responses carry disclaimer | ✅ Flags high-risk documents for attorney review |
+| **Document Scanner** | Upload a PDF → classified, explained, deadlines extracted | ✅ All responses carry disclaimer | ✅ Flags high-risk documents for escalation |
 | **Small Claims Explainer** | $8K jurisdiction, filing procedures, hearing prep, common outcomes | "In most cases..." "Typically..." | ✅ |
 | **Criminal Procedure** | FL criminal stages, plea deals, bond hearings, public defender role, FL Rule 3.220 | "Research on similar charges shows..." | ✅ |
 | **Police Report Analyzer** | What charges mean, Miranda rights, probable cause, how reports are used in court | "Courts typically view..." | ✅ |
@@ -267,7 +267,7 @@ pie title Form Distribution
 
 **v1 includes:** Document scanner, deadline extraction, form matching, Small Claims wizard, Eviction defense, Traffic citation, FL Case Law lookup, all 5 explainer modules with chat, Stripe integration, Supabase RLS, push notifications.
 
-**v2 adds:** County-aware form routing, enriched form summaries, attorney review queue, mobile app (Expo), Spanish language support, chat system for all modules, risk scoring.
+**v2 adds:** County-aware form routing, enriched form summaries, mobile app (Expo), Spanish language support, chat system for all modules, risk scoring.
 
 ---
 
