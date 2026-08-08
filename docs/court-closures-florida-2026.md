@@ -2,7 +2,8 @@
 
 **Purpose:** Seed the `court_closures` table for the LegalClear deadline engine.
 **Generated:** 2026-07-04
-**Scope:** 2026 (plus 2027 for Circuit 7 only)
+**Updated:** 2026-08-08 — Migration `20260808000000_seed_local_court_closures.sql` created; circuits 15, 16, 17, 19 re-verified from official sources.
+**Scope:** 2026 (plus 2027 for Circuits 7 and 15)
 **Method:** Targeted lookup of official circuit court websites. Dates extracted
 only where explicitly stated. Dates not found = recorded as NOT FOUND, never
 inferred.
@@ -387,7 +388,10 @@ memorandum)
 
 **Counties:** Palm Beach
 **Source:** https://www.15thcircuit.com/court-schedule
+**Last verified:** 2026-08-08
 **Status:** ✅ COMPLETE
+
+**2026:**
 
 | Date | Day | Reason |
 |---|---|---|
@@ -397,11 +401,23 @@ memorandum)
 | 2026-09-21 | Monday | Yom Kippur (Court holiday) |
 | 2026-12-24 | Thursday | Christmas Eve (Court holiday) |
 
+**2027:**
+
+| Date | Day | Reason |
+|---|---|---|
+| 2027-03-26 | Friday | Good Friday (Court holiday) |
+| 2027-06-18 | Friday | Juneteenth observed (Court holiday) |
+| 2027-10-01 | Friday | Rosh Hashanah observed (Court holiday) |
+| 2027-10-11 | Monday | Yom Kippur (Court holiday) |
+| 2027-12-24 | Friday | Christmas Eve (Court holiday) |
+| 2027-12-27 | Monday | Discretionary Holiday |
+
 > **Note:** The 15th Circuit explicitly notes that Presidents Day (Feb 16) and
 > Columbus Day (Oct 12) are **County holidays, NOT Court holidays** — courthouses
 > remain open to the public on those dates. The source also notes: "Proclamations
 > by the Governor during the year with regard to additional holidays for State
 > employees do not apply to the Courts." Court hours are 8:00 a.m. to 5:00 p.m.
+> 2027 schedule published as of 2026-08-08.
 
 ---
 
@@ -474,21 +490,27 @@ memorandum)
 
 **Counties:** Indian River, Martin, Okeechobee, St. Lucie
 **Source:** https://www.circuit19.org/holidays
+**AO Reference:** Administrative Order 2025-04, Chief Judge Charles A. Schwab, July 10, 2025
+**AO PDF:** https://www.circuit19.org/wp-content/uploads/2025/07/2025-04.pdf
+**Last verified:** 2026-08-08
 **Status:** ✅ COMPLETE
 
 | Date | Day | Reason |
 |---|---|---|
-| 2026-04-03 | Friday | Good Friday (local holiday) |
-| 2026-09-21 | Monday | Yom Kippur (local holiday) |
-| 2026-12-24 | Thursday | Christmas Eve (local holiday) |
-| 2026-12-31 | Thursday | New Year's Eve (local holiday) |
+| 2026-04-03 | Friday | Good Friday (AO 2025-04 — legal holiday under § 4.07(1)(D)) |
+| 2026-09-21 | Monday | Yom Kippur (AO 2025-04 — legal holiday under § 4.07(1)(E)) |
+| 2026-12-24 | Thursday | Christmas Eve (AO 2025-04 — discretionary holiday) |
+| 2026-12-31 | Thursday | New Year's Eve (AO 2025-04 — discretionary holiday) |
 
 > **Note:** The 19th Circuit serves Indian River, Martin, St. Lucie, and
 > Okeechobee counties — including LegalClear's launch area. Chief Judge Schwab
-> presides. Four local holidays supplement the statewide nine. The source page
-> marks local additions with an asterisk (*). Court Administration can be
-> reached at (772) 807-4370. The schedule explicitly notes that State Attorney,
-> Public Defender, and County Clerk staff holidays may differ.
+> presides. Four local holidays supplement the statewide nine. AO 2025-04
+> explicitly references State Courts System Personnel Regulations § 4.07(1)(D)
+> and (E) as authority. **The 19th Circuit does NOT observe Rosh Hashanah**
+> (unlike many other circuits). The holiday schedule is consistent with the
+> Supreme Court of Florida's calendar year 2026 schedule. Court Administration
+> can be reached at (772) 807-4370. The schedule explicitly notes that State
+> Attorney, Public Defender, and County Clerk staff holidays may differ.
 
 ---
 
@@ -534,10 +556,10 @@ local court closure data from official sources. No remaining gaps.
 - **13th Circuit (Hillsborough):** Court holiday schedule confirmed at
   fljud13.org. The Clerk's separate schedule includes Juneteenth — that is a
   clerk-only closure and excluded from court holiday data.
-- **2027 scheduling:** Circuit 7 (Flagler/Putnam/St. Johns/Volusia) remains the
-  only circuit with a published 2027 holiday schedule. All other circuits will
-  need a full 2027 sweep in late 2026 after their annual holiday memoranda are
-  published.
+- **2027 scheduling:** Circuit 7 (Flagler/Putnam/St. Johns/Volusia) and
+  Circuit 15 (Palm Beach) have published 2027 holiday schedules. All other
+  circuits will need a full 2027 sweep in late 2026 after their annual holiday
+  memoranda are published.
 
 ## Data Notes
 

@@ -1,0 +1,700 @@
+{
+  "_note": "Florida judicial circuit LOCAL court closure dates for 2026 (and 2027 for Circuits 7 & 15). Statewide holidays (Fla. Stat. \u00a7 110.117) are excluded \u2014 handled separately in code and seeded via migration 20260519220500. Every entry cites its official source. Generated 2026-08-08.",
+  "statewide_holidays_seeded_separately": true,
+  "statewide_source": "Fla. Stat. \u00a7 110.117",
+  "closures": [
+    {
+      "circuit": 1,
+      "county": null,
+      "closure_date": "2026-02-16",
+      "reason": "Presidents Day (local holiday)",
+      "source": "https://www.firstjudicialcircuit.org/general-information/court-holidays"
+    },
+    {
+      "circuit": 1,
+      "county": null,
+      "closure_date": "2026-04-03",
+      "reason": "Good Friday (local holiday)",
+      "source": "https://www.firstjudicialcircuit.org/general-information/court-holidays"
+    },
+    {
+      "circuit": 1,
+      "county": null,
+      "closure_date": "2026-06-19",
+      "reason": "Juneteenth (local holiday)",
+      "source": "https://www.firstjudicialcircuit.org/general-information/court-holidays"
+    },
+    {
+      "circuit": 1,
+      "county": null,
+      "closure_date": "2026-09-11",
+      "reason": "Rosh Hashanah (local holiday)",
+      "source": "https://www.firstjudicialcircuit.org/general-information/court-holidays"
+    },
+    {
+      "circuit": 1,
+      "county": null,
+      "closure_date": "2026-09-21",
+      "reason": "Yom Kippur (local holiday)",
+      "source": "https://www.firstjudicialcircuit.org/general-information/court-holidays"
+    },
+    {
+      "circuit": 1,
+      "county": null,
+      "closure_date": "2026-12-24",
+      "reason": "Christmas Eve (local holiday)",
+      "source": "https://www.firstjudicialcircuit.org/general-information/court-holidays"
+    },
+    {
+      "circuit": 1,
+      "county": null,
+      "closure_date": "2026-12-26",
+      "reason": "Day after Christmas (local holiday)",
+      "source": "https://www.firstjudicialcircuit.org/general-information/court-holidays"
+    },
+    {
+      "circuit": 2,
+      "county": null,
+      "closure_date": "2026-04-03",
+      "reason": "Good Friday (local holiday)",
+      "source": "https://2ndcircuit.leoncountyfl.gov/calendars/Court_Holiday_2026.pdf"
+    },
+    {
+      "circuit": 2,
+      "county": null,
+      "closure_date": "2026-09-21",
+      "reason": "Yom Kippur (local holiday)",
+      "source": "https://2ndcircuit.leoncountyfl.gov/calendars/Court_Holiday_2026.pdf"
+    },
+    {
+      "circuit": 2,
+      "county": null,
+      "closure_date": "2026-12-24",
+      "reason": "Discretionary Holiday \u2014 Christmas Eve",
+      "source": "https://2ndcircuit.leoncountyfl.gov/calendars/Court_Holiday_2026.pdf"
+    },
+    {
+      "circuit": 2,
+      "county": null,
+      "closure_date": "2026-12-31",
+      "reason": "Discretionary Holiday \u2014 New Year's Eve",
+      "source": "https://2ndcircuit.leoncountyfl.gov/calendars/Court_Holiday_2026.pdf"
+    },
+    {
+      "circuit": 3,
+      "county": null,
+      "closure_date": "2026-04-03",
+      "reason": "Good Friday (local holiday)",
+      "source": "https://thirdcircuitfl.org/court_calendars/court-calendar-pdfs"
+    },
+    {
+      "circuit": 3,
+      "county": null,
+      "closure_date": "2026-09-21",
+      "reason": "Yom Kippur (local holiday)",
+      "source": "https://thirdcircuitfl.org/court_calendars/court-calendar-pdfs"
+    },
+    {
+      "circuit": 3,
+      "county": null,
+      "closure_date": "2026-12-24",
+      "reason": "Christmas Eve (local holiday)",
+      "source": "https://thirdcircuitfl.org/court_calendars/court-calendar-pdfs"
+    },
+    {
+      "circuit": 3,
+      "county": null,
+      "closure_date": "2026-12-31",
+      "reason": "New Year's Eve (local holiday)",
+      "source": "https://thirdcircuitfl.org/court_calendars/court-calendar-pdfs"
+    },
+    {
+      "circuit": 4,
+      "county": null,
+      "closure_date": "2026-02-16",
+      "reason": "Presidents Day (local holiday)",
+      "source": "https://www.nassaucountyfl.com/543/Holiday-Schedule"
+    },
+    {
+      "circuit": 4,
+      "county": null,
+      "closure_date": "2026-04-03",
+      "reason": "Good Friday (local holiday)",
+      "source": "https://www.nassaucountyfl.com/543/Holiday-Schedule"
+    },
+    {
+      "circuit": 4,
+      "county": null,
+      "closure_date": "2026-06-19",
+      "reason": "Juneteenth (local holiday)",
+      "source": "https://www.nassaucountyfl.com/543/Holiday-Schedule"
+    },
+    {
+      "circuit": 4,
+      "county": null,
+      "closure_date": "2026-09-21",
+      "reason": "Yom Kippur (local holiday)",
+      "source": "https://www.nassaucountyfl.com/543/Holiday-Schedule"
+    },
+    {
+      "circuit": 4,
+      "county": null,
+      "closure_date": "2026-12-24",
+      "reason": "Christmas Eve (local holiday)",
+      "source": "https://www.nassaucountyfl.com/543/Holiday-Schedule"
+    },
+    {
+      "circuit": 5,
+      "county": null,
+      "closure_date": "2026-04-03",
+      "reason": "Good Friday (Chief Judge designation under 4.07(1)(D))",
+      "source": "https://www.circuit5.org/contact-information/court-holidays"
+    },
+    {
+      "circuit": 5,
+      "county": null,
+      "closure_date": "2026-09-21",
+      "reason": "Yom Kippur (Chief Judge designation under 4.07(1)(E))",
+      "source": "https://www.circuit5.org/contact-information/court-holidays"
+    },
+    {
+      "circuit": 5,
+      "county": null,
+      "closure_date": "2026-12-24",
+      "reason": "Christmas Eve (discretionary holiday per 4.07)",
+      "source": "https://www.circuit5.org/contact-information/court-holidays"
+    },
+    {
+      "circuit": 5,
+      "county": null,
+      "closure_date": "2026-12-31",
+      "reason": "New Year's Eve (discretionary holiday per 4.07)",
+      "source": "https://www.circuit5.org/contact-information/court-holidays"
+    },
+    {
+      "circuit": 6,
+      "county": null,
+      "closure_date": "2026-04-03",
+      "reason": "Good Friday (local holiday)",
+      "source": "https://www.jud6.org/court-calendars/court-holidays"
+    },
+    {
+      "circuit": 6,
+      "county": null,
+      "closure_date": "2026-09-11",
+      "reason": "Rosh Hashanah (discretionary holiday, Chief Judge designation)",
+      "source": "https://www.jud6.org/court-calendars/court-holidays"
+    },
+    {
+      "circuit": 6,
+      "county": null,
+      "closure_date": "2026-09-21",
+      "reason": "Yom Kippur (discretionary holiday, Chief Judge designation)",
+      "source": "https://www.jud6.org/court-calendars/court-holidays"
+    },
+    {
+      "circuit": 6,
+      "county": null,
+      "closure_date": "2026-12-24",
+      "reason": "Christmas Eve (discretionary holiday, Chief Judge designation)",
+      "source": "https://www.jud6.org/court-calendars/court-holidays"
+    },
+    {
+      "circuit": 6,
+      "county": null,
+      "closure_date": "2026-12-31",
+      "reason": "New Year's Eve (discretionary holiday, Chief Judge designation)",
+      "source": "https://www.jud6.org/court-calendars/court-holidays"
+    },
+    {
+      "circuit": 7,
+      "county": null,
+      "closure_date": "2026-02-16",
+      "reason": "Presidents Day (local holiday)",
+      "source": "https://circuit7.org/courthouse-hours-and-holidays"
+    },
+    {
+      "circuit": 7,
+      "county": null,
+      "closure_date": "2026-04-03",
+      "reason": "Good Friday (local holiday)",
+      "source": "https://circuit7.org/courthouse-hours-and-holidays"
+    },
+    {
+      "circuit": 7,
+      "county": null,
+      "closure_date": "2026-09-11",
+      "reason": "Rosh Hashanah (local holiday)",
+      "source": "https://circuit7.org/courthouse-hours-and-holidays"
+    },
+    {
+      "circuit": 7,
+      "county": null,
+      "closure_date": "2026-09-21",
+      "reason": "Yom Kippur (local holiday)",
+      "source": "https://circuit7.org/courthouse-hours-and-holidays"
+    },
+    {
+      "circuit": 7,
+      "county": null,
+      "closure_date": "2027-02-15",
+      "reason": "Presidents Day (local holiday)",
+      "source": "https://circuit7.org/courthouse-hours-and-holidays"
+    },
+    {
+      "circuit": 7,
+      "county": null,
+      "closure_date": "2027-03-26",
+      "reason": "Good Friday (local holiday)",
+      "source": "https://circuit7.org/courthouse-hours-and-holidays"
+    },
+    {
+      "circuit": 7,
+      "county": null,
+      "closure_date": "2027-10-01",
+      "reason": "Rosh Hashanah (local holiday)",
+      "source": "https://circuit7.org/courthouse-hours-and-holidays"
+    },
+    {
+      "circuit": 7,
+      "county": null,
+      "closure_date": "2027-10-11",
+      "reason": "Yom Kippur (local holiday)",
+      "source": "https://circuit7.org/courthouse-hours-and-holidays"
+    },
+    {
+      "circuit": 8,
+      "county": null,
+      "closure_date": "2026-04-03",
+      "reason": "Good Friday (local holiday)",
+      "source": "https://circuit8.org/court-calendars/holidays"
+    },
+    {
+      "circuit": 8,
+      "county": null,
+      "closure_date": "2026-09-11",
+      "reason": "Rosh Hashanah (local holiday)",
+      "source": "https://circuit8.org/court-calendars/holidays"
+    },
+    {
+      "circuit": 8,
+      "county": null,
+      "closure_date": "2026-09-21",
+      "reason": "Yom Kippur (local holiday)",
+      "source": "https://circuit8.org/court-calendars/holidays"
+    },
+    {
+      "circuit": 8,
+      "county": null,
+      "closure_date": "2026-12-24",
+      "reason": "Christmas Eve (local holiday)",
+      "source": "https://circuit8.org/court-calendars/holidays"
+    },
+    {
+      "circuit": 8,
+      "county": null,
+      "closure_date": "2026-12-31",
+      "reason": "Day before New Year's (local holiday)",
+      "source": "https://circuit8.org/court-calendars/holidays"
+    },
+    {
+      "circuit": 9,
+      "county": null,
+      "closure_date": "2026-09-21",
+      "reason": "Yom Kippur (local holiday)",
+      "source": "https://ninthcircuit.org/about/court-holidays"
+    },
+    {
+      "circuit": 9,
+      "county": null,
+      "closure_date": "2026-12-24",
+      "reason": "Christmas Eve (local holiday)",
+      "source": "https://ninthcircuit.org/about/court-holidays"
+    },
+    {
+      "circuit": 9,
+      "county": null,
+      "closure_date": "2026-12-31",
+      "reason": "New Year's Eve (local holiday)",
+      "source": "https://ninthcircuit.org/about/court-holidays"
+    },
+    {
+      "circuit": 10,
+      "county": null,
+      "closure_date": "2026-04-03",
+      "reason": "Good Friday (local holiday)",
+      "source": "https://jud10.flcourts.org/sites/default/files/docs/10thCircuitFL_Holidays_2026.pdf"
+    },
+    {
+      "circuit": 10,
+      "county": null,
+      "closure_date": "2026-09-21",
+      "reason": "Yom Kippur (local holiday)",
+      "source": "https://jud10.flcourts.org/sites/default/files/docs/10thCircuitFL_Holidays_2026.pdf"
+    },
+    {
+      "circuit": 10,
+      "county": null,
+      "closure_date": "2026-12-24",
+      "reason": "Christmas Eve (local holiday)",
+      "source": "https://jud10.flcourts.org/sites/default/files/docs/10thCircuitFL_Holidays_2026.pdf"
+    },
+    {
+      "circuit": 10,
+      "county": null,
+      "closure_date": "2026-12-31",
+      "reason": "New Year's Eve (local holiday)",
+      "source": "https://jud10.flcourts.org/sites/default/files/docs/10thCircuitFL_Holidays_2026.pdf"
+    },
+    {
+      "circuit": 11,
+      "county": null,
+      "closure_date": "2026-02-16",
+      "reason": "Presidents' Day (Chief Judge designation)",
+      "source": "https://jud11.flcourts.org/About-the-Court/Court-Holidays-Closings"
+    },
+    {
+      "circuit": 11,
+      "county": null,
+      "closure_date": "2026-04-03",
+      "reason": "Good Friday (Chief Judge designation)",
+      "source": "https://jud11.flcourts.org/About-the-Court/Court-Holidays-Closings"
+    },
+    {
+      "circuit": 11,
+      "county": null,
+      "closure_date": "2026-06-19",
+      "reason": "Juneteenth (Chief Judge designation)",
+      "source": "https://jud11.flcourts.org/About-the-Court/Court-Holidays-Closings"
+    },
+    {
+      "circuit": 11,
+      "county": null,
+      "closure_date": "2026-09-21",
+      "reason": "Yom Kippur (Chief Judge designation)",
+      "source": "https://jud11.flcourts.org/About-the-Court/Court-Holidays-Closings"
+    },
+    {
+      "circuit": 12,
+      "county": "Sarasota",
+      "closure_date": "2026-01-02",
+      "reason": "Day after New Year's \u2014 Sarasota County administrative closure (First Appearances only at 9 a.m.)",
+      "source": "https://www.jud12.flcourts.org/About/Holiday-Calendar"
+    },
+    {
+      "circuit": 12,
+      "county": null,
+      "closure_date": "2026-04-03",
+      "reason": "Good Friday (local holiday, all counties)",
+      "source": "https://www.jud12.flcourts.org/About/Holiday-Calendar"
+    },
+    {
+      "circuit": 12,
+      "county": null,
+      "closure_date": "2026-06-19",
+      "reason": "Juneteenth (local holiday, all counties)",
+      "source": "https://www.jud12.flcourts.org/About/Holiday-Calendar"
+    },
+    {
+      "circuit": 12,
+      "county": null,
+      "closure_date": "2026-09-21",
+      "reason": "Yom Kippur (local holiday, all counties)",
+      "source": "https://www.jud12.flcourts.org/About/Holiday-Calendar"
+    },
+    {
+      "circuit": 12,
+      "county": null,
+      "closure_date": "2026-12-24",
+      "reason": "Christmas Eve (local holiday, all counties)",
+      "source": "https://www.jud12.flcourts.org/About/Holiday-Calendar"
+    },
+    {
+      "circuit": 13,
+      "county": null,
+      "closure_date": "2026-04-03",
+      "reason": "Good Friday (local holiday)",
+      "source": "https://fljud13.org/About/About-the-Court#holidays"
+    },
+    {
+      "circuit": 13,
+      "county": null,
+      "closure_date": "2026-09-11",
+      "reason": "Rosh Hashanah (local holiday)",
+      "source": "https://fljud13.org/About/About-the-Court#holidays"
+    },
+    {
+      "circuit": 13,
+      "county": null,
+      "closure_date": "2026-09-21",
+      "reason": "Yom Kippur (local holiday)",
+      "source": "https://fljud13.org/About/About-the-Court#holidays"
+    },
+    {
+      "circuit": 13,
+      "county": null,
+      "closure_date": "2026-12-24",
+      "reason": "Christmas Eve (local holiday)",
+      "source": "https://fljud13.org/About/About-the-Court#holidays"
+    },
+    {
+      "circuit": 13,
+      "county": null,
+      "closure_date": "2026-12-31",
+      "reason": "Day before New Year's Day (local holiday)",
+      "source": "https://fljud13.org/About/About-the-Court#holidays"
+    },
+    {
+      "circuit": 14,
+      "county": null,
+      "closure_date": "2026-09-21",
+      "reason": "Yom Kippur (local holiday)",
+      "source": "https://jud14.flcourts.org"
+    },
+    {
+      "circuit": 14,
+      "county": null,
+      "closure_date": "2026-12-24",
+      "reason": "Christmas Eve (local holiday)",
+      "source": "https://jud14.flcourts.org"
+    },
+    {
+      "circuit": 14,
+      "county": null,
+      "closure_date": "2026-12-31",
+      "reason": "New Year's Eve (local holiday)",
+      "source": "https://jud14.flcourts.org"
+    },
+    {
+      "circuit": 15,
+      "county": null,
+      "closure_date": "2026-04-03",
+      "reason": "Good Friday (Court holiday)",
+      "source": "https://www.15thcircuit.com/court-schedule"
+    },
+    {
+      "circuit": 15,
+      "county": null,
+      "closure_date": "2026-06-19",
+      "reason": "Juneteenth (Court holiday)",
+      "source": "https://www.15thcircuit.com/court-schedule"
+    },
+    {
+      "circuit": 15,
+      "county": null,
+      "closure_date": "2026-09-11",
+      "reason": "Rosh Hashanah observed (Court holiday)",
+      "source": "https://www.15thcircuit.com/court-schedule"
+    },
+    {
+      "circuit": 15,
+      "county": null,
+      "closure_date": "2026-09-21",
+      "reason": "Yom Kippur (Court holiday)",
+      "source": "https://www.15thcircuit.com/court-schedule"
+    },
+    {
+      "circuit": 15,
+      "county": null,
+      "closure_date": "2026-12-24",
+      "reason": "Christmas Eve (Court holiday)",
+      "source": "https://www.15thcircuit.com/court-schedule"
+    },
+    {
+      "circuit": 15,
+      "county": null,
+      "closure_date": "2027-03-26",
+      "reason": "Good Friday (Court holiday)",
+      "source": "https://www.15thcircuit.com/court-schedule"
+    },
+    {
+      "circuit": 15,
+      "county": null,
+      "closure_date": "2027-06-18",
+      "reason": "Juneteenth observed (Court holiday)",
+      "source": "https://www.15thcircuit.com/court-schedule"
+    },
+    {
+      "circuit": 15,
+      "county": null,
+      "closure_date": "2027-10-01",
+      "reason": "Rosh Hashanah observed (Court holiday)",
+      "source": "https://www.15thcircuit.com/court-schedule"
+    },
+    {
+      "circuit": 15,
+      "county": null,
+      "closure_date": "2027-10-11",
+      "reason": "Yom Kippur (Court holiday)",
+      "source": "https://www.15thcircuit.com/court-schedule"
+    },
+    {
+      "circuit": 15,
+      "county": null,
+      "closure_date": "2027-12-24",
+      "reason": "Christmas Eve (Court holiday)",
+      "source": "https://www.15thcircuit.com/court-schedule"
+    },
+    {
+      "circuit": 15,
+      "county": null,
+      "closure_date": "2027-12-27",
+      "reason": "Discretionary Holiday",
+      "source": "https://www.15thcircuit.com/court-schedule"
+    },
+    {
+      "circuit": 16,
+      "county": null,
+      "closure_date": "2026-04-03",
+      "reason": "Good Friday (Court holiday)",
+      "source": "https://keyscourts.net/court-hours-holidays"
+    },
+    {
+      "circuit": 16,
+      "county": null,
+      "closure_date": "2026-06-19",
+      "reason": "Juneteenth (Court holiday)",
+      "source": "https://keyscourts.net/court-hours-holidays"
+    },
+    {
+      "circuit": 16,
+      "county": null,
+      "closure_date": "2026-09-11",
+      "reason": "Rosh Hashanah (Court holiday)",
+      "source": "https://keyscourts.net/court-hours-holidays"
+    },
+    {
+      "circuit": 16,
+      "county": null,
+      "closure_date": "2026-09-21",
+      "reason": "Yom Kippur (Court holiday)",
+      "source": "https://keyscourts.net/court-hours-holidays"
+    },
+    {
+      "circuit": 16,
+      "county": null,
+      "closure_date": "2026-12-24",
+      "reason": "Day before Christmas (Court holiday)",
+      "source": "https://keyscourts.net/court-hours-holidays"
+    },
+    {
+      "circuit": 17,
+      "county": null,
+      "closure_date": "2026-04-03",
+      "reason": "Good Friday (per Chief Judge Carol-Lisa Phillips memo, July 7, 2025)",
+      "source": "https://www.17th.flcourts.org/wp-content/uploads/2026/04/2026-Court-Holidays.pdf"
+    },
+    {
+      "circuit": 17,
+      "county": null,
+      "closure_date": "2026-06-19",
+      "reason": "Juneteenth (per Chief Judge Carol-Lisa Phillips memo, July 7, 2025)",
+      "source": "https://www.17th.flcourts.org/wp-content/uploads/2026/04/2026-Court-Holidays.pdf"
+    },
+    {
+      "circuit": 17,
+      "county": null,
+      "closure_date": "2026-09-21",
+      "reason": "Yom Kippur (per Chief Judge Carol-Lisa Phillips memo, July 7, 2025)",
+      "source": "https://www.17th.flcourts.org/wp-content/uploads/2026/04/2026-Court-Holidays.pdf"
+    },
+    {
+      "circuit": 17,
+      "county": null,
+      "closure_date": "2026-12-24",
+      "reason": "Day before Christmas (per Chief Judge Carol-Lisa Phillips memo, July 7, 2025)",
+      "source": "https://www.17th.flcourts.org/wp-content/uploads/2026/04/2026-Court-Holidays.pdf"
+    },
+    {
+      "circuit": 18,
+      "county": null,
+      "closure_date": "2026-04-03",
+      "reason": "Good Friday (local holiday)",
+      "source": "https://flcourts18.org/docs/cir/2026_Official_Holiday_Schedule.pdf"
+    },
+    {
+      "circuit": 18,
+      "county": null,
+      "closure_date": "2026-09-21",
+      "reason": "Yom Kippur (local holiday)",
+      "source": "https://flcourts18.org/docs/cir/2026_Official_Holiday_Schedule.pdf"
+    },
+    {
+      "circuit": 18,
+      "county": null,
+      "closure_date": "2026-12-24",
+      "reason": "Chief Judge Holiday \u2014 Christmas Eve",
+      "source": "https://flcourts18.org/docs/cir/2026_Official_Holiday_Schedule.pdf"
+    },
+    {
+      "circuit": 18,
+      "county": null,
+      "closure_date": "2026-12-31",
+      "reason": "Chief Judge Holiday \u2014 New Year's Eve",
+      "source": "https://flcourts18.org/docs/cir/2026_Official_Holiday_Schedule.pdf"
+    },
+    {
+      "circuit": 19,
+      "county": null,
+      "closure_date": "2026-04-03",
+      "reason": "Good Friday (AO 2025-04 \u2014 Chief Judge Schwab, July 10, 2025)",
+      "source": "https://www.circuit19.org/wp-content/uploads/2025/07/2025-04.pdf"
+    },
+    {
+      "circuit": 19,
+      "county": null,
+      "closure_date": "2026-09-21",
+      "reason": "Yom Kippur (AO 2025-04 \u2014 Chief Judge Schwab, July 10, 2025)",
+      "source": "https://www.circuit19.org/wp-content/uploads/2025/07/2025-04.pdf"
+    },
+    {
+      "circuit": 19,
+      "county": null,
+      "closure_date": "2026-12-24",
+      "reason": "Christmas Eve \u2014 discretionary holiday (AO 2025-04 \u2014 Chief Judge Schwab, July 10, 2025)",
+      "source": "https://www.circuit19.org/wp-content/uploads/2025/07/2025-04.pdf"
+    },
+    {
+      "circuit": 19,
+      "county": null,
+      "closure_date": "2026-12-31",
+      "reason": "New Year's Eve \u2014 discretionary holiday (AO 2025-04 \u2014 Chief Judge Schwab, July 10, 2025)",
+      "source": "https://www.circuit19.org/wp-content/uploads/2025/07/2025-04.pdf"
+    },
+    {
+      "circuit": 20,
+      "county": null,
+      "closure_date": "2026-04-03",
+      "reason": "Good Friday (legal holiday)",
+      "source": "https://ca.cjis20.org/pdf/2026HolidaySchedule.pdf"
+    },
+    {
+      "circuit": 20,
+      "county": null,
+      "closure_date": "2026-09-11",
+      "reason": "Rosh Hashanah (legal holiday, observed)",
+      "source": "https://ca.cjis20.org/pdf/2026HolidaySchedule.pdf"
+    },
+    {
+      "circuit": 20,
+      "county": null,
+      "closure_date": "2026-09-21",
+      "reason": "Yom Kippur (legal holiday)",
+      "source": "https://ca.cjis20.org/pdf/2026HolidaySchedule.pdf"
+    },
+    {
+      "circuit": 20,
+      "county": null,
+      "closure_date": "2026-12-24",
+      "reason": "Christmas Eve (discretionary holiday)",
+      "source": "https://ca.cjis20.org/pdf/2026HolidaySchedule.pdf"
+    },
+    {
+      "circuit": 20,
+      "county": null,
+      "closure_date": "2026-12-31",
+      "reason": "New Year's Eve (discretionary holiday)",
+      "source": "https://ca.cjis20.org/pdf/2026HolidaySchedule.pdf"
+    }
+  ]
+}
