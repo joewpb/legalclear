@@ -45,7 +45,7 @@ export default function CaseLawLookupFL() {
       <header className="hub-header">
         <h1>FL CASE LAW LOOKUP</h1>
         <p>
-          Search 759 curated Florida opinions in LegalClear's case-law
+          Search 425,850 Florida opinions in LegalClear's case-law
           corpus. Case names, citations, and summaries come straight from
           the corpus — nothing is invented. (CourtListener is used only as
           an optional fallback when configured.)
