@@ -7,7 +7,16 @@ type Props = {
   totalResults: number;
 };
 
+function countLabel(shown: number, total: number): string | null {
+  if (shown === 0) return null; // suppress — the friendly empty block handles it
+  if (total === 1) return "1 result";
+  if (shown === total) return `Showing all ${total} results`;
+  return `Showing the ${shown} closest matches out of ${total}`;
+}
+
 export default function ResultsList({ query, results, totalResults }: Props) {
+  const label = countLabel(results.length, totalResults);
+
   return (
     <section style={{ display: "grid", gap: 12 }}>
       <header style={{ display: "grid", gap: 4 }}>
@@ -21,13 +30,11 @@ export default function ResultsList({ query, results, totalResults }: Props) {
         >
           Results for “{query}”
         </h2>
-        <p style={{ color: "var(--muted)", fontSize: 12, margin: 0 }}>
-          {results.length === 0
-            ? "No matches"
-            : totalResults === 1
-              ? "1 result"
-              : `${results.length} shown of ${totalResults} total`}
-        </p>
+        {label && (
+          <p style={{ color: "var(--muted)", fontSize: 12, margin: 0 }}>
+            {label}
+          </p>
+        )}
       </header>
 
       {results.length === 0 ? (
@@ -53,10 +60,10 @@ export default function ResultsList({ query, results, totalResults }: Props) {
             }}
           >
             <li>Different or broader keywords</li>
-            <li>Removing the court filter (set it to "All Florida courts")</li>
             <li>
-              Checking your spelling — legal terms can be tricky
+              Removing the court filter (set it to "All Florida courts")
             </li>
+            <li>Checking your spelling — legal terms can be tricky</li>
           </ul>
         </div>
       ) : (

@@ -78,14 +78,12 @@ export default function ResultCard({ r }: { r: CaseResult }) {
         </p>
       ) : (
         <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>
-          No plain-English summary available
-          {r.courtlistener_url
-            ? ". Read the full opinion for details."
-            : "."}
+          We don't have a plain-language summary for this one yet — open the
+          full opinion to read it.
         </p>
       )}
 
-      {/* Still good law? indicator */}
+      {/* Still good law? indicator — rewritten for non-lawyers */}
       <div
         style={{
           display: "flex",
@@ -102,19 +100,29 @@ export default function ResultCard({ r }: { r: CaseResult }) {
         <span style={{ color: "var(--fg)" }}>
           {isOld ? (
             <>
-              This case is over {age} years old. It may have been overruled,
-              limited, or superseded by later decisions.{" "}
-              <strong>
-                Before relying on it, verify it is still good law.
-              </strong>
+              This case is over {age} years old — old enough that a later
+              court may have overruled or limited it.{" "}
+              <strong>Check that it's still good law before relying on it.</strong>
             </>
           ) : (
             <>
-              Cases can be overturned at any time. Florida Bar members can use
-              Shepard's or KeyCite to verify a case is still good law before
-              relying on it.
+              This is a more recent decision, so it's less likely to have
+              been overturned — but any case can be overruled.{" "}
+              <strong>It's still worth a quick check.</strong>
             </>
-          )}
+          )}{" "}
+          Free way to verify: search the case name on{" "}
+          <a
+            href="https://scholar.google.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "var(--accent)", fontWeight: 500 }}
+          >
+            Google Scholar
+          </a>{" "}
+          and look at the <strong>"How cited"</strong> tab — a red warning
+          flag means a later court reversed or criticized the case. Your
+          local county law library can also help you check, free of charge.
         </span>
       </div>
 

@@ -34,7 +34,7 @@ export default function SearchBar({ initial, onSearch, submitting }: Props) {
         className="input"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder="e.g. stand your ground self defense"
+        placeholder="e.g. landlord withheld security deposit"
         style={{
           width: "100%",
           padding: "12px 16px",

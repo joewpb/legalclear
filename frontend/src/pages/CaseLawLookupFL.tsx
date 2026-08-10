@@ -45,12 +45,13 @@ export default function CaseLawLookupFL() {
 
   return (
     <>
-      {/* ---- HEADER (change 1: plain language) ---- */}
+      {/* ---- HEADER — benefit-led, 425K secondary ---- */}
       <header className="hub-header">
         <h1>Florida Court Decisions</h1>
         <p style={{ maxWidth: "var(--max-prose)", lineHeight: 1.6 }}>
-          Search over 425,000 Florida court opinions. Describe your legal
-          issue in plain English — we'll find cases that may be relevant,
+          Describe your legal issue in plain English — we'll search Florida
+          court decisions for cases that may be relevant to your situation.
+          Our database covers over 425,000 opinions from Florida courts,
           each with a plain-language summary.
         </p>
         <p style={{ marginTop: 8 }}>
@@ -61,6 +62,87 @@ export default function CaseLawLookupFL() {
       </header>
 
       <main className="hub-main">
+        {/* ---- "I WAS JUST SERVED" CALLOUT ---- */}
+        <section style={{ padding: "0 32px" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 12,
+              padding: "14px 16px",
+              border: "1px solid var(--border)",
+              borderLeft: "3px solid var(--accent)",
+              background: "#F5F7FC",
+              marginBottom: 8,
+            }}
+          >
+            <div style={{ display: "grid", gap: 6, flex: 1 }}>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  lineHeight: 1.4,
+                }}
+              >
+                Just served with court papers?
+              </p>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 13,
+                  color: "var(--muted)",
+                  lineHeight: 1.5,
+                }}
+              >
+                You may have a limited time to respond — sometimes as little
+                as 5 days. Handle that first; case-law research can wait.
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 12,
+                  marginTop: 4,
+                }}
+              >
+                <Link
+                  to="/upload"
+                  style={{ fontSize: 13, color: "var(--accent)", fontWeight: 500 }}
+                >
+                  Find your response deadline →
+                </Link>
+                <Link
+                  to="/landlord"
+                  style={{ fontSize: 13, color: "var(--accent)", fontWeight: 500 }}
+                >
+                  Facing eviction? Eviction defense →
+                </Link>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 12,
+                  marginTop: 2,
+                }}
+              >
+                {LEGAL_AID_LINKS.map((link) => (
+                  <a
+                    key={link.url}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ fontSize: 13, color: "var(--accent)" }}
+                  >
+                    {link.label} →
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* ---- SEARCH + FILTER ---- */}
         <section
           style={{
@@ -81,7 +163,7 @@ export default function CaseLawLookupFL() {
         {/* ---- RESULTS AREA ---- */}
         <section style={{ padding: "0 32px 32px", display: "grid", gap: 16 }}>
 
-          {/* ---- EMPTY STATE (change 3: clickable examples) ---- */}
+          {/* ---- EMPTY STATE ---- */}
           {!hasSearched && (
             <div
               style={{
@@ -161,7 +243,7 @@ export default function CaseLawLookupFL() {
             </p>
           )}
 
-          {/* ---- STILL GOOD LAW? WARNING (change 2) ---- */}
+          {/* ---- STILL GOOD LAW? — guidance-first, not fear-first ---- */}
           {response && response.results.length > 0 && (
             <div
               style={{
@@ -177,13 +259,13 @@ export default function CaseLawLookupFL() {
             >
               <span style={{ fontSize: 16 }}>⚠️</span>
               <span>
-                <strong>Cases can be overturned.</strong> A later court
-                decision may have overruled, limited, or superseded any of
-                the cases below. Before relying on a case, verify it is
-                still good law. Florida Bar members can check this using
-                Shepard's or KeyCite. If you don't have access to those
-                tools, read the most recent cases first — they're less
-                likely to have been overturned.
+                <strong>The most recent cases carry the most weight.</strong>{" "}
+                Older cases may still apply, but you should double-check them
+                before relying on them. Courts can overturn, limit, or
+                supersede earlier decisions — so read the newest cases on
+                your topic first, and confirm a case is still good law
+                before you use it. Each result below includes a free way to
+                verify.
               </span>
             </div>
           )}
@@ -198,7 +280,7 @@ export default function CaseLawLookupFL() {
           )}
         </section>
 
-        {/* ---- HOW TO READ A CASE (change 7: collapsible primer) ---- */}
+        {/* ---- HOW TO READ A CASE ---- */}
         <section style={{ padding: "0 32px 32px" }}>
           <details
             style={{
@@ -319,26 +401,14 @@ export default function CaseLawLookupFL() {
         </section>
       </main>
 
-      {/* ---- CONSOLIDATED DISCLAIMER (change 5) ---- */}
+      {/* ---- CONSOLIDATED DISCLAIMER — legal aid links moved up ---- */}
       <footer className="page-disclaimer">
         <p style={{ margin: 0, lineHeight: 1.6 }}>
           LegalClear is an informational tool, not legal advice. Using this
           site does not create an attorney-client relationship. Case law
-          results are a starting point for research — always read the full
-          opinion before relying on a case. Need a lawyer?
-        </p>
-        <p style={{ margin: "8px 0 0", display: "flex", flexWrap: "wrap", gap: 16 }}>
-          {LEGAL_AID_LINKS.map((link) => (
-            <a
-              key={link.url}
-              href={link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ fontSize: 13, color: "var(--accent)" }}
-            >
-              {link.label} →
-            </a>
-          ))}
+          results are a starting point — not the final word. Always read
+          the full opinion and verify it applies to your situation. Free
+          legal-aid resources are linked at the top of this page.
         </p>
       </footer>
     </>
