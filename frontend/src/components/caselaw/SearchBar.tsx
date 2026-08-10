@@ -22,17 +22,16 @@ export default function SearchBar({ initial, onSearch, submitting }: Props) {
       style={{ display: "grid", gap: 8, width: "100%" }}
     >
       <label
-        className="mono"
         style={{
-          fontSize: 12,
-          color: "var(--muted)",
-          letterSpacing: "0.08em",
+          fontSize: 14,
+          fontWeight: 500,
+          color: "var(--fg)",
         }}
       >
-        SEARCH FL CASE LAW
+        What legal issue are you dealing with?
       </label>
       <input
-        className="input mono"
+        className="input"
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder="e.g. stand your ground self defense"
@@ -43,6 +42,16 @@ export default function SearchBar({ initial, onSearch, submitting }: Props) {
           border: "2px solid var(--border-strong)",
         }}
       />
+      <p
+        style={{
+          fontSize: 12,
+          color: "var(--muted)",
+          margin: 0,
+        }}
+      >
+        Describe what happened in your own words, or search by legal concept
+        or case name.
+      </p>
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
         <button
           type="submit"
@@ -53,7 +62,7 @@ export default function SearchBar({ initial, onSearch, submitting }: Props) {
             padding: "10px 20px",
           }}
         >
-          {submitting ? "SEARCHING…" : "SEARCH"}
+          {submitting ? "Searching…" : "Search"}
         </button>
       </div>
     </form>
