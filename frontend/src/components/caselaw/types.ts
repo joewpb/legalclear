@@ -35,6 +35,7 @@ export type CaseResult = {
   citation: string;
   court: string;
   date_filed: string;
+  cite_count: number;
   plain_english_summary: string | null;
   courtlistener_url: string | null;
 };

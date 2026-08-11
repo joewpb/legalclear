@@ -11,9 +11,106 @@ function ageInYears(dateStr: string): number | null {
   return years;
 }
 
+function lawIndicator(
+  age: number | null,
+  citeCount: number,
+): { emoji: string; bg: string; border: string; text: React.ReactNode } {
+  const isOld = age !== null && age > 15;
+  const isHighCite = citeCount >= 50;
+
+  // 2×2 matrix: age × citation count
+  if (!isOld && isHighCite) {
+    return {
+      emoji: "🟢",
+      bg: "#F0F7F4",
+      border: "#166534",
+      text: (
+        <>
+          Widely cited ({citeCount} times) — unlikely to have been overruled
+          without notice. Still, any case can be reversed.{" "}
+          <a
+            href="https://scholar.google.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "var(--accent)", fontWeight: 500 }}
+          >
+            Quick check on Google Scholar →
+          </a>
+        </>
+      ),
+    };
+  }
+  if (!isOld && !isHighCite) {
+    return {
+      emoji: "ℹ️",
+      bg: "#F0F7F4",
+      border: "#166534",
+      text: (
+        <>
+          Cited {citeCount} {citeCount === 1 ? "time" : "times"} — not heavily
+          referenced. Worth a quick check before relying on it.{" "}
+          <a
+            href="https://scholar.google.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "var(--accent)", fontWeight: 500 }}
+          >
+            Google Scholar "How cited" →
+          </a>
+        </>
+      ),
+    };
+  }
+  if (isOld && isHighCite) {
+    return {
+      emoji: "🟡",
+      bg: "#FFF7ED",
+      border: "#F59E0B",
+      text: (
+        <>
+          Over {age} years old but widely cited ({citeCount} times) — may
+          still be good law. Later decisions may have limited or distinguished
+          it.{" "}
+          <a
+            href="https://scholar.google.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "var(--accent)", fontWeight: 500 }}
+          >
+            Verify on Google Scholar →
+          </a>
+        </>
+      ),
+    };
+  }
+  // Old + low cite
+  return {
+    emoji: "🔴",
+    bg: "#FFF7ED",
+    border: "#B91C1C",
+    text: (
+      <>
+        Over {age} years old and cited only {citeCount}{" "}
+        {citeCount === 1 ? "time" : "times"} — higher risk of being
+        overruled or superseded.{" "}
+        <strong>Verify before relying on it.</strong>{" "}
+        <a
+          href="https://scholar.google.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: "var(--accent)", fontWeight: 500 }}
+        >
+          Check on Google Scholar →
+        </a>{" "}
+        Your local county law library can also help, free of charge.
+      </>
+    ),
+  };
+}
+
 export default function ResultCard({ r }: { r: CaseResult }) {
   const age = ageInYears(r.date_filed);
-  const isOld = age !== null && age > 15;
+  const indicator = lawIndicator(age, r.cite_count ?? 0);
 
   return (
     <article
@@ -52,7 +149,6 @@ export default function ResultCard({ r }: { r: CaseResult }) {
                 fontSize: 12,
                 margin: 0,
               }}
-              title="Volume · Reporter · Page — the official reference number for this case"
             >
               {r.citation}
             </p>
@@ -69,6 +165,10 @@ export default function ResultCard({ r }: { r: CaseResult }) {
         >
           <div>{r.court}</div>
           {r.date_filed && <div>{r.date_filed}</div>}
+          <div style={{ marginTop: 2 }}>
+            Cited {r.cite_count ?? 0}{" "}
+            {(r.cite_count ?? 0) === 1 ? "time" : "times"}
+          </div>
         </div>
       </header>
 
@@ -83,47 +183,21 @@ export default function ResultCard({ r }: { r: CaseResult }) {
         </p>
       )}
 
-      {/* Still good law? indicator — rewritten for non-lawyers */}
+      {/* Good-law indicator — 2×2 matrix: age × cite_count */}
       <div
         style={{
           display: "flex",
           alignItems: "flex-start",
           gap: 8,
           padding: "8px 10px",
-          background: isOld ? "#FFF7ED" : "#F0F7F4",
-          borderLeft: `3px solid ${isOld ? "#F59E0B" : "#166534"}`,
+          background: indicator.bg,
+          borderLeft: `3px solid ${indicator.border}`,
           fontSize: 12,
           lineHeight: 1.5,
         }}
       >
-        <span style={{ fontSize: 14 }}>{isOld ? "⚠️" : "ℹ️"}</span>
-        <span style={{ color: "var(--fg)" }}>
-          {isOld ? (
-            <>
-              This case is over {age} years old — old enough that a later
-              court may have overruled or limited it.{" "}
-              <strong>Check that it's still good law before relying on it.</strong>
-            </>
-          ) : (
-            <>
-              This is a more recent decision, so it's less likely to have
-              been overturned — but any case can be overruled.{" "}
-              <strong>It's still worth a quick check.</strong>
-            </>
-          )}{" "}
-          Free way to verify: search the case name on{" "}
-          <a
-            href="https://scholar.google.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "var(--accent)", fontWeight: 500 }}
-          >
-            Google Scholar
-          </a>{" "}
-          and look at the <strong>"How cited"</strong> tab — a red warning
-          flag means a later court reversed or criticized the case. Your
-          local county law library can also help you check, free of charge.
-        </span>
+        <span style={{ fontSize: 14 }}>{indicator.emoji}</span>
+        <span style={{ color: "var(--fg)" }}>{indicator.text}</span>
       </div>
 
       {r.courtlistener_url && (

@@ -52,7 +52,7 @@ _SEARCH_COLUMNS = (
 
 # Columns selected from legal_opinions for the response. cluster_id drives
 # the URL reconstruction; we still rank by cite_count without selecting it.
-_SELECT_COLUMNS = "case_name, citation, court, date_filed, cluster_id, summary_plain"
+_SELECT_COLUMNS = "case_name, citation, court, date_filed, cluster_id, summary_plain, cite_count"
 
 # Court filter → ILIKE pattern on the corpus `court` column. The corpus
 # holds only the two Florida state appellate courts (no federal rows were
@@ -191,6 +191,7 @@ def _row_to_result(row: dict) -> dict:
         "citation": row.get("citation") or "",
         "court": row.get("court") or "Unknown court",
         "date_filed": row.get("date_filed") or "",
+        "cite_count": row.get("cite_count") or 0,
         "plain_english_summary": row.get("summary_plain") or None,
         "courtlistener_url": courtlistener_url,
     }
