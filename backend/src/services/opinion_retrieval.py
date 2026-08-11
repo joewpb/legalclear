@@ -41,6 +41,46 @@ _OPINION_COLUMNS = (
     "outcome, summary_plain, summary_legal, attorney_prompt"
 )
 
+# Scrub chars that break PostgREST or/ilike filter values.
+_TERM_SCRUB = re.compile(r"[,():*]")
+
+
+def _tag_to_search_terms(tags: set[str]) -> list[str]:
+    """Convert snake_case situation tags to human-readable search terms.
+
+    ``self_defense`` → ``self defense``, ``fourth_amendment`` →
+    ``fourth amendment``, ``dissolution_of_marriage`` →
+    ``dissolution of marriage``.
+
+    Returns deduped list; empty for an empty input set.
+    """
+    seen: set[str] = set()
+    out: list[str] = []
+    for tag in sorted(tags):
+        term = tag.replace("_", " ").strip()
+        if term and term not in seen:
+            seen.add(term)
+            out.append(term)
+    return out
+
+
+def _sanitize_term(term: str) -> str:
+    return _TERM_SCRUB.sub(" ", term).strip()
+
+
+def _build_ilike_filter(terms: list[str]) -> str:
+    """PostgREST ``or=`` filter across ``summary_plain`` for free-text terms.
+
+    Returns "" when no valid terms remain after scrubbing.
+    """
+    parts = []
+    for t in terms:
+        clean = _sanitize_term(t)
+        if not clean:
+            continue
+        parts.append(f"summary_plain.ilike.%{clean}%")
+    return ",".join(parts)
+
 
 def get_relevant_opinions(
     situation_tags: list[str],
@@ -83,34 +123,72 @@ def get_relevant_opinions(
     if db.client is None:
         return []
     query_tags = tag_set
+    search_terms = _tag_to_search_terms(query_tags)
+    ilike_filter = _build_ilike_filter(search_terms)
+
     try:
-        result = (
-            db.client.table("legal_opinions")
-            .select(_OPINION_COLUMNS + ", situation_tags")
-            .overlaps("situation_tags", situation_tags)
-            .eq("quality_flagged", False)
-            .limit(500)
-            .execute()
-        )
-        rows = result.data or []
-        # Annotate each row with its overlap count, then sort by
-        # (overlap_count desc, cite_count desc).
-        for row in rows:
-            opinion_tags = set(row.get("situation_tags") or [])
-            row["_overlap"] = len(opinion_tags & query_tags)
-        rows.sort(
-            key=lambda r: (r["_overlap"], r.get("cite_count") or 0),
-            reverse=True,
-        )
+        # ── Tag-overlap query (pre-tagged opinions, high precision) ──────
+        tagged_ids: set[int] = set()
+        rows: list[dict] = []
+        if db.client is not None:
+            result = (
+                db.client.table("legal_opinions")
+                .select(_OPINION_COLUMNS + ", situation_tags")
+                .overlaps("situation_tags", situation_tags)
+                .eq("quality_flagged", False)
+                .limit(500)
+                .execute()
+            )
+            tag_rows = result.data or []
+            for row in tag_rows:
+                opinion_tags = set(row.get("situation_tags") or [])
+                row["_overlap"] = len(opinion_tags & query_tags)
+            tag_rows.sort(
+                key=lambda r: (r["_overlap"], r.get("cite_count") or 0),
+                reverse=True,
+            )
+            rows = tag_rows
+            tagged_ids = {r.get("cluster_id") for r in rows if r.get("cluster_id")}
+
+        # ── ILIKE fallback: search ALL 425K summaries ────────────────────
+        # Only runs when the tag-overlap path didn't fill the limit (which
+        # is almost always — only 759 opinions are tagged).  ILIKE searches
+        # the full plain-English summary text so every opinion is reachable.
+        if ilike_filter and len(rows) < limit:
+            try:
+                ilike_result = (
+                    db.client.table("legal_opinions")
+                    .select(_OPINION_COLUMNS)
+                    .or_(ilike_filter)
+                    .eq("quality_flagged", False)
+                    .order("cite_count", desc=True)
+                    .limit(200)
+                    .execute()
+                )
+                for row in (ilike_result.data or []):
+                    cid = row.get("cluster_id")
+                    if cid is not None and cid in tagged_ids:
+                        continue  # dedup — already have this one via tags
+                    row["_overlap"] = 0
+                    rows.append(row)
+                # Re-sort merged set: tagged first, then cite_count
+                rows.sort(
+                    key=lambda r: (r.get("_overlap", 0), r.get("cite_count") or 0),
+                    reverse=True,
+                )
+            except Exception:
+                logger.warning(
+                    "ILIKE fallback failed; returning tag-only results",
+                    exc_info=True,
+                )
+
         top = rows[:limit]
         # Strip helper keys so the returned dicts match _OPINION_COLUMNS.
         for row in top:
             row.pop("_overlap", None)
             row.pop("situation_tags", None)
 
-        # ── Orin fallback: search 443K FL court opinions ────────────────
-        # Only query Orin when Supabase returns fewer than `limit` results.
-        # Orin results always rank after Supabase (precomputed > raw search).
+        # ── Orin fallback: kept as last resort ───────────────────────────
         if len(top) < limit:
             try:
                 from src.services.orin_opinions import search_orin_opinions
@@ -123,8 +201,10 @@ def get_relevant_opinions(
                     opinion.pop("_opinion_id", None)
                 top.extend(orin_results)
             except Exception:
-                logger.warning("Orin opinion search failed, continuing with Supabase-only results")
-                # Orin is best-effort — never block the response
+                logger.warning(
+                    "Orin opinion search failed, continuing with "
+                    "Supabase-only results",
+                )
 
         return top
     except Exception as e:
