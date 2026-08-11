@@ -1,18 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import SearchBar from "../components/caselaw/SearchBar";
-import CourtFilter from "../components/caselaw/CourtFilter";
 import ResultsList from "../components/caselaw/ResultsList";
-import type {
-  CaseSearchResponse,
-  CourtFilterValue,
-} from "../components/caselaw/types";
+import type { CaseSearchResponse } from "../components/caselaw/types";
 import { EXAMPLE_SEARCHES, LEGAL_AID_LINKS } from "../components/caselaw/types";
 
 const API_URL = (import.meta as any).env?.VITE_API_URL || "http://localhost:8001";
 
 export default function CaseLawLookupFL() {
-  const [court, setCourt] = useState<CourtFilterValue>("all");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [response, setResponse] = useState<CaseSearchResponse | null>(null);
@@ -24,7 +19,7 @@ export default function CaseLawLookupFL() {
       const r = await fetch(`${API_URL}/api/case-law/search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: q, court_filter: court }),
+        body: JSON.stringify({ query: q, court_filter: "all" }),
       });
       if (r.status === 502) {
         throw new Error(
@@ -143,7 +138,7 @@ export default function CaseLawLookupFL() {
           </div>
         </section>
 
-        {/* ---- SEARCH + FILTER ---- */}
+        {/* ---- SEARCH ---- */}
         <section
           style={{
             padding: 32,
@@ -157,7 +152,6 @@ export default function CaseLawLookupFL() {
             onSearch={runSearch}
             submitting={submitting}
           />
-          <CourtFilter value={court} onChange={setCourt} />
         </section>
 
         {/* ---- RESULTS AREA ---- */}
