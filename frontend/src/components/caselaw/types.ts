@@ -3,8 +3,7 @@
 export type CourtFilterValue =
   | "all"
   | "fl_supreme"
-  | "fl_appellate"
-  | "federal_fl";
+  | "fl_appellate";
 
 export const COURT_FILTERS: {
   value: CourtFilterValue;
@@ -28,12 +27,7 @@ export const COURT_FILTERS: {
     description:
       "The five intermediate appeals courts. Most cases never reach the Supreme Court, so appellate decisions are often the final word.",
   },
-  {
-    value: "federal_fl",
-    label: "Federal courts applying Florida law",
-    description:
-      "U.S. federal courts (like the 11th Circuit) deciding questions of Florida state law.",
-  },
+
 ];
 
 export type CaseResult = {
