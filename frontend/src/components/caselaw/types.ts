@@ -84,7 +84,7 @@ export const EXAMPLE_SEARCHES = [
 export const LEGAL_AID_LINKS = [
   {
     label: "Florida Law Help (free legal aid finder)",
-    url: "https://floridalawhelp.org",
+    url: "/find-legal-help",
   },
   {
     label: "LegalClear Attorney Referral — connect with a Florida lawyer",

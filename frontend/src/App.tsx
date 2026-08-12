@@ -21,6 +21,7 @@ import TrafficFL from "./pages/TrafficFL"; // Phase 20
 import PoliceReportAnalyzer from "./pages/PoliceReportAnalyzer"; // Phase 21
 import CaseLawLookupFL from "./pages/CaseLawLookupFL"; // Phase 22
 import AttorneyReferralFL from "./pages/AttorneyReferralFL"; // Attorney referral intake
+import FindLegalHelpFL from "./pages/FindLegalHelpFL"; // Free legal help directory
 import FilingPacket from "./pages/FilingPacket"; // Phase 23
 
 // Existing Part A / Part B-in-progress pages — kept as-is per Phase 15
@@ -89,6 +90,7 @@ export default function App() {
         {/* Tile 8 — Phase 22 (FL case law via CourtListener) */}
         <Route path="/case-law" element={<CaseLawLookupFL />} />
         <Route path="/attorney-referral" element={<AttorneyReferralFL />} />
+        <Route path="/find-legal-help" element={<FindLegalHelpFL />} />
 
         {/* Phase 23 — Filing Packet (Stripe-gated download + tracker) */}
         <Route path="/filing-packet/:packetId" element={<FilingPacket />} />

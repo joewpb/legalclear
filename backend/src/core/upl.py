@@ -76,8 +76,8 @@ _DISCLAIMERS: dict[str, dict[str, str]] = {
 ATTORNEY_REFERRAL_LINKS = {
     "en": [
         {"label": "Find free legal help in Florida",
-         "url": "https://www.floridalawhelp.org"},
-        {"label": "Florida Bar Lawyer Referral Service ($25/30min)",
+         "url": "/find-legal-help"},
+        {"label": "LegalClear Attorney Referral",
          "url": "/attorney-referral"},
         {"label": "Florida Courts Self-Help Information",
          "url": "https://www.flcourts.gov/Resources-Services/Court-Improvement/"
@@ -85,8 +85,8 @@ ATTORNEY_REFERRAL_LINKS = {
     ],
     "es": [
         {"label": "Ayuda legal gratuita en Florida",
-         "url": "https://www.floridalawhelp.org"},
-        {"label": "Servicio de referencia de abogados del Colegio de Florida",
+         "url": "/find-legal-help"},
+        {"label": "Servicio de referencia de abogados de LegalClear",
          "url": "/attorney-referral"},
     ],
 }

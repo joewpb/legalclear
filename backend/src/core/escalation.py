@@ -37,22 +37,20 @@ _CRIMINAL = [
 
 _LINKS_EN = [
     {"label": "Find free legal aid",
-     "url": "https://www.lawhelp.org"},
+     "url": "/find-legal-help"},
     {"label": "Find your public defender",
-     "url": "https://www.nacdl.org/Landing/PublicDefenders"},
+     "url": "/find-legal-help"},
     {"label": "Court self-help center",
-     "url": "https://www.ncsc.org/topics/access-and-fairness/"
-             "self-represented-litigants/resource-guide"}
+     "url": "/find-legal-help"}
 ]
 
 _LINKS_ES = [
     {"label": "Encuentre ayuda legal gratuita",
-     "url": "https://www.lawhelp.org"},
+     "url": "/find-legal-help"},
     {"label": "Encuentre su defensor publico",
-     "url": "https://www.nacdl.org/Landing/PublicDefenders"},
+     "url": "/find-legal-help"},
     {"label": "Centro de autoayuda del tribunal",
-     "url": "https://www.ncsc.org/topics/access-and-fairness/"
-             "self-represented-litigants/resource-guide"}
+     "url": "/find-legal-help"}
 ]
 
 

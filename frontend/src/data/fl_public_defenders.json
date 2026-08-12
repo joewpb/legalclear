@@ -1,0 +1,102 @@
+[
+  {
+    "circuit": 1,
+    "counties": "Escambia, Okaloosa, Santa Rosa, Walton",
+    "site": "pdo1.org"
+  },
+  {
+    "circuit": 2,
+    "counties": "Franklin, Gadsden, Jefferson, Leon, Liberty, Wakulla",
+    "site": "flpd2.com"
+  },
+  {
+    "circuit": 3,
+    "counties": "Columbia, Dixie, Hamilton, Lafayette, Madison, Suwannee, Taylor",
+    "site": "flpd3.com"
+  },
+  {
+    "circuit": 4,
+    "counties": "Clay, Duval, Nassau",
+    "site": "pd4th.org"
+  },
+  {
+    "circuit": 5,
+    "counties": "Citrus, Hernando, Lake, Marion, Sumter",
+    "site": "pdo5.org"
+  },
+  {
+    "circuit": 6,
+    "counties": "Pasco, Pinellas",
+    "site": "wearethehope.org"
+  },
+  {
+    "circuit": 7,
+    "counties": "Flagler, Putnam, St. Johns, Volusia",
+    "site": "pd7.org"
+  },
+  {
+    "circuit": 8,
+    "counties": "Alachua, Baker, Bradford, Gilchrist, Levy, Union",
+    "site": "publicdefender.alachuacounty.us"
+  },
+  {
+    "circuit": 9,
+    "counties": "Orange, Osceola",
+    "site": "myfloridapd.com"
+  },
+  {
+    "circuit": 10,
+    "counties": "Hardee, Highlands, Polk",
+    "site": "pd10.org"
+  },
+  {
+    "circuit": 11,
+    "counties": "Miami-Dade",
+    "site": "pdmiami.com"
+  },
+  {
+    "circuit": 12,
+    "counties": "DeSoto, Manatee, Sarasota",
+    "site": "pd12.org"
+  },
+  {
+    "circuit": 13,
+    "counties": "Hillsborough",
+    "site": "pd13.state.fl.us"
+  },
+  {
+    "circuit": 14,
+    "counties": "Bay, Calhoun, Gulf, Holmes, Jackson, Washington",
+    "site": ""
+  },
+  {
+    "circuit": 15,
+    "counties": "Palm Beach",
+    "site": "pd15.state.fl.us"
+  },
+  {
+    "circuit": 16,
+    "counties": "Monroe",
+    "site": "robertlockwood.org"
+  },
+  {
+    "circuit": 17,
+    "counties": "Broward",
+    "site": "browarddefender.org"
+  },
+  {
+    "circuit": 18,
+    "counties": "Brevard, Seminole",
+    "site": "18thjudicialcircuitpublicdefender.com"
+  },
+  {
+    "circuit": 19,
+    "counties": "Indian River, Martin, St. Lucie, Okeechobee",
+    "site": "pd19.org"
+  },
+  {
+    "circuit": 20,
+    "counties": "Charlotte, Collier, Glades, Hendry, Lee",
+    "site": "pd20.org"
+  }
+]

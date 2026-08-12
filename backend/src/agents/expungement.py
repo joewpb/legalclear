@@ -187,7 +187,7 @@ only and not legal advice"""
                 "key_factors": [],
                 "next_steps": [
                     "Contact your local legal aid office",
-                    "Visit https://www.lawhelp.org"
+                    "Find help on our legal aid directory"
                 ],
                 "disclaimer": get_disclaimer(
                     lang, "standard"),
