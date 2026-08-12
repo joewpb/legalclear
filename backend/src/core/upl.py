@@ -78,7 +78,7 @@ ATTORNEY_REFERRAL_LINKS = {
         {"label": "Find free legal help in Florida",
          "url": "https://www.floridalawhelp.org"},
         {"label": "Florida Bar Lawyer Referral Service ($25/30min)",
-         "url": "https://www.floridabar.org/public/lrs/"},
+         "url": "/attorney-referral"},
         {"label": "Florida Courts Self-Help Information",
          "url": "https://www.flcourts.gov/Resources-Services/Court-Improvement/"
                 "Family-Courts/Self-Help-Information"},
@@ -87,7 +87,7 @@ ATTORNEY_REFERRAL_LINKS = {
         {"label": "Ayuda legal gratuita en Florida",
          "url": "https://www.floridalawhelp.org"},
         {"label": "Servicio de referencia de abogados del Colegio de Florida",
-         "url": "https://www.floridabar.org/public/lrs/"},
+         "url": "/attorney-referral"},
     ],
 }
 

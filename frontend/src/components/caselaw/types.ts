@@ -87,7 +87,7 @@ export const LEGAL_AID_LINKS = [
     url: "https://floridalawhelp.org",
   },
   {
-    label: "The Florida Bar — Lawyer Referral Service",
-    url: "https://www.floridabar.org/public/lrs/",
+    label: "LegalClear Attorney Referral — connect with a Florida lawyer",
+    url: "/attorney-referral",
   },
 ];

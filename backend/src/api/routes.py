@@ -81,6 +81,7 @@ FORM_CATEGORIES = [
 # /api/* prefix; HTTP paths match source spec even though the on-disk
 # location is backend/src/api/routers/ rather than .../routes/.
 from src.api.routers.analysis import router as analysis_router
+from src.api.routers.attorney_referral import router as attorney_referral_router
 from src.api.routers.case_law import router as case_law_router
 from src.api.routers.chat import router as chat_router
 from src.api.routers.criminal import router as criminal_router
@@ -119,6 +120,7 @@ app.include_router(deadline_router)
 app.include_router(triage_router)
 app.include_router(reminders_router)
 app.include_router(analysis_router)
+app.include_router(attorney_referral_router)
 app.include_router(chat_router)
 app.include_router(wills_trusts_router)
 
