@@ -11,23 +11,26 @@ Flow:
 
 from __future__ import annotations
 
-import os
+import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from ...core.config import settings
 from ...memory.db import DatabaseManager
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/attorney-referral", tags=["attorney-referral"])
 db = DatabaseManager()
 
-# Use DeepSeek for intake (cheap, fast, good enough for form-filling)
-_ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-_DEEPSEEK_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
+# Keys from settings (central config — not raw os.environ)
+_ANTHROPIC_KEY = settings.ANTHROPIC_API_KEY
+_DEEPSEEK_KEY = settings.DEEPSEEK_API_KEY
 
 
 # ── Models ─────────────────────────────────────────────────────────────────────
@@ -85,7 +88,7 @@ Rules:
 @router.post("/users")
 def upsert_user(req: UserProfileRequest) -> dict[str, Any]:
     """Create or update a user profile. Returns the user_id."""
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
 
     # Try to find existing user by email
     user_id = None
@@ -158,7 +161,7 @@ def submit_inquiry(req: SubmitRequest) -> dict[str, Any]:
     if not db.client:
         raise HTTPException(503, "Database unavailable")
 
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
     inquiry_id = str(uuid.uuid4())
 
     db.client.table("attorney_inquiries").insert({
@@ -204,8 +207,8 @@ async def _call_ai(messages: list[dict]) -> tuple[str, str]:
                     text = data["content"][0]["text"]
                     stage = _parse_stage(text)
                     return text, stage
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Anthropic intake call failed: %s", e)
 
     # Fallback: deepseek
     if _DEEPSEEK_KEY:
@@ -229,14 +232,14 @@ async def _call_ai(messages: list[dict]) -> tuple[str, str]:
                     text = data["choices"][0]["message"]["content"]
                     stage = _parse_stage(text)
                     return text, stage
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("DeepSeek intake call failed: %s", e)
 
     # Hard fallback — no AI available
     return (
-        "Thank you for reaching out. I'm having trouble connecting right now. "
+        ("Thank you for reaching out. I'm having trouble connecting right now. "
         "Please try again in a moment, or call the Florida Bar referral line at "
-        "800-342-8011 for immediate assistance.",
+        "800-342-8011 for immediate assistance."),
         "greeting",
     )
 
