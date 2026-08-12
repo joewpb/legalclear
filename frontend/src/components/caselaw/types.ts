@@ -38,6 +38,12 @@ export type CaseResult = {
   cite_count: number;
   plain_english_summary: string | null;
   courtlistener_url: string | null;
+  citation_treatment: CitationTreatment[] | null;
+};
+
+export type CitationTreatment = {
+  type: "overruled" | "reversed" | "superseded" | "abrogated" | "criticized" | "questioned" | "other";
+  text: string;
 };
 
 export type CaseSearchResponse = {

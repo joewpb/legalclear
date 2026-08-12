@@ -194,7 +194,36 @@ def _row_to_result(row: dict) -> dict:
         "cite_count": row.get("cite_count") or 0,
         "plain_english_summary": row.get("summary_plain") or None,
         "courtlistener_url": courtlistener_url,
+        "citation_treatment": row.get("_treatment") or None,
     }
+
+
+def _fetch_treatments(cluster_ids: list[int]) -> dict[int, list[dict]]:
+    """Fetch negative citation treatment for a batch of cluster IDs.
+
+    Returns {cluster_id: [treatment records]} for IDs that have treatment
+    data in the citation_treatment table. Returns {} on error — treatment
+    is supplementary, never a hard failure."""
+    if not cluster_ids or db.client is None:
+        return {}
+    try:
+        result = (
+            db.client.table("citation_treatment")
+            .select("cluster_id, treatment_type, treatment_text")
+            .in_("cluster_id", cluster_ids)
+            .execute()
+        )
+        out: dict[int, list[dict]] = {}
+        for row in (result.data or []):
+            cid = row["cluster_id"]
+            out.setdefault(cid, []).append({
+                "type": row["treatment_type"],
+                "text": row["treatment_text"],
+            })
+        return out
+    except Exception:
+        logger.warning("citation_treatment fetch failed", exc_info=True)
+        return {}
 
 
 @router.post("/search")
@@ -217,6 +246,17 @@ async def search_case_law(req: CaseLawSearchRequest):
         rows = await asyncio.to_thread(
             _courtlistener_v4_fallback, req.query, req.court_filter
         )
+
+    # Fetch citation treatment for returned results
+    cluster_ids = [
+        r.get("cluster_id") for r in rows
+        if r.get("cluster_id") is not None
+    ]
+    treatments = await asyncio.to_thread(_fetch_treatments, cluster_ids)
+    for r in rows:
+        cid = r.get("cluster_id")
+        if cid is not None:
+            r["_treatment"] = treatments.get(cid)
 
     results = [_row_to_result(r) for r in rows]
     return apply_disclaimer(

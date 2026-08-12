@@ -1,4 +1,4 @@
-import type { CaseResult } from "./types";
+import type { CaseResult, CitationTreatment } from "./types";
 
 function ageInYears(dateStr: string): number | null {
   if (!dateStr) return null;
@@ -9,6 +9,33 @@ function ageInYears(dateStr: string): number | null {
   const m = now.getMonth() - d.getMonth();
   if (m < 0 || (m === 0 && now.getDate() < d.getDate())) years--;
   return years;
+}
+
+const TREATMENT_LABELS: Record<CitationTreatment["type"], string> = {
+  overruled: "Overruled",
+  reversed: "Reversed",
+  superseded: "Superseded",
+  abrogated: "Abrogated",
+  criticized: "Criticized",
+  questioned: "Questioned",
+  other: "Negative treatment",
+};
+
+function treatmentIndicator(
+  treatments: CitationTreatment[],
+): { emoji: string; bg: string; border: string; text: string } {
+  const primary = treatments[0];
+  const label = TREATMENT_LABELS[primary.type] || "Negative treatment";
+  const count = treatments.length;
+  const suffix = count > 1
+    ? ` (+${count - 1} other negative treatment${count > 2 ? "s" : ""})`
+    : "";
+  return {
+    emoji: "🔴",
+    bg: "#FEF2F2",
+    border: "#B91C1C",
+    text: `${label}${suffix}: ${primary.text}`,
+  };
 }
 
 function lawIndicator(
@@ -24,20 +51,9 @@ function lawIndicator(
       emoji: "🟢",
       bg: "#F0F7F4",
       border: "#166534",
-      text: (
-        <>
-          Widely cited ({citeCount} times) — unlikely to have been overruled
-          without notice. Still, any case can be reversed.{" "}
-          <a
-            href="https://scholar.google.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "var(--accent)", fontWeight: 500 }}
-          >
-            Quick check on Google Scholar →
-          </a>
-        </>
-      ),
+      text:
+        `Widely cited (${citeCount} times) — unlikely to have ` +
+        "been overruled without notice. Still, any case can be reversed.",
     };
   }
   if (!isOld && !isHighCite) {
@@ -45,20 +61,9 @@ function lawIndicator(
       emoji: "ℹ️",
       bg: "#F0F7F4",
       border: "#166534",
-      text: (
-        <>
-          Cited {citeCount} {citeCount === 1 ? "time" : "times"} — not heavily
-          referenced. Worth a quick check before relying on it.{" "}
-          <a
-            href="https://scholar.google.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "var(--accent)", fontWeight: 500 }}
-          >
-            Google Scholar "How cited" →
-          </a>
-        </>
-      ),
+      text:
+        `Cited ${citeCount} ${citeCount === 1 ? "time" : "times"} — ` +
+        "not heavily referenced. Worth verifying before relying on it.",
     };
   }
   if (isOld && isHighCite) {
@@ -66,21 +71,10 @@ function lawIndicator(
       emoji: "🟡",
       bg: "#FFF7ED",
       border: "#F59E0B",
-      text: (
-        <>
-          Over {age} years old but widely cited ({citeCount} times) — may
-          still be good law. Later decisions may have limited or distinguished
-          it.{" "}
-          <a
-            href="https://scholar.google.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "var(--accent)", fontWeight: 500 }}
-          >
-            Verify on Google Scholar →
-          </a>
-        </>
-      ),
+      text:
+        `Over ${age} years old but widely cited (${citeCount} times) — ` +
+        "may still be good law. Later decisions may have limited or " +
+        "distinguished it.",
     };
   }
   // Old + low cite
@@ -88,29 +82,19 @@ function lawIndicator(
     emoji: "🔴",
     bg: "#FFF7ED",
     border: "#B91C1C",
-    text: (
-      <>
-        Over {age} years old and cited only {citeCount}{" "}
-        {citeCount === 1 ? "time" : "times"} — higher risk of being
-        overruled or superseded.{" "}
-        <strong>Verify before relying on it.</strong>{" "}
-        <a
-          href="https://scholar.google.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ color: "var(--accent)", fontWeight: 500 }}
-        >
-          Check on Google Scholar →
-        </a>{" "}
-        Your local county law library can also help, free of charge.
-      </>
-    ),
+    text:
+      `Over ${age} years old and cited only ${citeCount} ` +
+      `${citeCount === 1 ? "time" : "times"} — higher risk of being ` +
+      "overruled or superseded. Verify before relying on it.",
   };
 }
 
 export default function ResultCard({ r }: { r: CaseResult }) {
   const age = ageInYears(r.date_filed);
-  const indicator = lawIndicator(age, r.cite_count ?? 0);
+  const treatments = r.citation_treatment;
+  const indicator = treatments && treatments.length > 0
+    ? treatmentIndicator(treatments)
+    : lawIndicator(age, r.cite_count ?? 0);
 
   return (
     <article
