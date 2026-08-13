@@ -1,0 +1,47 @@
+id,form_number,title,category,outcome,chars,source
+34512fc8-9fce-43d6-a53d-e602cac147c4,Columbia/Columbia-SMALL-CLAIMS-Cover-Sheet,Columbia County: SMALL CLAIMS Cover Sheet,county_local,recovered,3619,supabase
+758cc7ef-ad2b-46f6-8ca7-3a4c3cabcf50,Alachua/Small-Claims-Rules-10-28-2021,Small Claims Rules (includes forms),county_local,recovered,102315,supabase
+e44b61a8-e753-4343-bea5-c470e27375de,Clay/Clay-Passport-Process-Fees-and-Checklist-As-of-April-26-2036,Clay County: Passport Process Fees and Checklist As of April 26 2036,county_local,recovered,2872,supabase
+b18570cc-515e-488c-ba70-f8097a10a05d,Hardee/hardee-Form-12.980a-DVI-Petition-2024,Petition for Injunction against Domestic Violence 12.980(a),county_local,recovered,35452,supabase
+9e060e41-66de-42ea-bcf5-6a8ac5bfd4f7,Miami-Dade/692-Web,Guidelines for Domestication of a Foreign Judgment,county_local,recovered,3437,supabase
+bb606d9b-3083-4110-ade2-42c9976e5537,Orange/orange-Quiet-Title-Orange-Wild-Deed-Complaint-Instructions,Quiet Title Orange Wild Deed Complaint Instructions,county_local,recovered,5893,supabase
+9a807965-e7db-48ef-8fd8-06912fe659b8,Duval/duval-civilCoversheet_form1997_instructions_Current_ADA_Compliant,Duval County - civilCoversheet_form1997_instructions_Current_ADA_Compliant.pdf,county_local,recovered,9908,supabase
+54f85989-1685-416b-8ba0-633f2c1d64f1,Sarasota/sarasota-supreme-court-order-aosc-09-30-section-7.1,Sarasota County - supreme-court-order-aosc-09-30-section-7.1.pdf,county_local,recovered,62927,supabase
+9746d783-2415-4418-8755-eaadf10639df,Gadsden/gadsden-Probate_Clinic,Gadsden County - Probate_Clinic.pdf,county_local,recovered,624,supabase
+77200888-797f-481b-98d0-d6bf7b32753b,Clay/Clay-Petition_For_Injunction_For_Protection_Against_Domestic_Violence-tagged,Clay County: Petition For Injunction For Protection Against Domestic Violence tagged,county_local,recovered,45653,supabase
+74a145a9-760b-4ae4-aa96-1abec10f521c,Miami-Dade/726-Web,Writ of Garnishment Checklist,county_local,recovered,942,supabase
+187f91f7-54ae-4a20-8d31-663d4adc1df2,small-claims-rules-2026.pdf,Florida Small Claims Rules (2026),small_claims,recovered,103804,supabase
+f22e06f5-c17f-448e-8783-ec1a11d8be5a,Gadsden/gadsden-INJUNCTION_20FOR_20PROTECTION_20OF_20MINOR,Gadsden County - INJUNCTION%20FOR%20PROTECTION%20OF%20MINOR.pdf,county_local,recovered,1512,supabase
+b577fe95-829d-4973-a8cb-3aaa2b3d22ab,Miami-Dade/6122459396-UPDATED_20PROCEDURES_20FOR_20COUNTY_20COURT_20TRANSFERS_20WITHIN_20COUNTY_20COURT_20OR_20TO_20CIRCUIT_20COURT,Instructions on Jurisdictional Amount Transfers,county_local,recovered,4035,supabase
+0b2ad530-fb0d-4251-b7ca-7e57a7aece27,Sarasota/sarasota-twelfth-judicial-circuit-administrative-order-ao-2012-3.1,Sarasota County - twelfth-judicial-circuit-administrative-order-ao-2012-3.1.pdf,county_local,recovered,22953,supabase
+01fc899a-fca9-45fa-b05a-b4851a026c83,St._Johns/st-johns-Minor_20consent_20for_20marriage_20Inst-1,Minor Consent For Marriage Additional Information,county_local,recovered,2516,supabase
+70a19a94-94ab-4271-9037-d8b6fb8d709f,Columbia/Columbia-Small-Claims-packet-1,Columbia County: Small Claims packet 1,county_local,no_text_layer,,
+a26730d5-8b94-42bb-a8b6-83e9d0e89a99,county-lee-98574127,Lee County - Civil-Indigency-Application-Supreme-Court-1.pdf,county_local,no_source_pdf,,
+fe36f4a0-3f05-4604-a2c8-f5708870a8df,county-lee-45259252,Lee County - Notice of Commencement 1 page.pdf,county_local,no_source_pdf,,
+a93c9999-1ad3-43f8-ba50-e53bec829738,county-lee-65903959,Lee County - Cape Coral Notice of Commencement.pdf,county_local,no_source_pdf,,
+aad11914-7619-425d-9fd2-08b2eecbf8b9,county-leon-81296283,Leon County - Collecting Judgment Guide,county_local,no_source_pdf,,
+0743d2e4-3c3b-47c0-b861-70848b11236e,county-leon-88215233,Leon County - Civil Indigence Application,county_local,no_source_pdf,,
+81996626-8792-4605-9dcb-487726f3d85c,county-leon-b40f3ae5,Leon County - Leon-collecting_judgment.pdf,county_local,no_source_pdf,,
+1f5b3192-044a-484f-a3d6-73f2f8328c6f,7.333,Statement of Claim (Money Lent),small_claims,no_source_pdf,,
+221691cb-abfa-4fd2-ac93-98b337af2c84,7.334,Statement of Claim (Promissory Note),small_claims,no_source_pdf,,
+5ed29ad9-412f-4869-9cd8-96ca992baf69,12.902(f)(2),Marital Settlement Agreement without Children,family_law,no_source_pdf,,
+cfac9e17-eb27-4d62-b931-c2bd1d89e63a,12.905,Supplemental Petition to Modify Child Support,civil,no_source_pdf,,
+30e96fb7-f815-457e-8022-ec116d4a552d,7.335,Statement of Claim (Return of Security Deposit),small_claims,no_source_pdf,,
+9cbe87d7-43b9-41dc-bb79-ea7da19bb083,7.340,Summons/Notice to Appear,small_claims,no_source_pdf,,
+c16e84fd-b5f5-40e8-9c18-1781d3a10f1f,7.343,Fact Information Sheet (for judgment enforcement),small_claims,no_source_pdf,,
+21140645-a652-44ee-aee5-f5a59e26de68,county-leon-20424768,Leon County - Affidavit of Diligent Search,county_local,no_source_pdf,,
+030a3bb9-d73f-433d-b56e-8be6b2b40ad3,12.990(b)(1),Final Judgment of Dissolution with Children (Uncontested),family_law,no_source_pdf,,
+a7ecd9c4-629f-4694-b3a5-00d08b88ab47,12.982(d),Final Judgment of Change of Name (Adult),civil,no_source_pdf,,
+7f259a3f-22c1-4786-b93a-f4c5a56fa8a5,12.990(a),Final Judgment of Dissolution (Uncontested),family_law,no_source_pdf,,
+18f1fb4e-cbc5-4015-8c50-865c9c2810cc,county-leon-26874322,Leon County - Fact Information Sheet,county_local,no_source_pdf,,
+83afe881-8eba-4432-95f3-55451627e4df,Hernando/hernando-order-scheduling-case-for-pretrial,Hernando County - hernando-order-scheduling-case-for-pretrial.pdf,county_local,no_text_layer,,
+343db20e-d105-4f8a-b9d2-07264dbeef73,county-leon-0b984a1a,Leon County - Leon-continuing_writ.pdf,county_local,no_source_pdf,,
+e1699866-0fd4-4977-81bd-8837c3ab2aa4,county-leon-31697685,Leon County - Request for Hearing (Exemption),county_local,no_source_pdf,,
+6c08ebc7-94ba-4924-887d-2b29bcd37492,county-leon-35983399,Leon County - Circuit Civil Final Judgment,county_local,no_source_pdf,,
+5692109c-ff15-41b5-8bd0-7404106d7392,Hillsborough/d611ed96c82ad4bc5cca705e30a5b5e6a0f685f7dc6110463d51a6f7b17a2fef,Hillsborough County - Pro se Motion to Terminate Probation English.pdf,county_local,no_source_pdf,,
+fbcbedba-23c0-4af7-b932-27bd20439b9a,Hillsborough/ddb0da4bba90b61ab8dcbcec6fa4428ffde2ee0018f6df5396ca0bad94508999,Hillsborough County - indigent application.pdf,county_local,no_source_pdf,,
+ab73dd8f-256d-41c8-b27e-6190958ce639,Jackson/Jackson-Admin-Order-2024-00-01-Civil-Case-Management,Jackson County - Eviction Packet 3-Day (Non-Payment of Rent),county_local,no_text_layer,,
+ec5e9bda-7e3d-42d5-8a07-794fa23c7812,7.330,Statement of Claim (Auto Negligence),small_claims,no_source_pdf,,
+7ba8760b-cf87-4cc4-abc6-149879ade730,7.331,Statement of Claim (Goods Sold),small_claims,no_source_pdf,,
+b7cd444a-b4ca-4d4e-9fe8-b8251eb9ead5,7.332,Statement of Claim (Work Done/Materials),small_claims,no_source_pdf,,
+7aae9245-f1c1-4ae5-8f40-f8457aeab2f4,county-leon-19738412,Leon County - Continuing Writ,county_local,no_source_pdf,,
