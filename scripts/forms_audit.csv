@@ -1,0 +1,765 @@
+id,form_number,title,current_category,current_status,target_area,confidence,reason
+0f7102de-ebd4-4086-871d-31fa3b18bc7d,12.900(a),OF PROCEDURE – FORMS.,family_law_procedure,published,filing,high,FL Supreme Court family law form series (12.9xx)
+d1bdd004-7faf-40b6-a38b-712bf8d3fa1b,12.900(b),Notice of and Consent to Limited Appearance,family_law_procedure,published,filing,high,FL Supreme Court family law form series (12.9xx)
+c43920ce-23c4-4ad6-9420-305fe55ae54a,12.900(d),Termination of Limited Appearance,family_law_procedure,published,filing,high,FL Supreme Court family law form series (12.9xx)
+95655902-4057-4ae5-a557-e9d06a68c288,12.900(e),Acknowledgment of Assistance by Attorney,family_law_procedure,published,filing,high,FL Supreme Court family law form series (12.9xx)
+7c35fd22-36a0-4a5c-bea1-643ac0cfa755,12.900(f),Signature Block for Attorney Making Limited Appearance,family_law_procedure,published,filing,high,FL Supreme Court family law form series (12.9xx)
+0b675dba-b210-46d2-940c-160154c3efda,12.900(g),Agreement Limiting Representation,family_law_procedure,published,filing,high,FL Supreme Court family law form series (12.9xx)
+9e4861bc-2f57-4b3e-bf23-c0780ce0b060,12.900(h),Notice of Related Cases,family_law_procedure,published,filing,high,FL Supreme Court family law form series (12.9xx)
+147070ca-b26a-48c3-acbe-d79b50b651f6,12.901(a),12.901 A ,family_law_dissolution,published,filing,high,FL Supreme Court family law form series (12.9xx)
+9407f659-39ff-4237-b4bf-a6539588d47c,12.901(b)(1),Petition for Dissolution of Marriage with Dependent or Minor Child(ren),family_law_dissolution,stale,filing,high,FL Supreme Court family law form series (12.9xx)
+73787910-9aec-459a-bca7-44a9900e3e14,12.901(b)(2),12.901 B  2 ,family_law_dissolution,stale,filing,high,FL Supreme Court family law form series (12.9xx)
+f8ee8d66-f970-4237-984b-d2feb9cb94ff,12.901(b)(3),Petition for Dissolution of Marriage with No Dependent or Minor Child(ren) or Property,family_law_dissolution,stale,filing,high,FL Supreme Court family law form series (12.9xx)
+fc6c5821-dfb9-4ef2-933d-72a877d0ae3c,12.902(b),12.902 B ,family_law_financial,published,filing,high,FL Supreme Court family law form series (12.9xx)
+7f76d036-4673-4d30-bb2d-a2756a2b8af6,12.902(c),Family Law Financial Affidavit (Long Form),family_law_financial,stale,filing,high,FL Supreme Court family law form series (12.9xx)
+a38e3884-39bd-4710-af0c-c8cfc652d958,12.902(d),Uniform Child Custody Jurisdiction and Enforcement Act (UCCJEA) Affidavit,family_law_financial,published,filing,high,FL Supreme Court family law form series (12.9xx)
+6d087b59-52f2-4e75-99f7-526ebee636d4,12.902(e),Child Support Guidelines Worksheet (06/25),family_law_financial,stale,filing,high,FL Supreme Court family law form series (12.9xx)
+15b7184d-9d7b-45fc-8e6c-9b785f7ff1d8,12.902(f)(1),Marital Settlement Agreement with Children,family_law,published,filing,high,FL Supreme Court family law form series (12.9xx)
+5ed29ad9-412f-4869-9cd8-96ca992baf69,12.902(f)(2),Marital Settlement Agreement without Children,family_law,rejected,filing,high,FL Supreme Court family law form series (12.9xx)
+c4474bdd-f623-448c-a6c2-884e777d5cc1,12.902(i),Affidavit of Corroborating Witness,family_law_financial,published,filing,high,FL Supreme Court family law form series (12.9xx)
+3061adb5-f35c-40fa-b468-1e245c07a201,12.902(j),Notice of Social Security Number,family_law_financial,published,redaction,high,redaction pattern: social security number
+e927bbb2-3f52-42f2-b26b-8abecd86feb7,12.903(a),"Answer, Waiver, and Request for Copy of Final Judgment of Dissolution of Marriage",family_law_children,published,filing,high,FL Supreme Court family law form series (12.9xx)
+db68b899-b337-4008-9fd7-662ae6a617e1,12.903(b),Answer to Petition for Dissolution of Marriage,family_law_children,published,filing,high,FL Supreme Court family law form series (12.9xx)
+f22defb0-15c7-40eb-aa56-826383f35035,12.903(c)(1),Answer to Supplemental Petition,family_law_children,stale,filing,high,FL Supreme Court family law form series (12.9xx)
+d41410e6-d6c1-4e6f-959e-88700c2af29e,12.903(c)(2),Answer to Petition and Counterpetition for Dissolution of Marriage with Property but No Dependent or Minor Child(ren),family_law_children,published,filing,high,FL Supreme Court family law form series (12.9xx)
+c57d83f1-743d-4498-a26e-fccba3c7b3a7,12.903(c)(3),Answer to Petition and Counterpetition for Dissolution of Marriage with No Dependent or Minor Child(ren) or Property,family_law_children,published,filing,high,FL Supreme Court family law form series (12.9xx)
+3eb0a177-2855-4c36-979a-a4188428b805,12.903(d),Answer to Counterpetition,family_law_children,published,filing,high,FL Supreme Court family law form series (12.9xx)
+cfac9e17-eb27-4d62-b931-c2bd1d89e63a,12.905,Supplemental Petition to Modify Child Support,civil,rejected,filing,high,FL Supreme Court family law form series (12.9xx)
+3988f23e-a876-4118-81cc-9cf9aa0cf85a,12.905(a),"Supplemental Petition to Modify Parental Responsibility, Visitation or Parenting Plan/Time–Sharing Schedule and Other Re",family_law_support,published,filing,high,FL Supreme Court family law form series (12.9xx)
+ff602468-79a6-4abb-b516-298c65efee60,12.905(b),Supplemental Petition for Modification of Child Support,family_law_support,published,filing,high,FL Supreme Court family law form series (12.9xx)
+9ad8d689-807d-4dc9-b955-3e29aece0fba,12.905(c),Supplemental Petition for Modification of Alimony,family_law_support,published,filing,high,FL Supreme Court family law form series (12.9xx)
+a444f61d-2393-4993-b48d-91bde95d1a95,12.910(a),12.910 A ,family_law_support,published,filing,high,FL Supreme Court family law form series (12.9xx)
+d0ca71c9-8160-4c46-9be2-046f67a1f9c2,12.911(a),Subpoena for Hearing or Trial (Issued by Clerk),family_law_support,published,filing,high,FL Supreme Court family law form series (12.9xx)
+dfb16413-2902-4dfe-b8ef-71c5b768ef97,12.911(b),Subpoena for Hearing or Trial (Issued by Attorney),family_law_support,published,filing,high,FL Supreme Court family law form series (12.9xx)
+e64e60ec-e34e-4fdd-a0c4-8225bdcda66c,12.911(c),Subpoena Duces Tecum for Hearing or Trial (Issued by Clerk),family_law_support,published,filing,high,FL Supreme Court family law form series (12.9xx)
+e872178b-fc13-41a0-a8f5-0547bb1ff7af,12.911(d),Subpoena Duces Tecum for Hearing or Trial (Issued by Attorney),family_law_support,published,filing,high,FL Supreme Court family law form series (12.9xx)
+b76de184-4fc3-4f95-8264-3f6af9cbb628,12.911(e),Subpoena for Deposition (Issued by Clerk),family_law_support,published,filing,high,FL Supreme Court family law form series (12.9xx)
+fbe79f30-fe17-40fe-a648-6cff776beab8,12.912(a),Memorandum for Certificate of Military Service (09/16),family_law_support,published,filing,high,FL Supreme Court family law form series (12.9xx)
+e49b9a8f-98aa-41f5-b925-56defd6db403,12.912(b),Affidavit of Military Service,family_law_support,published,filing,high,FL Supreme Court family law form series (12.9xx)
+91664a70-c0bd-49f8-b44b-4a3a3cf305e0,12.913(a)(1),12.913 A  1 ,family_law_support,published,filing,high,FL Supreme Court family law form series (12.9xx)
+a7a9a5fb-6e98-467d-806f-dcc250838b57,12.913(a)(2),Affidavit of Diligent Search,family_law_support,published,filing,high,FL Supreme Court family law form series (12.9xx)
+3af32c12-bb9e-4a11-8b82-7c72027f4a65,12.913(a)(3),Notice of Action for Termination of Parental Rights and Stepparent Adoption,family_law_support,published,filing,high,FL Supreme Court family law form series (12.9xx)
+89f33237-a1c4-4f35-bb59-e422e1af2c6d,12.914,Certificate of Service,family_law_support,published,filing,high,FL Supreme Court family law form series (12.9xx)
+d0173772-bcf6-4238-a9b9-714f4e917dc8,12.915,Designation of Current Mailing and E-mail Address,family_law_support,published,clerk_admin,high,clerk transaction pattern: change of address
+887bbed9-0135-4521-891b-8412d78ca701,12.920(a),Motion for Referral to General Magistrate,family_law_modification,published,filing,high,FL Supreme Court family law form series (12.9xx)
+451a09df-8f52-4f2d-bf92-3929f4d0adeb,12.920(c),12.920 C .,family_law_modification,published,filing,high,FL Supreme Court family law form series (12.9xx)
+c89ee02b-8609-461b-864e-096021c30a16,12.921,Notice of Hearing (Child Support Enforcement Hearing Officer),family_law_modification,published,filing,high,FL Supreme Court family law form series (12.9xx)
+50d8d7d1-bf0f-4716-97f5-bda9b5d223a6,12.922(a),Motion for Default,family_law_modification,published,filing,high,FL Supreme Court family law form series (12.9xx)
+8381aa42-933f-457b-a961-70e97439c5e9,12.922(c),Motion to Set Aside Default or Default Judgment,family_law_modification,published,filing,high,FL Supreme Court family law form series (12.9xx)
+8ce74758-fb1c-4c98-956d-ec038979a303,12.923,Notice of Hearing (General),family_law_modification,published,filing,high,FL Supreme Court family law form series (12.9xx)
+3f2e1e7c-ed13-469f-91f8-b54df60d6a26,12.927,Notice of Voluntary Dismissal,family_law_modification,published,filing,high,FL Supreme Court family law form series (12.9xx)
+c38c7a2d-e086-4afd-9c23-b6be13c35f6e,12.928,Cover Sheet for Family Court Cases,family_law_modification,published,filing,high,FL Supreme Court family law form series (12.9xx)
+7ade89f8-44dc-443d-9687-1625dbf8a2d2,12.930(b),Notice of Service of Answers to Standard Family Law Interrogatories,family_law_contempt,published,filing,high,FL Supreme Court family law form series (12.9xx)
+f933a291-5e89-4ef5-a032-3a75f85fcd5c,12.930(c),Standard Family Law Interrogatories for Modification Proceedings,family_law_contempt,published,filing,high,FL Supreme Court family law form series (12.9xx)
+f2dff847-edec-4790-ace7-3cd712928c74,12.931(a),IMPORTANT INFORMATION REGARDING E-FILING,family_law_contempt,published,filing,high,FL Supreme Court family law form series (12.9xx)
+efb510d3-9540-404f-bf1e-b35d56793174,12.932,Certificate of Compliance with Mandatory Disclosure,unknown,published,filing,high,FL Supreme Court family law form series (12.9xx)
+666a324b-cc6b-432c-9f2c-e1f290696274,12.940(e),Order Dissolving Temporary Injunction,family_law_enforcement,published,filing,high,FL Supreme Court family law form series (12.9xx)
+f0642826-e4cb-44de-8384-09fcdd9e44f7,12.941(a),Verified Motion for Temporary Injunction to Prevent Removal of Minor Child(ren) and/or Denial of Passport Services,family_law_enforcement,published,filing,high,FL Supreme Court family law form series (12.9xx)
+2379f7c3-df58-4776-839a-bed34ceb265f,12.941(b),Temporary Injunction to Prevent Removal of Minor Child(ren) and/or Denial of Passport Services (Ex Parte),family_law_enforcement,published,filing,high,FL Supreme Court family law form series (12.9xx)
+0e2b5669-75d6-4d10-bcba-5577ea0c78bb,12.941(c),Temporary Injunction to Prevent Removal of Minor Child(ren) and/or Denial of Passport Services (After Notice),family_law_dissolution,published,filing,high,FL Supreme Court family law form series (12.9xx)
+0ad7429d-e4b2-40d3-b7eb-61982244e59f,12.947(a),12.947 A ,family_law_enforcement,published,filing,high,FL Supreme Court family law form series (12.9xx)
+23e49c57-62f9-46cb-adb7-9411651b0f3b,12.947(c),12.947 C ,family_law_enforcement,published,filing,high,FL Supreme Court family law form series (12.9xx)
+ac0233e6-ff2e-4e72-853e-400ba1a569fb,12.980(a),Petition for Injunction for Protection Against Domestic Violence,domestic_violence,published,filing,high,FL Supreme Court family law form series (12.9xx)
+f617a433-6d25-418d-8992-3eea123837bb,12.980(b),"Order Setting Hearing on Petition for Injunction for Protection Against Domestic Violence, Repeat Violence, Dating Viole",domestic_violence,published,filing,high,FL Supreme Court family law form series (12.9xx)
+bbf31d43-aee1-44d9-af95-a4656b574200,12.980(c)(1),12.980 C  1 ,domestic_violence,published,filing,high,FL Supreme Court family law form series (12.9xx)
+3e39b71a-fa02-45b6-913f-c4679f437b75,12.980(c)(2),Temporary Injunction for Protection Against Domestic Violence with Minor Children,domestic_violence,published,filing,high,FL Supreme Court family law form series (12.9xx)
+5ebe2b3b-63f5-46c7-a206-fef5402de193,12.980(d)(1),Temporary Injunction for Protection Against Domestic Violence without Minor Children,domestic_violence,published,filing,high,FL Supreme Court family law form series (12.9xx)
+b6255155-f6cc-481a-a01f-3bc8a3705bda,12.980(d)(2),Final Judgment of Injunction for Protection Against Domestic Violence with Minor Children (After Notice),domestic_violence,published,filing,high,FL Supreme Court family law form series (12.9xx)
+278c03b9-8b52-444c-b5b6-ed327c385e66,12.980(e),Final Judgment of Injunction for Protection Against Domestic Violence without Minor Children (After Notice),domestic_violence,published,filing,high,FL Supreme Court family law form series (12.9xx)
+212fd154-92b6-4891-af35-f4a4b3d85882,12.980(f),Petition for Injunction for Protection Against Repeat Violence,domestic_violence,published,filing,high,FL Supreme Court family law form series (12.9xx)
+bc97e126-54f8-494b-9d8f-b96c9dfc0c17,12.980(g),Temporary Injunction for Protection Against Repeat Violence,domestic_violence,published,filing,high,FL Supreme Court family law form series (12.9xx)
+104aea2f-f4bb-4738-8e62-484237a2a085,12.980(h),12.980 H ,domestic_violence,published,filing,high,FL Supreme Court family law form series (12.9xx)
+d8e96b10-0789-460b-8c09-a39a040a82dc,12.980(i),12.980(I),domestic_violence,published,filing,high,FL Supreme Court family law form series (12.9xx)
+1e160873-41fb-4cde-af9a-0b713328e947,12.980(j),SUPPLEMENTAL AFFIDAVIT IN SUPPORT OF PETITION FOR INJUNCTION,domestic_violence,published,filing,high,FL Supreme Court family law form series (12.9xx)
+c605ef03-c5cc-46a6-8b17-148ac1bd7f76,12.980(l),Petition for Injunction for Protection Against Dating Violence,domestic_violence,published,filing,high,FL Supreme Court family law form series (12.9xx)
+1cc0f225-c409-4331-a050-87cb5b7510e6,12.980(m),Temporary Injunction for Protection Against Dating Violence,domestic_violence,published,filing,high,FL Supreme Court family law form series (12.9xx)
+42ccaa87-1e03-42c9-a706-9787aee317c0,12.980(n),Final Judgment of Injunction for Protection Against Dating Violence (After Notice),domestic_violence,published,filing,high,FL Supreme Court family law form series (12.9xx)
+d46f6d79-3046-48e4-955f-0808166241fd,12.980(o),Temporary Injunction for Protection Against Dating Violence,domestic_violence,published,filing,high,FL Supreme Court family law form series (12.9xx)
+860007f2-1303-4809-8638-abc151d0f6f2,12.980(p),Petition for Injunction for Protection Against Sexual Violence,domestic_violence,published,filing,high,FL Supreme Court family law form series (12.9xx)
+81cb7e77-1c24-49be-8107-da89324c399a,12.980(q),Petition for Injunction for Protection Against Sexual Violence,domestic_violence,published,filing,high,FL Supreme Court family law form series (12.9xx)
+9d549b76-1888-4c06-8b58-53141560bbad,12.980(r),Temporary Injunction for Protection Against Sexual Violence,domestic_violence,published,filing,high,FL Supreme Court family law form series (12.9xx)
+7c641942-fe04-4020-98fd-e38a42f68fd2,12.980(t),Petition for Injunction for Protection Against Stalking,domestic_violence,published,filing,high,FL Supreme Court family law form series (12.9xx)
+b1a010ef-fc40-4d4c-afa2-cd6ee497bd33,12.980(u),Temporary Injunction for Protection Against Stalking,domestic_violence,published,filing,high,FL Supreme Court family law form series (12.9xx)
+637caa02-a914-4778-aa91-c596a25a91f8,12.982(a),Petition for Change of Name (Adult),name_change,published,filing,high,FL Supreme Court family law form series (12.9xx)
+a7ecd9c4-629f-4694-b3a5-00d08b88ab47,12.982(d),Final Judgment of Change of Name (Adult),civil,rejected,filing,high,FL Supreme Court family law form series (12.9xx)
+b0b41de9-542d-45fc-b1c8-7aa719c6d719,12.983(a),12.983 A ,family_law_misc,published,filing,high,FL Supreme Court family law form series (12.9xx)
+7f259a3f-22c1-4786-b93a-f4c5a56fa8a5,12.990(a),Final Judgment of Dissolution (Uncontested),family_law,rejected,filing,high,FL Supreme Court family law form series (12.9xx)
+030a3bb9-d73f-433d-b56e-8be6b2b40ad3,12.990(b)(1),Final Judgment of Dissolution with Children (Uncontested),family_law,rejected,filing,high,FL Supreme Court family law form series (12.9xx)
+111b7429-9287-48ce-be84-1b21ebb95271,12.995(a),Parenting Plan,family_law_misc,published,filing,high,FL Supreme Court family law form series (12.9xx)
+ec5e9bda-7e3d-42d5-8a07-794fa23c7812,7.330,Statement of Claim (Auto Negligence),small_claims,rejected,filing,high,filing signal: statement of claim
+7ba8760b-cf87-4cc4-abc6-149879ade730,7.331,Statement of Claim (Goods Sold),small_claims,rejected,filing,high,filing signal: statement of claim
+b7cd444a-b4ca-4d4e-9fe8-b8251eb9ead5,7.332,Statement of Claim (Work Done/Materials),small_claims,rejected,filing,high,filing signal: statement of claim
+1f5b3192-044a-484f-a3d6-73f2f8328c6f,7.333,Statement of Claim (Money Lent),small_claims,rejected,filing,high,filing signal: statement of claim
+221691cb-abfa-4fd2-ac93-98b337af2c84,7.334,Statement of Claim (Promissory Note),small_claims,rejected,filing,high,filing signal: statement of claim
+30e96fb7-f815-457e-8022-ec116d4a552d,7.335,Statement of Claim (Return of Security Deposit),small_claims,rejected,filing,high,filing signal: statement of claim
+9cbe87d7-43b9-41dc-bb79-ea7da19bb083,7.340,Summons/Notice to Appear,small_claims,rejected,filing,high,filing signal: summons
+c16e84fd-b5f5-40e8-9c18-1781d3a10f1f,7.343,Fact Information Sheet (for judgment enforcement),small_claims,rejected,filing,high,filing signal: judgment
+745040e8-0875-49c1-8083-e6de712f6b97,85054,DEPARTMENT OF HIGHWAY SAFETY AND MOTOR VEHICLES,family_law_dissolution,published,uncertain,low,no filing/payment/redaction signal in metadata
+f0f130bb-70d2-45e1-9647-935f8d422b26,Alachua/Alachua-2018-2019_-_FY19_Fee_Schedule,Alachua County: 2018 2019   FY19 Fee Schedule,county_local,rejected,clerk_admin,high,clerk transaction pattern: fee schedule
+6766eec3-8717-45eb-891f-a5d30b4b73af,Alachua/Alachua-2018-2019_-_FY19_Supplemental_Fee_Schedule,Alachua County: 2018 2019   FY19 Supplemental Fee Schedule,county_local,rejected,clerk_admin,high,clerk transaction pattern: fee schedule
+4fe215e6-e9ff-492b-834f-c9f2f0d167b9,Alachua/Alachua-Alachua_County_FY20-21_Schedule_of_Fees_and_Charges_for_Services,Alachua County: Alachua County FY20 21 Schedule of Fees and Charges for Services,county_local,rejected,clerk_admin,high,clerk transaction pattern: schedule of fees
+16a3078f-2244-416c-8fc2-05ab6e206c00,Alachua/Alachua-Alachua_County_FY20-21_Supplemental_Schedule_of_Fees_and_Charges_for_Services,Alachua County: Alachua County FY20 21 Supplemental Schedule of Fees and Charges for Services,county_local,rejected,clerk_admin,high,clerk transaction pattern: schedule of fees
+23bf7b9c-21df-415f-a511-b22808340250,Alachua/Alachua-Alachua_County_Managers_Budget_Book_FY22-23,Alachua County: Alachua County Managers Budget Book FY22 23,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+7e2cb892-ece2-4b97-b156-7f7f68f573c9,Alachua/Alachua-Budget_Amendment_11-07-24,Alachua County: Budget Amendment 11 07 24,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+89092229-0a94-4a19-b246-99cb39ab2eda,Alachua/Alachua-Budget_Amendment_FY25_September_23_2025,Alachua County: Budget Amendment FY25 September 23 2025,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+8da07f43-85fb-4a54-a77e-2508a50bc504,Alachua/Alachua-County_Manager_Book_FY24-25,Alachua County: County Manager Book FY24 25,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+3126cd53-c5f9-487d-b01a-d9b78aa2cd37,Alachua/Alachua-Fire_Assessment_07-09-24_Information,Alachua County: Fire Assessment 07 09 24 Information,county_local,rejected,filing,high,filing signal: information
+651687ae-4269-4461-9ccb-30c3eec9285e,Alachua/Alachua-FY_2020_Master_Level_of_Service_Report_-_As_of_October_1_2019_FINAL,Alachua County: FY 2020 Master Level of Service Report As of October 1 2019 FINAL,county_local,rejected,clerk_admin,high,clerk transaction pattern: level of service
+bd7345dc-78cb-4794-9d6b-476b45a40d69,Alachua/Alachua-FY_2021_Master_Level_of_Service_-_FINAL,Alachua County: FY 2021 Master Level of Service   FINAL,county_local,rejected,clerk_admin,high,clerk transaction pattern: level of service
+6776e067-aa22-4d9f-b7e3-a19c74eb67ad,Alachua/Alachua-FY_2023_Budget_Allocation_by_Strategic_Focus_Area_Report,Alachua County: FY 2023 Budget Allocation by Strategic Focus Area Report,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+6d39d22f-f264-4a70-ac84-d4713f729e46,Alachua/Alachua-FY_2023_Master_Level_of_Service_Report_FINAL_-_ADA,Alachua County: FY 2023 Master Level of Service Report FINAL   ADA,county_local,rejected,clerk_admin,high,clerk transaction pattern: level of service
+486534ce-bf6c-45a6-a25e-47e0b18fb2c0,Alachua/Alachua-FY19_Adopted_Budget_Book,Alachua County: FY19 Adopted Budget Book,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+f5316fbb-b9af-4e99-8e70-a35a3df219cc,Alachua/Alachua-FY19-20_Fee_Schedule,Alachua County: FY19 20 Fee Schedule,county_local,rejected,clerk_admin,high,clerk transaction pattern: fee schedule
+69de0495-fa34-4c53-b095-fc270beff2ab,Alachua/Alachua-FY19-20_Supplemental_Schedule_of_Fees_and_Charges_for_Services,Alachua County: FY19 20 Supplemental Schedule of Fees and Charges for Services,county_local,rejected,clerk_admin,high,clerk transaction pattern: schedule of fees
+9781a607-75d4-4bb4-b79f-ba3e47d198c0,Alachua/Alachua-FY20_Adopted_Budget_Book,Alachua County: FY20 Adopted Budget Book,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+fd205b93-6938-465c-ab1a-554db124b23d,Alachua/Alachua-FY20-21_Supplemental_Fee_Schedule,Alachua County: FY20 21 Supplemental Fee Schedule,county_local,rejected,clerk_admin,high,clerk transaction pattern: fee schedule
+262cfcbb-dbf4-4818-8778-563202ce75ad,Alachua/Alachua-FY21_Adopted_Budget,Alachua County: FY21 Adopted Budget,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+9c6696c8-f1d5-41b4-ba02-c20244bc29b0,Alachua/Alachua-FY21_Adopted_Budget_Book,Alachua County: FY21 Adopted Budget Book,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+63078146-c4d5-494a-8c59-f61a141eccb4,Alachua/Alachua-FY21_Tentative_Budget,Alachua County: FY21 Tentative Budget,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+ad61f78f-262f-4b85-8aaa-273e1cbd94a5,Alachua/Alachua-FY21_Tentative_Budget_Book,Alachua County: FY21 Tentative Budget Book,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+e28790ca-906c-4e95-97f6-5b8f5d8395b8,Alachua/Alachua-FY21-22_Fee_Schedule,Alachua County: FY21 22 Fee Schedule,county_local,rejected,clerk_admin,high,clerk transaction pattern: fee schedule
+6a76d4ad-75b5-454c-b1d4-75dea82d1140,Alachua/Alachua-FY21-22_Supplemental_Fee_Schedule,Alachua County: FY21 22 Supplemental Fee Schedule,county_local,rejected,clerk_admin,high,clerk transaction pattern: fee schedule
+2d526c2d-07e1-4f8a-8ad3-a2964ffaa36b,Alachua/Alachua-FY22_Adopted_Budget,Alachua County: FY22 Adopted Budget,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+9cc4f584-5fd1-4fe8-b0be-336d21b810b0,Alachua/Alachua-FY22_Adopted_Budget_Book,Alachua County: FY22 Adopted Budget Book,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+29f505b5-cd96-4653-bdb3-1eab5eef0db7,Alachua/Alachua-FY22_Budget_Amendment_01-25-22,Alachua County: FY22 Budget Amendment 01 25 22,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+fd408a5b-7352-48b9-910d-bae202bef948,Alachua/Alachua-FY22_Budget_Amendment_07-12-22,Alachua County: FY22 Budget Amendment 07 12 22,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+e374f7c2-f184-4f13-8311-1c7ee2034f3b,Alachua/Alachua-FY22_Budget_Amendment_11-09-21,Alachua County: FY22 Budget Amendment 11 09 21,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+0a6b35e6-8af3-4f18-8d34-18f3f2053ab8,Alachua/Alachua-FY22_County_Manager_s_Budget_Book,Alachua County: FY22 County Manager's Budget Book,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+906546b5-36b9-4fbd-8179-d79440790c4a,Alachua/Alachua-FY22-23_Fee_Schedule,Alachua County: FY22 23 Fee Schedule,county_local,rejected,clerk_admin,high,clerk transaction pattern: fee schedule
+05937586-67fe-4379-b2b3-52844f06848c,Alachua/Alachua-FY22-23_Supplemental_Fee_Schedule,Alachua County: FY22 23 Supplemental Fee Schedule,county_local,rejected,clerk_admin,high,clerk transaction pattern: fee schedule
+235ea87c-40c7-47af-8437-27ce131b2c1b,Alachua/Alachua-FY23_Adopted_Budget,Alachua County: FY23 Adopted Budget,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+06a6ce46-6009-4589-bf12-58db62e0d252,Alachua/Alachua-FY23_Adopted_Budget_Book,Alachua County: FY23 Adopted Budget Book,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+ffe37b84-244e-43e9-8fb2-d314739090cc,Alachua/Alachua-FY23_Amended_Budget_11-08-22,Alachua County: FY23 Amended Budget 11 08 22,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+4bea51d2-e277-4cc2-85e7-7326958c7de9,Alachua/Alachua-FY23_Budget_Amendment_01-24-23,Alachua County: FY23 Budget Amendment 01 24 23,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+7af2ceb0-9123-40e4-baf8-3f9268dc5a47,Alachua/Alachua-FY23_Budget_Amendment_05-23-23,Alachua County: FY23 Budget Amendment 05 23 23,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+5212a278-817a-419e-ac02-a77aab290c07,Alachua/Alachua-FY23-24_Fee_Schedule,Alachua County: FY23 24 Fee Schedule,county_local,rejected,clerk_admin,high,clerk transaction pattern: fee schedule
+014dfd4b-00f3-4e08-b4d0-7629441e484b,Alachua/Alachua-FY23-24_Supplemental_Fee_Schedule,Alachua County: FY23 24 Supplemental Fee Schedule,county_local,rejected,clerk_admin,high,clerk transaction pattern: fee schedule
+c601f278-346f-44a6-8e1a-d8875e0e45c4,Alachua/Alachua-FY24_Adopted_Budget,Alachua County: FY24 Adopted Budget,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+3e7f2598-e495-41c1-a403-d9ca8520af94,Alachua/Alachua-FY24_Adopted_Budget_Book,Alachua County: FY24 Adopted Budget Book,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+7948b620-c427-4184-aafc-cce0ad86dc73,Alachua/Alachua-FY24_Budget_Amendment_12-12-23,Alachua County: FY24 Budget Amendment 12 12 23,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+d4697b28-0c00-4d50-aa15-c6156d453d81,Alachua/Alachua-FY24_Budget_Amendment-_May_28__2024,"Alachua County: FY24 Budget Amendment  May 28, 2024",county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+f1fb82f6-ca6a-4299-8844-3eb90c9a6abb,Alachua/Alachua-FY24_Carryforward_Budget_Adjustment,Alachua County: FY24 Carryforward Budget Adjustment,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+95033c6c-2e77-4a58-81ff-d732e2f646d0,Alachua/Alachua-FY24_County_Manager_Budget_Books,Alachua County: FY24 County Manager Budget Books,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+b29af9c7-5499-41a5-87d2-683b32dcccb0,Alachua/Alachua-FY24_Final_Capital_Budget_(CIP),Alachua County: FY24 Final Capital Budget (CIP),county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+7441195c-9996-4162-9ac1-53324783ed89,Alachua/Alachua-FY24_September_Budget_Amendment_BA,Alachua County: FY24 September Budget Amendment BA,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+9c22aba0-5452-4e12-b47e-1dbb4ad8141e,Alachua/Alachua-FY24-25_Supplemental_Fee_Schedule_Clean_8-22-24,Alachua County: FY24 25 Supplemental Fee Schedule Clean 8 22 24,county_local,rejected,clerk_admin,high,clerk transaction pattern: fee schedule
+4ffa996c-ee39-4277-bad2-6da031aac6be,Alachua/Alachua-FY25_5th_Amendment_-_October_2025_Official_BA,Alachua County: FY25 5th Amendment   October 2025 Official BA,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+c1834307-5618-4183-9d07-377babdf878c,Alachua/Alachua-FY25_9-24-24_Fee_Schedule_-_Clean,Alachua County: FY25 9 24 24 Fee Schedule   Clean,county_local,rejected,clerk_admin,high,clerk transaction pattern: fee schedule
+16332993-348c-4cca-ac7a-c3472cebd453,Alachua/Alachua-FY25_Adopted_Budget,Alachua County: FY25 Adopted Budget,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+78b7d648-e355-4aee-99cb-48384e642980,Alachua/Alachua-FY25_Adopted_Budget_AD,Alachua County: FY25 Adopted Budget AD,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+ed58b782-4c89-467d-b628-6bddad388299,Alachua/Alachua-FY25_Adopted_Budget_Book_Finalized,Alachua County: FY25 Adopted Budget Book Finalized,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+65309de0-9db0-4efa-9e23-78fd10eff1aa,Alachua/Alachua-FY25_Budget_Amendment_06-24-2025,Alachua County: FY25 Budget Amendment 06 24 2025,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+87b58dec-3566-400d-b6cb-e867322b86be,Alachua/Alachua-FY25_Budget_Amendment_6-25-25,Alachua County: FY25 Budget Amendment 6 25 25,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+66e20d12-7f26-4cb7-8fe4-aab5abfeca5e,Alachua/Alachua-FY25_CIP_as_of_08-21-24,Alachua County: FY25 CIP as of 08 21 24,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+4b24a230-d099-4c40-be3e-8bf5dd657bdb,Alachua/Alachua-FY25_February_Budget_Amendment_ADA,Alachua County: FY25 February Budget Amendment ADA,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+73acf9b4-b507-4ed6-8756-445a53a5154e,Alachua/Alachua-FY26_3rd_Amendment_-_BA,Alachua County: FY26 3rd Amendment   BA,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+30bf9170-4e37-429e-ba20-73200637a2e8,Alachua/Alachua-FY26_4th_Budget_Amendment,Alachua County: FY26 4th Budget Amendment,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+7a6d72b2-365a-486a-8703-3830d7f28d5b,Alachua/Alachua-FY26_Adopted_Budget_Book,Alachua County: FY26 Adopted Budget Book,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+ac895c87-28f8-40eb-8ffb-d8e3b5ff415f,Alachua/Alachua-FY26_Amended_Budget_-_November_2025_rev,Alachua County: FY26 Amended Budget   November 2025 rev,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+ec33a449-f8b0-4d87-80d2-7300ae7c603b,Alachua/Alachua-FY26_Budget_Ad,Alachua County: FY26 Budget Ad,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+5a4bb376-979e-47fe-a3a5-213dc9a8e225,Alachua/Alachua-FY26_Budget_Calendar_Dates_07-31-25,Alachua County: FY26 Budget Calendar Dates 07 31 25,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+d4f69b27-725d-4ff9-850a-73b4c8ee3f54,Alachua/Alachua-FY26_County_Manager_Book,Alachua County: FY26 County Manager Book,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+282d54f6-4478-460c-85a3-752d7f274b1f,Alachua/Alachua-FY26_December_Amendment_Budget_Amendment,Alachua County: FY26 December Amendment Budget Amendment,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+8a4d0255-eb08-437c-adaf-cfad5d7844d3,Alachua/Alachua-FY26_Fee_Schedule,Alachua County: FY26 Fee Schedule,county_local,rejected,clerk_admin,high,clerk transaction pattern: fee schedule
+0af6320a-ff8a-4974-a42c-ecf3ced236bb,Alachua/Alachua-FY26_Supplemental_Fee_Schedule_-_Clean,Alachua County: FY26 Supplemental Fee Schedule   Clean,county_local,rejected,clerk_admin,high,clerk transaction pattern: fee schedule
+a14272f3-f8c3-4583-881d-9ad1bf538dfd,Alachua/Alachua-FY27_Budget_Calendar_Dates__Update_04-22-26,Alachua County: FY27 Budget Calendar Dates  Update 04 22 26,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+4e25aeaf-6008-4174-9939-5e345f31ea93,Alachua/Alachua-Millage_Resolution_07-09-24_-_signed,Alachua County: Millage Resolution 07 09 24   signed,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+a9549d0a-20b3-4ddb-958d-7e5ce770ccf9,Alachua/Alachua-Single_Source_Report_FY21_FY22,Alachua County: Single Source Report FY21 FY22,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+183d8671-567b-4dd5-b853-ac946afd798e,Alachua/Alachua-Sole_Source_Report_FY21_FY22,Alachua County: Sole Source Report FY21 FY22,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+92c7f781-c603-453f-a32e-0e8049852c49,Alachua/Alachua-Solid_Waste_Assessment_07-09-24_Information,Alachua County: Solid Waste Assessment 07 09 24 Information,county_local,rejected,filing,high,filing signal: information
+9d714eef-9cc0-43f9-a14f-b7f3c7f2f635,Alachua/Alachua-Stormwater_Assessment_07-09-2024_Information,Alachua County: Stormwater Assessment 07 09 2024 Information,county_local,rejected,filing,high,filing signal: information
+e2da8827-3af4-4466-b37a-68a3a89a4246,Alachua/Alachua-Strategic_Plan_Budget_Allocation_by_Focus_Area_FY2020_-_Effective_10-1-2019,Alachua County: Strategic Plan Budget Allocation by Focus Area FY2020   Effective 10 1 2019,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+1495ff08-3789-47f3-abb0-fea43b067489,Alachua/Alachua-Strategic_Plan_Budget_Allocation_FY2021_-_FINAL,Alachua County: Strategic Plan Budget Allocation FY2021   FINAL,county_local,rejected,clerk_admin,high,clerk transaction pattern: budget
+135c4180-8ab7-4fc7-82c7-2338e5e5ea84,Alachua/Alachua-Sugarfoot_Assessment_07-09-24_Information,Alachua County: Sugarfoot Assessment 07 09 24 Information,county_local,rejected,filing,high,filing signal: information
+758cc7ef-ad2b-46f6-8ca7-3a4c3cabcf50,Alachua/Small-Claims-Rules-10-28-2021,Small Claims Rules (includes forms),county_local,rejected,filing,high,filing signal: small claims
+93d8db74-c1ea-41f3-baa3-76d916916688,Bradford/Bradford-Civil-Traffic-Payment-Plan-Application-02-14-25,Bradford County: Civil Traffic Payment Plan Application 02 14 25,county_local,published,filing,high,filing signal: application
+a6bf26ef-7c93-4ca7-b963-ae96b535a270,Bradford/Bradford-Clerk_Service_Fee_Charges_14,Bradford County: Clerk Service Fee Charges 14,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+a2dde948-c371-4fb8-93bf-4ff51feb84b8,Bradford/Bradford-Complaint-to-Quiet-Title-Circuit,Bradford County: Complaint to Quiet Title Circuit,county_local,published,filing,high,filing signal: complaint
+e5714e13-79e3-475e-b9b4-339aea9f37e4,Bradford/Bradford-Complaint-to-Quiet-Title-County,Complaint to Quiet Title Based on Fraudulent Conveyance,county_local,published,filing,high,filing signal: complaint
+e3943792-6dd9-4df8-bcf0-24aa8122557d,Bradford/Bradford-Designation_of_Email_Address_for_a_Party_Not_Represented_by_an_Attorney,Designation of E-Mail Address for a Party Not Represented by an Attorney,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+567dba73-d80e-481e-bef8-9879706bd670,Bradford/Bradford-Document_FACC_Imaging,Bradford County: Document FACC Imaging,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+78ba67c6-4750-4252-9357-88797877f280,Bradford/Bradford-Driving_School_Affidavit_2022,DRIVING SCHOOL AFFIDAVIT,county_local,published,filing,high,filing signal: affidavit
+353355fa-e3fd-4e25-a306-9ce2e8fae764,Bradford/Bradford-Driving-School-Affidavit,Bradford County: Driving School Affidavit,county_local,published,filing,high,filing signal: affidavit
+df9a41bf-24c4-4ea8-864e-01ea5d0396e8,Bradford/Bradford-Expunge_or_Seal_Packet,Bradford County: Expunge or Seal Packet,county_local,published,filing,high,filing signal: certificate
+466bc40a-5c45-4a8d-ad9a-096c2fe2ebce,Bradford/Bradford-ForeclosureProcess,Bradford County: ForeclosureProcess,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+40b13eb2-27da-49a9-86d1-bcc6c392591d,Bradford/Bradford-HPC-Self-Help-Workshops-Flyer,Bradford County - HPC-Self-Help-Workshops-Flyer.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+7a89dbdf-185c-42e3-88cc-30dcea6b8c34,Bradford/Bradford-Judge-Traffic-Memo,Bradford County: Judge Traffic Memo,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+4b7463a4-8364-4a44-8a4d-04c0e28bd98b,Bradford/Bradford-Notice_of_Change_of_Address_or_Email_Address,Notice of Change of Mailing Address or Designated E-mail Address [Form 2.603],county_local,published,filing,high,filing signal: petition
+e458b84c-2c62-4b14-a288-a460172c47d8,Bradford/Bradford-Registry_of_Court_Open_Cases,Bradford County: Registry of Court Open Cases,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+39a755a7-fabf-43d3-bca2-5dfc73acff96,Bradford/Bradford-Request_to_be_Excused_from_Email_Service,Bradford County: Request to be Excused from Email Service,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+226167f7-3bce-4525-b638-4576466f6783,Bradford/Bradford-RequestSS-AcctNumber,Bradford County: RequestSS AcctNumber,county_local,published,clerk_admin,high,clerk transaction pattern: credit card
+58f4eb62-e978-4051-9226-d4588cbdac81,Bradford/Bradford-StandingFamilyCourtOrder,Standing Family Court Order,county_local,published,filing,high,filing signal: petition
+b70517e7-1f75-499c-aa9d-d762bce459bc,Bradford/Bradford-TRLS-Brochure,Bradford County - TRLS-Brochure.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+ed9c5e5a-b8a2-471a-b961-59611e1181be,Bradford/Bradford-UTC-Affidavit-Clerk,Bradford County: UTC Affidavit Clerk,county_local,published,filing,high,filing signal: affidavit
+232717d4-ec5f-4200-9ac9-e43a474c4ec9,Brevard/brevard-2026_Official_Holiday_Schedule,Brevard County - 2026_Official_Holiday_Schedule.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+04d5eb2a-072c-472e-b6ba-9dd0351c67fe,Brevard/brevard-Judgepublic,Brevard County - Judgepublic.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+04c1dc7d-a276-4e06-af6a-be3bbd1dfd52,Calhoun/calhoun-CalhounCountyOrdinanceIndex_0061_ada,Calhoun County - calhoun-CalhounCountyOrdinanceIndex_0061_ada.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+793c4367-7676-4728-8ba4-aba031ecdb93,Calhoun/calhoun-FEE-SCHEDULE-FOR-WEBSITE-2025,Calhoun County - calhoun-FEE-SCHEDULE-FOR-WEBSITE-2025.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+f4a94445-b5d6-403b-963d-391c5af72bef,circuits/circuit10/5-51.0,5 51.0,circuit_specific,published,uncertain,low,no filing/payment/redaction signal in metadata
+a18c4912-4504-4ebc-8c7f-552bbb6ee5eb,circuits/circuit10/AcceptanceOfServiceForm,WAIVER AND ACCEPTANCE OF SERVICE,circuit_specific,review,filing,high,filing signal: petition
+7352b3c2-7048-4712-98a0-189a08fb3faf,circuits/circuit10/AO_1-61.1,ADMINISTRATIVE ORDER NO. 1-61.1,circuit_specific,review,filing,high,filing signal: order
+4e7eec80-db01-496b-a5f3-ddf09c1fb40b,circuits/circuit10/AO_5-20.7,Ao 5 20.7,circuit_specific,published,uncertain,low,no filing/payment/redaction signal in metadata
+477d2aa9-ad8c-438e-89a5-7cbb50bcd6d4,circuits/circuit10/AO_5-20.8,ADMINISTRATIVE ORDER NO: 5-20.8,circuit_specific,review,filing,high,filing signal: order
+6e561211-fed2-4d53-82af-29b6e09a8339,circuits/circuit10/ChecklistCoverSheet_RelocationForms,FOR THE SELF-REPRESENTED LITIGANT,circuit_specific,review,filing,high,filing signal: checklist
+6d3e5d0d-7c48-4a1e-93de-8fe5f4c83ba3,circuits/circuit10/Instructions_ContestingDelinqDLSusp,OBJECTION TO NOTICE OF DELINQUENCY AND/OR,circuit_specific,review,filing,high,filing signal: notice of
+ad7d2337-4dd1-46d6-9608-39a89a108403,circuits/circuit10/MotionForIWO,MOTION FOR ENTRY OF INCOME WITHHOLDING ORDER,circuit_specific,review,filing,high,filing signal: petition
+4dc23a36-24a2-414a-9bef-e3a767d32a72,circuits/circuit10/NoticeOfLimitationOfServicesProvided,NOTICE OF LIMITATION OF SERVICES PROVIDED,circuit_specific,review,filing,high,filing signal: notice of
+1b653cad-c4a2-4100-80d7-3058404f8c2d,circuits/circuit10/ProSe_SelfHelp,WELCOME TO THE SELF-HELP PROGRAM,circuit_specific,review,uncertain,low,no filing/payment/redaction signal in metadata
+44fcf443-6e08-4da3-94fa-ffe60b57e4de,circuits/circuit10/Quickparts_and_ePortal_ICMS_Proposed_Orders,Quickparts And Eportal Icms Proposed Orders,circuit_specific,review,filing,high,filing signal: order
+fa89dc91-ea04-4d18-8a8f-c2fb020356b3,circuits/circuit10/RulesOfCourtroomCivility,FAMILY LAW DIVISION (SELF-HELP PROGRAM),circuit_specific,review,uncertain,low,no filing/payment/redaction signal in metadata
+8ecc4eda-25a0-42c0-a827-375a71306734,circuits/circuit10/SamsHouseSupervisedVisitationAgency,Samshousesupervisedvisitationagency,circuit_specific,published,uncertain,low,no filing/payment/redaction signal in metadata
+61309886-6d1b-41a7-980a-71a3ed9a578f,circuits/circuit10/SupervisedVisitation,STANDARD AND THERAPEUTIC VISITATION SERVICES AVAILABLE,circuit_specific,review,uncertain,low,no filing/payment/redaction signal in metadata
+5f91b760-c0df-4bb3-8079-54df0560d6d2,circuits/circuit11/osca-long-range-plan-2022-27,FAIR AND ACCESSIBLE TO ALL,circuit_specific,review,uncertain,low,no filing/payment/redaction signal in metadata
+dcfd87fd-e818-4baa-be3f-e5f5ffb51c7a,circuits/circuit11/selfhelp_Rule,Selfhelp Rule,circuit_specific,review,uncertain,low,no filing/payment/redaction signal in metadata
+6ac372ef-c695-4aba-8fe9-1165f19d0046,circuits/circuit19/980a-_208.28,PETITION FOR INJUNCTION FOR PROTECTION AGAINST,domestic_violence,published,filing,high,filing signal: petition
+f6a3ec70-f228-4143-b79b-1e5437e35b73,circuits/circuit19/980c2,Temporary Injunction for Protection Against Domestic Violence without Minor Children,domestic_violence,published,filing,high,filing signal: petition
+734a88a5-3aa3-4d39-abef-730fb42f4bda,circuits/circuit19/980g,"Supplemental Affidavit in Support of Petition for Injunction for Protection Against Domestic, Repeat, Dating, or Sexual ",domestic_violence,published,filing,high,filing signal: petition
+2b34795f-953e-4caf-97ba-c67f054f0fc8,circuits/circuit19/980i,"Motion for Extension of Injunction for Protection Against Domestic, Repeat, Dating, or Sexual Violence; or Stalking",domestic_violence,published,filing,high,filing signal: petition
+b66c3f6c-87b6-4233-85c5-11b49e05a6a6,circuits/circuit19/980j,"Motion for Modification of Injunction for Protection Against Domestic, Repeat, Dating or Sexual Violence, or Stalking",domestic_violence,published,filing,high,filing signal: motion
+b11fbe27-91dc-485b-b68b-4c49ae13952d,circuits/circuit19/980k,TEMPORARY INJUNCTION FOR PROTECTION AGAINST REPEAT VIOLENCE,domestic_violence,published,filing,high,filing signal: injunction
+43265c26-efef-4e76-9b17-d2b1ae19166a,circuits/circuit19/980n_208.28,Petition for Injunction for Protection Against Dating Violence,domestic_violence,published,filing,high,filing signal: petition
+54ed716e-27d6-4c14-a5c5-df33581af8d2,circuits/circuit19/980o,980O,domestic_violence,published,uncertain,low,no filing/payment/redaction signal in metadata
+5e55ffbf-56df-4daf-8fda-9fef690dfc58,circuits/circuit19/980q-_208.29,PETITION FOR INJUNCTION FOR,domestic_violence,published,filing,high,filing signal: petition
+b92b7e77-5f67-49b5-9172-97b4683f4971,circuits/circuit19/980r,980R,domestic_violence,published,uncertain,low,no filing/payment/redaction signal in metadata
+4898a559-67d0-4800-ae2f-c56683afaaed,circuits/circuit19/Amended-AO-2026-03_Judicial-Assignments-for-2026,AMENDED ADMINISTRATIVE ORDER 2026-03,circuit_specific,review,filing,high,filing signal: order
+842cae0d-8695-419b-972e-1501aafd5999,circuits/circuit5/acceptance-of-service-of-supplemental-petion-and-answer,Acceptance Of Service Of Supplemental Petion And Answer,circuit_specific,published,filing,high,filing signal: answer
+e9ae0d45-b248-48c5-a3ad-60f0e1e942bb,circuits/circuit5/addendum-to-petition,ADDENDUM TO PETITION/COMPLAINT,circuit_specific,review,filing,high,filing signal: petition
+894fb61b-e23a-4865-acf6-5a48aa139d27,circuits/circuit5/answer-to-petition,Answer To Petition,circuit_specific,published,filing,high,filing signal: petition
+d5d8091d-ef9e-4e10-bbd7-704d94cbb238,circuits/circuit5/answer-to-supplemental-petition,Answer To Supplemental Petition,circuit_specific,published,filing,high,filing signal: petition
+215904ea-a83e-47da-9fea-2dd0f82c2774,circuits/circuit5/designation-of-current-mailing-or-email-address-sept.-23-fillable,DESIGNATION OF CURRENT MAILING AND E-MAIL ADDRESS,circuit_specific,review,clerk_admin,high,clerk transaction pattern: change of address
+aaaa8c52-d1c9-4e1b-bc71-cc511626a1d4,circuits/circuit5/motion-for-income-withholding-order,MOTION FOR INCOME DEDUCTION/INCOME WITHHOLDING ORDER,circuit_specific,review,filing,high,filing signal: motion
+cf5197ab-0ca1-4a7c-9033-97bb5d177d92,circuits/circuit5/motion-for-order-setting-final-hearingnon-jury-trial,MOTION FOR ORDER SETTING FINAL HEARING / NON-JURY TRIAL,circuit_specific,review,filing,high,filing signal: petition
+9be34a6c-4b20-41d9-848f-77acf8cddcee,circuits/circuit5/motion-for-telephonic-appearance,Motion for Telephonic Appearance,circuit_specific,review,filing,high,filing signal: motion
+5a1ca166-47e0-4d51-99fa-ec111aae80be,circuits/circuit5/motion-for-telephonic-appearance-at-mediation,Motion for Telephonic Appearance at Mediation,circuit_specific,review,filing,high,filing signal: motion
+53568172-a6a2-4c61-9c47-07d2b0244903,circuits/circuit5/motion-to-contest-drivers-license-suspension-revocation,MOTION TO CONTEST DRIVERS LICENSE SUSPENSION/REVOCATION,circuit_specific,review,filing,high,filing signal: motion
+cd3cc420-e2f0-4004-b3eb-a1bc8d5f86ad,circuits/circuit5/motion-to-or-for,Motion To Or For,circuit_specific,published,filing,high,filing signal: motion
+0eb50794-7617-422c-b682-50b2d1494129,circuits/circuit5/motion-to-suspend-terminate-child-support,Motion To Suspend Terminate Child Support,circuit_specific,published,filing,high,filing signal: motion
+2f0553de-012f-47f9-af7f-ea3d39a2b734,circuits/circuit5/mtn-to-contest-cs-delinq-admin-packet,Motion to Contest Child Support Delinquency (Administrative) — Packet,circuit_specific,published,filing,high,filing signal: motion
+b1542ad2-4e9c-410a-8462-933d723a66f2,circuits/circuit5/mtn-to-contest-cs-delinquency-packet,Mtn To Contest Cs Delinquency Packet,circuit_specific,published,uncertain,low,no filing/payment/redaction signal in metadata
+984c4dfc-4a80-4aa9-8201-5a86c4ac0a0a,circuits/circuit5/pet-enforce-admin-cs-ord-packet,Petition to Enforce Administrative Child Support Order — Packet,circuit_specific,published,clerk_admin,high,clerk transaction pattern: change of address
+72116f85-9175-4d73-a871-1cfcf84ca370,circuits/circuit5/pet-supersede-admin-ord-packet,Pet Supersede Admin Ord Packet,circuit_specific,published,uncertain,low,no filing/payment/redaction signal in metadata
+fe74cc58-de9a-4f92-95ac-a0dc3a05f8c2,circuits/circuit5/pet-to-contest-ntc-intent-to-susp-dl-admin-packet,Pet To Contest Ntc Intent To Susp Dl Admin Packet,circuit_specific,published,uncertain,low,no filing/payment/redaction signal in metadata
+98a7c702-7f56-4a97-b3af-1f8c44d9857d,circuits/circuit5/pet-to-contest-ntc-intent-to-susp-dl-for-nonpymnt-packet,Petition to Contest Notice of Intent to Suspend Driver's License for Nonpayment — Packet,circuit_specific,published,clerk_admin,high,clerk transaction pattern: change of address
+a8e3bc2d-5818-4f4d-b261-98891090ae3d,circuits/circuit5/petition-for-parenting-plan-with-time-sharing-schedule-and-support-unconnected-with-dissolution-of-marriage,Petition for Parenting Plan with Time-Sharing Schedule and Support Unconnected with Dissolution of Marriage,circuit_specific,published,filing,high,filing signal: petition
+28064815-f4e2-40b0-a26c-7369e14951c4,circuits/circuit5/petition-to-establish-parenting-plan-with-time-sharing-schedule-with-minor-children-of-parents-who-were,Petition to Establish Parenting Plan with Time-Sharing Schedule with Minor Child(ren) of Parents Who Were Never Married,circuit_specific,published,filing,high,filing signal: petition
+e11b6798-c60e-4b76-ae5f-76b71c602894,circuits/circuit5/pretrial-statement-dissolution-of-marriage-actions-involving-parenting-issues,Pretrial Statement Dissolution of Marriage (Actions Involving Parenting Issues),circuit_specific,review,filing,high,filing signal: dissolution
+0e40bc8b-acc2-4c56-9ca5-35a04ebd6fee,circuits/circuit5/pretrial-statement-dissolution-of-marriage-without-childrens-issues,PRETRIAL STATEMENT DISSOLUTION OF MARRIAGE (WITHOUT CHILDREN'S ISSUES),circuit_specific,review,filing,high,filing signal: dissolution
+300949b9-df9f-4269-9a0c-14a3470b848e,circuits/circuit5/settlement-agreement-for-parties-never-married-with-children-and-instructions,Settlement Agreement For Parties Never Married With Children And Instructions,circuit_specific,published,filing,high,filing signal: settlement agreement
+71ee5889-c5dc-4d34-92e3-4eef6b58e39d,circuits/circuit5/use-of-ai-in-documents,Use Of Ai In Documents,circuit_specific,published,uncertain,low,no filing/payment/redaction signal in metadata
+97123b96-4404-4b29-9683-e431e9cd6fd1,circuits/circuit5/waiver-of-service-of-process,WAIVER OF SERVICE OF PROCESS,circuit_specific,review,filing,high,filing signal: petition
+2afcbec5-cb98-4c9e-9f1e-b671efdd1c88,civil-procedure-rules-2026.pdf,Florida Rules of Civil Procedure (2026),civil,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+fa89b86c-e63f-4fe2-ab12-1f855342645f,Clay/Clay-Affidavit_of_Defense,Clay County - Affidavit_of_Defense.pdf,county_local,published,filing,high,filing signal: affidavit
+d141eddf-e07b-4af0-a79c-b78f74c7bf16,Clay/Clay-Affidavit_of_Officer_Form,Clay County - Affidavit_of_Officer_Form.pdf,county_local,published,filing,high,filing signal: complaint
+246535e0-167a-4862-abd0-497ccbcb9da0,Clay/Clay-dr486a,WRITTEN AUTHORIZATION FOR REPRESENTATION BEFORE THE VALUE ADJUSTMENT BOARD,county_local,published,filing,high,filing signal: petition
+878b2bc4-3fb9-4b4e-82cc-8e5e6eff550a,Clay/Clay-dr486poa,POWER OF ATTORNEY FOR REPRESENTATION BEFORE THE VALUE ADJUSTMENT BOARD,county_local,published,filing,high,filing signal: petition
+103a1ac5-90ec-4164-9204-48b9f686e3d9,Clay/Clay-dr486port,PETITION TO THE VALUE ADJUSTMENT BOARD TRANSFER OF HOMESTEAD ASSESSMENT DIFFERENCE REQUEST FOR HEARING,county_local,published,filing,high,filing signal: petition
+3df10fc0-e3e5-4dca-9767-758af6630bbf,Clay/Clay-ds11_pdf,Clay County: ds11 pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+085e95a9-af6c-4e26-a2a7-fccfa94d9066,Clay/Clay-Generic_Motion_as_of_March_2026,Generic Motion Form,county_local,published,filing,high,filing signal: motion
+e44b61a8-e753-4343-bea5-c470e27375de,Clay/Clay-Passport-Process-Fees-and-Checklist-As-of-April-26-2036,Clay County: Passport Process Fees and Checklist As of April 26 2036,county_local,rejected,filing,high,filing signal: checklist
+a1e7e861-8b64-49ca-bab9-a0c69e6ab281,Clay/Clay-Petition_For_Injunction_For_Protection_Against_Dating_Violence_tagged,Petition for Injunction for Protection Against Dating Violence,county_local,published,filing,high,filing signal: petition
+77200888-797f-481b-98d0-d6bf7b32753b,Clay/Clay-Petition_For_Injunction_For_Protection_Against_Domestic_Violence-tagged,Clay County: Petition For Injunction For Protection Against Domestic Violence tagged,county_local,rejected,filing,high,filing signal: petition
+c80d1704-1287-482a-9f22-ac4a28d46f96,Clay/Clay-Petition_For_Injunction_For_Protection_Against_Repeat_Violence-tagged,Clay County: Petition For Injunction For Protection Against Repeat Violence tagged,county_local,published,filing,high,filing signal: petition
+0d22561e-c684-44e2-8822-6dec1dd30c9d,Clay/Clay-Petition_For_Injunction_For_Protection_Against_Stalking_Violence_tagged,Petition for Injunction for Protection Against Stalking,county_local,published,filing,high,filing signal: petition
+e1f23739-6645-4c55-afaa-0d6477791b7f,Clay/Clay-Petition_For_Injunction_For_Protections_Against_Sexual-_Violence_tagged,Petition for Injunction for Protection Against Sexual Violence,county_local,published,filing,high,filing signal: petition
+aa32054b-082d-4568-be0b-d036d76bea05,Clay/Clay-Petition-to-Value-Adjustment-Board-Request-for-Hearing-2024-1,Petition to the Value Adjustment Board Request for Hearing,county_local,published,filing,high,filing signal: petition
+26586f6b-0750-4864-ab5f-0357a36e9095,Clay/Clay-Request-To-Suspend-DL-1,Request to Suspend Driver's License and Motor Vehicle Registration,county_local,published,filing,high,filing signal: support
+a36a35d3-7de9-489e-8043-1068fe713128,Clay/Clay-Traffic_School_Affidavit_Form,Clay County - Traffic_School_Affidavit_Form.pdf,county_local,published,filing,high,filing signal: affidavit
+971a3495-98bb-4d66-94b3-bc984e8dd6fd,Clay/Clay-Updated-Civil-Cover-Sheet,Clay County: Updated Civil Cover Sheet,county_local,published,filing,high,filing signal: petition
+80ce95bc-4b57-45f7-856b-da4019bff92f,Clay/Clay-USA-250th-Quilts-Exhibit-Flyer-May-2026,Clay County: USA 250th Quilts Exhibit Flyer May 2026,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+82a99aa9-28e1-4489-a746-56ba05d6ba27,Clay/Clay-VABDR-486MU,ATTACHMENT TO A VALUE ADJUSTMENT BOARD PETITION FOR MULTIPLE PARCELS AND ACCOUNTS,county_local,published,redaction,high,redaction pattern: account number
+791d9626-33ab-4999-810d-d468aba70b89,Collier/collier-Family-Law-Cover-Sheet,Cover Sheet for Family Court Cases,county_local,published,filing,high,filing signal: petition
+ebb136d8-7311-42f4-a235-1810562ccfe2,Collier/collier-Indigent20Civil,APPLICATION FOR DETERMINATION OF CIVIL INDIGENT STATUS,county_local,published,filing,high,filing signal: summons
+427d5431-3051-4f7a-9c3c-92c7ea54c5d1,Collier/collier-OIG-Charter-V2,Collier County - collier-OIG-Charter-V2.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+9e3b7b92-290e-4467-b64d-5d1441b8e645,Collier/collier-Vital20Statistics20Information20Form,Vital Statistics Information Form,county_local,published,filing,high,filing signal: petition
+2c011aed-b1c2-4f50-988d-a6fc5e5439ff,Columbia/Columbia-1-New-Eviction-Packet-9-18-2023,Columbia County: 1 New Eviction Packet 9 18 2023,county_local,published,filing,high,filing signal: complaint
+6ea21b62-41a2-4ab9-9cf6-ba3152daf86c,Columbia/Columbia-2024-ANSWER-FOR-DEFENDANT,Columbia County: 2024 ANSWER FOR DEFENDANT,county_local,published,filing,high,filing signal: complaint
+f32bd869-606e-4b7d-9064-6384c16e186f,Columbia/Columbia-2024-ANSWER-FOR-DEFENDANT-1,ANSWER—RESIDENTIAL EVICTION,county_local,published,filing,high,filing signal: complaint
+8d978820-f51c-43f1-99a0-6a2436fe2165,Columbia/Columbia-Address-Change,Columbia County - Address-Change.docx,county_local,published,clerk_admin,high,clerk transaction pattern: change of address
+30dfeedc-e2b8-439b-96c1-81c4fd31cf82,Columbia/Columbia-Application-for-Criminal-Indigent-Status-Revised1,Columbia County: Application for Criminal Indigent Status Revised1,county_local,published,filing,high,filing signal: application
+d34bdc63-6da7-4bb6-b803-455efab76390,Columbia/Columbia-Application-for-Criminal-Indigent1,Application for Determination of Civil Indigent Status (Dependency and Termination of Parental Rights Cases),county_local,published,filing,high,filing signal: summons
+e495d39d-9ec8-4060-ae6b-ed6208839069,Columbia/Columbia-Application-for-Indigent-status-Civil-and-Civil-Dependency-1,Application for Determination of Civil Indigent Status (General Civil and Dependency/Termination of Parental Rights Case,county_local,published,filing,high,filing signal: summons
+f611fc5e-ae77-4fde-ac20-7ee0d7118eb2,Columbia/Columbia-CCIS-Attorney-Agreement-Form,"Columbia County Clerk of Court Registration Agreement to View Records Online (for Users, Parties, and Attorneys)",county_local,published,filing,high,filing signal: agreement
+6ac993a6-2019-46cb-b971-8e7df9ccc694,Columbia/Columbia-Civil-Credit-Card-Payment-2-Copy-1,Columbia County: Civil Credit Card Payment 2 Copy 1,county_local,published,clerk_admin,high,clerk transaction pattern: credit card
+0fc2d499-0eda-4970-b995-6b3d46bdb179,Columbia/Columbia-Civil-Credit-Card-Payment-2-Copy1,Columbia County: Civil Credit Card Payment 2 Copy1,county_local,rejected,clerk_admin,high,clerk transaction pattern: credit card
+16575ab0-d99c-456d-8246-ace79573c0a0,Columbia/Columbia-Declaratory-info-sheet,Columbia County: Declaratory info sheet,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+594d7e2b-171c-4b47-8b96-d47421ce71bc,Columbia/Columbia-Declaratory-Judgment-Packet,Columbia County: Declaratory Judgment Packet,county_local,published,filing,high,filing signal: complaint
+fe8c71df-9638-46ca-a2ea-9568aec8b4b2,Columbia/Columbia-Fax-with-Credit-Card-Payment-TrafficADA-1,Columbia County: Fax with Credit Card Payment TrafficADA 1,county_local,rejected,clerk_admin,high,clerk transaction pattern: credit card
+e30d5c3c-26cc-4927-8c66-b1947f7309b8,Columbia/Columbia-Fax-with-Credit-Card-Payment-TrafficADA-11,Columbia County: Fax with Credit Card Payment TrafficADA 11,county_local,rejected,clerk_admin,high,clerk transaction pattern: credit card
+16bdc752-2663-4f48-b623-dc496f6b71c2,Columbia/Columbia-Fax-with-Credit-Card-Payment-TrafficADA-11fillable,Columbia County: Fax with Credit Card Payment TrafficADA 11fillable,county_local,published,clerk_admin,high,clerk transaction pattern: credit card
+a33147d6-2682-4e86-b777-66ecec91041a,Columbia/Columbia-Form-2.601-Request-to-be-Excused-from-Email-Service,Columbia County: Form 2.601 Request to be Excused from Email Service,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+ef9b0b77-9ab4-4d32-b315-28773ada9772,Columbia/Columbia-Form-2.602-Designation-of-Email-Address-for-a-Party-Not-Represented-by-an-Attorney,Columbia County: Form 2.602 Designation of Email Address for a Party Not Represented by an Attorney,county_local,published,filing,high,filing signal: order
+83eb66b3-5c8a-4e7f-9d16-ca5c1a9ea6f0,Columbia/Columbia-Form-2.603-Notice-of-Change-of-Address-or-Email-Address,Notice of Change of Mailing Address or Designated E-Mail Address [Form 2.603],county_local,published,filing,high,filing signal: notice of
+694443a9-6913-4cbb-be8e-78691119a47a,Columbia/Columbia-General-Tenant-Information1,Columbia County: General Tenant Information1,county_local,rejected,filing,high,filing signal: information
+c06cf3c0-cc4a-4a12-8e93-25c4206b8aa6,Columbia/Columbia-juryscams-1,Columbia County: juryscams 1,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+2108fadf-a508-4d12-a997-55613e119fd2,Columbia/Columbia-New-Eviction-Packet-revised-July-29-2024,Columbia County: New Eviction Packet revised July 29 2024,county_local,published,filing,high,filing signal: complaint
+34512fc8-9fce-43d6-a53d-e602cac147c4,Columbia/Columbia-SMALL-CLAIMS-Cover-Sheet,Columbia County: SMALL CLAIMS Cover Sheet,county_local,rejected,filing,high,filing signal: small claims
+70a19a94-94ab-4271-9037-d8b6fb8d709f,Columbia/Columbia-Small-Claims-packet-1,Columbia County: Small Claims packet 1,county_local,rejected,filing,high,filing signal: small claims
+5ef78f55-6130-4c34-99d0-d85341e292fb,Columbia/Columbia-soc-1,Statement of Claim (Small Claims),county_local,published,filing,high,filing signal: statement of claim
+5fe6d121-f39b-49a6-b650-b93228a6a926,Columbia/Columbia-TrafficFax-with-Credit-Card-Paymentfill1-1-1,Traffic Fine Credit Card Payment Fax Form,county_local,published,clerk_admin,high,clerk transaction pattern: credit card
+c930c33c-0168-45cb-bca9-a4ad1ee7ef2b,Columbia/Columbia-User_Registration_Agreement1-1,Columbia County: User Registration Agreement to View Records Online,county_local,published,filing,high,filing signal: agreement
+4dac7f8d-bac0-4000-be48-a89caa776cc7,county-hillsborough-66988067,Hillsborough County - 12rules.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+c3a097f9-aaf8-4fde-a365-083aea66ef46,county-lee-15936393,Lee County - ,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+fe36f4a0-3f05-4604-a2c8-f5708870a8df,county-lee-45259252,Lee County - Notice of Commencement 1 page.pdf,county_local,rejected,filing,high,filing signal: notice of
+a93c9999-1ad3-43f8-ba50-e53bec829738,county-lee-65903959,Lee County - Cape Coral Notice of Commencement.pdf,county_local,rejected,filing,high,filing signal: notice of
+a26730d5-8b94-42bb-a8b6-83e9d0e89a99,county-lee-98574127,Lee County - Civil-Indigency-Application-Supreme-Court-1.pdf,county_local,rejected,filing,high,filing signal: application
+58f41ed6-eb7a-4a75-b633-6ce125a5e1be,county-lee-a3e67a25,Lee County - Lee-,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+c68572c0-77fd-4d33-8c54-855b3c8afe5c,county-lee-dc1d54da,Lee County - Lee-Cape%20Coral%20Notice%20of%20Commencement.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+343db20e-d105-4f8a-b9d2-07264dbeef73,county-leon-0b984a1a,Leon County - Leon-continuing_writ.pdf,county_local,rejected,filing,high,filing signal: writ
+7aae9245-f1c1-4ae5-8f40-f8457aeab2f4,county-leon-19738412,Leon County - Continuing Writ,county_local,rejected,filing,high,filing signal: writ
+bd0f53ce-0f0d-49c0-8ec7-9f778f477650,county-leon-19af0e8f,Leon County - Leon-civil_indigence.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+21140645-a652-44ee-aee5-f5a59e26de68,county-leon-20424768,Leon County - Affidavit of Diligent Search,county_local,rejected,filing,high,filing signal: affidavit
+18f1fb4e-cbc5-4015-8c50-865c9c2810cc,county-leon-26874322,Leon County - Fact Information Sheet,county_local,rejected,filing,high,filing signal: information
+e1699866-0fd4-4977-81bd-8837c3ab2aa4,county-leon-31697685,Leon County - Request for Hearing (Exemption),county_local,rejected,filing,high,filing signal: request for
+6c08ebc7-94ba-4924-887d-2b29bcd37492,county-leon-35983399,Leon County - Circuit Civil Final Judgment,county_local,rejected,filing,high,filing signal: judgment
+f6d36a98-47d6-4171-9658-1b346b9e39fe,county-leon-47507350,Leon County - Civil Cover Sheet,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+77126aa8-ad01-4cdb-ac5c-e83158855829,county-leon-49679840,Leon County - Family Law Handbook,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+de715cb9-b8e8-4d29-a363-1ee7797d4183,county-leon-4d6bd1dd,Leon County - Leon-Family_Law_Handbook.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+23a158f5-5245-48b3-8a55-b4242bc4f2b5,county-leon-634a6ebc,Leon County - Leon-civil_cover_sheet.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+abe3c083-609c-4fdb-8081-efa1653cd84f,county-leon-6aad1204,Leon County - Leon-fact_info.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+6ddccc8d-cc84-4945-b809-888618302a30,county-leon-79e09304,Leon County - Leon-circuit_civil_fj.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+aad11914-7619-425d-9fd2-08b2eecbf8b9,county-leon-81296283,Leon County - Collecting Judgment Guide,county_local,rejected,filing,high,filing signal: judgment
+0743d2e4-3c3b-47c0-b861-70848b11236e,county-leon-88215233,Leon County - Civil Indigence Application,county_local,rejected,filing,high,filing signal: application
+52a6bb8a-aed8-48b6-b2aa-637492df9f48,county-leon-96a3db6b,Leon County - Leon-exemp_request_hearing.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+81996626-8792-4605-9dcb-487726f3d85c,county-leon-b40f3ae5,Leon County - Leon-collecting_judgment.pdf,county_local,rejected,filing,high,filing signal: judgment
+7bd950cc-31cf-47f7-8e8b-e429bef92b58,county-leon-c41dacea,Leon County - Leon-aff_dil_search.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+dc6674de-c1b1-4318-b032-b5aa7d0592e6,county-pinellas-74fc218c,980h,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+c0dd8392-2308-4cd1-bbd6-6c3b4fcf5a56,county-pinellas-d2df8d65,902d,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+6dab9b91-e045-40d6-94d9-53cf3707203f,county-st.johns-5c8a5691,St. Johns County - St. Johns-form-78.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+8aa053bf-4d03-4bd6-a116-ed8307154858,county-st.johns-6b2602ff,St. Johns County - St. Johns-form-79.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+5836eff6-9dfd-4597-b17a-7a9383be598a,Dixie/dixie-2025-BOCC-Scheduled-Meetings,Dixie County - dixie-2025-BOCC-Scheduled-Meetings.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+956ce636-7fce-4a54-a2db-7c9b569ded23,Duval/duval-11-52_011111_Appendix_20B,Verified Motion for Admission to Appear Pro Hac Vice Pursuant to Florida Rule of Judicial Administration 2.510,county_local,published,filing,high,filing signal: motion
+37aeee02-ca12-455f-ad82-048b1686e7d1,Duval/duval-AOSC09-30,Duval County - AOSC09-30.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+01f49ab7-8df0-4eef-b827-63d9937dde78,Duval/duval-AOSC13-49,Duval County - AOSC13-49.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+c4d65e07-a41f-455d-8d9c-756997c2506c,Duval/duval-AOSC22-65,Duval County - AOSC22-65.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+9a807965-e7db-48ef-8fd8-06912fe659b8,Duval/duval-civilCoversheet_form1997_instructions_Current_ADA_Compliant,Duval County - civilCoversheet_form1997_instructions_Current_ADA_Compliant.pdf,county_local,rejected,filing,high,filing signal: instruction
+03434dcf-30c2-42c9-9c33-ac5b6e072f22,Duval/duval-civilCoversheet_form1997Current_ADA_Compliant,Civil Cover Sheet,county_local,published,filing,high,filing signal: petition
+3d76c7cd-f4be-4257-83fe-044be5e2c5d2,Duval/duval-Cost_Recovery_Policy2_ADA_Compliant,Duval County - Cost_Recovery_Policy2_ADA_Compliant.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+89e62062-a9ac-4eff-a63a-ba7feb2166ea,Duval/duval-Declaration-Of-Domicile_ADA_Compliant,Declaration of Domicile,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+c47e10f7-3196-4073-a9be-c56a7701973d,Duval/duval-Designation-of-Email-Address-by-SRL_ADA_Compliant,DESIGNATION OF E-MAIL ADDRESS FOR A PARTY NOT REPRESENTED BY AN ATTORNEY [FORM 2.602],county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+79f81d25-0684-4124-a2ad-e500c6925450,Duval/duval-ErecordingTransmittalCoverSheet2018_ADA_Compliant,Recording Transmittal Cover Sheet,county_local,published,filing,high,filing signal: order
+df5b6d2a-2f26-48d9-9d69-dd3d91494076,Duval/duval-Motion-to-Determine-Confidentiality,Motion to Determine the Confidentiality of Trial Court Records,county_local,published,filing,high,filing signal: motion
+590907d2-e05a-454a-913a-ada0a00eeb0a,Duval/duval-Notice-of-Change-of-Address-or-Email-Address_ADA_Compliant,Duval County - Notice-of-Change-of-Address-or-Email-Address_ADA_Compliant.pdf,county_local,published,filing,high,filing signal: petition
+418cabb3-3199-4e11-a9e3-50f0095f2b5f,Duval/duval-NoticeofConfidentialInformation-Civil_ADA_Compliant,Notice of Confidential Information within Court Filing,county_local,published,filing,high,filing signal: petition
+8b917596-b3d8-4d54-82ae-46958dafa01c,Duval/duval-Portal-E-Filer-User-Manual-Oct-2022,Duval County - Portal-E-Filer-User-Manual-Oct-2022.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+7ed3b1e5-f3fe-4596-a8ee-4af75c5a04cb,Duval/duval-Quit-Claim-Deed-Fillable-Duval,Duval County - Quit-Claim-Deed-Fillable-Duval.pdf,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+e3a26c58-31b1-4064-ac4c-0382aa207a50,Duval/duval-RecordingTransmittialSheet-20130110-1638_ADA_Compliant,Recording Transmittal Cover Sheet,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+79d43260-5eec-460d-85c3-9dc76c138b76,Duval/duval-registration_agreement_for_viewing_electronic_court_records,Registration Agreement to View Electronic Court Records Online (Duval County),county_local,published,filing,high,filing signal: request for
+0aff5e4f-6e33-47e3-b0f5-676709d6a541,Duval/duval-Request-for-Redaction-(1),Request for Redaction of Exempt Personal Information from Non-Judicial Public Records,county_local,published,redaction,high,redaction pattern: redact
+234898b4-853b-46ca-a2e1-69883b0d7a7b,Duval/duval-Request-to-be-Excused-from-Email-Service_ADA_Compliant,Request to be Excused from E-Mail Service for Party Not Represented by Attorney,county_local,published,filing,high,filing signal: exemption
+d715e0f2-6073-452c-a76c-8e4d6abfd64c,Duval/duval-requestForInternetDocumentRemovalForm_ADA_Compliant,REQUEST FOR INTERNET DOCUMENT REMOVAL,county_local,published,redaction,high,redaction pattern: removal of.*number
+882bfac0-4522-4d5e-8bc0-0e8f922afd7a,Duval/duval-requestForRemovalOfConfidentialInformationForm_ADA_Compliant,Duval County - requestForRemovalOfConfidentialInformationForm_ADA_Compliant.pdf,county_local,published,redaction,high,redaction pattern: redact
+d159aec6-e60c-4771-83c6-c07edab48f09,Duval/duval-requestForRemovalOfSsnOrAccountNumbersForm_ADA_Complaint,"Request for Removal of Social Security Number, Bank Account, Credit, Debit, or Charge Card Number",county_local,published,clerk_admin,high,clerk transaction pattern: official records
+5d744251-54ff-4555-aba4-8f17cb9cf1a3,Duval/duval-RequesttoObtainComplexPublicAndCourtRecords_ADA_Compliant,Duval County - RequesttoObtainComplexPublicAndCourtRecords_ADA_Compliant.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+2e6ad70c-3092-4e9d-959e-4c058d939756,Duval/duval-requestToReleaseRedactedInformationForTitleSearch_ADA_Compliant-2025-uptd-gov,Request to Release Redacted Information on Recorded Documents for Purposes of Conducting a Title Search,county_local,published,clerk_admin,high,clerk transaction pattern: official records
+5aea675b-5031-4328-9c2d-a42bb7827add,Duval/duval-requestToReleaseRedactedInformationOnRecordedDocuments_ADA_Compliant,Request to the Duval County Clerk of Court to Release Redacted Information on Recorded Documents (Request by Protected P,county_local,published,redaction,high,redaction pattern: redact
+aba9ed9b-bf89-40ec-8c7d-c80f58221443,Duval/duval-requestToReleaseTheExemptStatusOfHomeAddress_ADA_Compliant,Request to Release the Exempt Status of Home Address,county_local,published,filing,high,filing signal: affidavit
+d26fbd7d-32d9-4bf3-92d1-00500a9e51f5,eviction_collier_tenant_packet,Eviction Collier Tenant Packet,eviction,review,filing,high,filing signal: complaint
+1713687f-b37f-45ca-9db9-3782c68e91e1,eviction_form1_notice_pay_rent,NOTICE FROM LANDLORD TO TENANT--TERMINATION,eviction,published,filing,high,filing signal: writ
+3493a111-32f6-4fc6-9b5c-019ed7d34885,eviction_form2_notice_noncompliance,Notice from Landlord to Tenant of Noncompliance for Matters Other than Failure to Pay Rent,eviction,published,filing,high,filing signal: writ
+12d1095a-f77b-4769-b5f4-8a85c0331de3,eviction_form3_tenant_terminate,Notice from Tenant to Landlord - Termination for Failure of Landlord to Maintain Premises as Required by Florida Statute,eviction,published,filing,high,filing signal: eviction
+5621c6f4-990d-45d6-82db-bd9c1e3014e6,eviction_form4_withhold_rent,NOTICE FROM TENANT TO LANDLORD--WITHHOLDING RENT FOR FAILURE OF LANDLORD TO MAINTAIN PREMISES AS REQUIRED BY FLORIDA STA,eviction,published,filing,high,filing signal: eviction
+b226ee9a-80ee-4560-a455-6f07542245d2,eviction_form5_complaint_evict,COMPLAINT FOR LANDLORD TO EVICT TENANTS,eviction,published,filing,high,filing signal: complaint
+3e269141-1c0e-431d-b9df-cb8f3e945fae,eviction_form5a_complaint_damages,COMPLAINT FOR LANDLORD TO EVICT TENANTS FOR FAILURE TO PAY RENT AND TO RECOVER PAST DUE RENT,eviction,published,filing,high,filing signal: complaint
+8acca9f6-1fe8-4fb2-b7bf-3d89f6c55275,eviction_form6_complaint_noncomply,Complaint for Landlord to Evict Tenants for Failure to Comply with Rental Agreement (Other Than Failure to Pay Rent),eviction,published,filing,high,filing signal: complaint
+b9525384-be63-4bff-b13d-5317ee24607b,eviction_instructions,LANDLORD AND TENANT FORMS - INSTRUCTIONS,eviction,published,filing,high,filing signal: eviction
+14318c7e-7c83-43f7-b38e-48cc53227e3a,eviction_summons,EVICTION SUMMONS - RESIDENTIAL,eviction,published,filing,high,filing signal: summons
+8f126b43-b5c7-4ab6-a1be-d7f85752e439,Flagler/flagler-Dating-Violence-Injunction-Packet,Petition for Injunction for Protection Against Dating Violence,county_local,published,filing,high,filing signal: petition
+60cd75ca-bba7-42f9-8c74-737051a2f4da,Flagler/flagler-ExpungeSealPacket2,Flagler County - flagler-ExpungeSealPacket2.pdf,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+3ed8d964-c2fd-4cf9-b01c-4431eecaf5b7,Flagler/flagler-Motion,Motion,county_local,published,filing,high,filing signal: petition
+c673f0c0-ed95-4d79-b991-6bdc5fd40ab7,Flagler/flagler-Motion-to-Modify-or-Dissolve-Temporary-Injunction,Motion to Modify or Dissolve Temporary Injunction (11/15),county_local,published,filing,high,filing signal: motion
+964cf412-516c-4e81-957a-6e5d227be75a,Flagler/flagler-Request-Payments-to-SDU-1,Flagler County - flagler-Request-Payments-to-SDU-1.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+a42a7c34-28ca-4d77-8283-a68d716055e3,Franklin/franklin-Civil-Cover-Sheet-Instructions,Franklin County - franklin-Civil-Cover-Sheet-Instructions.pdf,county_local,published,filing,high,filing signal: petition
+b43e2fe9-0218-41a8-9702-d0a0df438f37,Franklin/franklin-Final-Disposition-Form-Instructions-1,Final Disposition Form (Form 1.998) with Instructions,county_local,published,filing,high,filing signal: instruction
+69788a90-c7fe-4f38-8b53-bad7c4fd5e08,Franklin/franklin-FORM-J-INITIAL-GUARDSHIP-PLAN,Initial Guardianship Plan (Form J),county_local,published,filing,high,filing signal: guardian
+605715e9-149b-40e9-822e-a6d98dc1932f,Franklin/franklin-FRANKLIN-GUIDE-FOR-APPLYING-TO-BE-A-GDN-ADVOCATE,Franklin County - franklin-FRANKLIN-GUIDE-FOR-APPLYING-TO-BE-A-GDN-ADVOCATE.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+110eb428-6c18-4056-93af-e29c7a04053a,Franklin/franklin-Putative_Father_Claim_of_Paternity-ADA,FLORIDA PUTATIVE FATHER REGISTRY CLAIM OF PATERNITY,county_local,published,filing,high,filing signal: petition
+720f763c-a4e8-48ab-a188-76f39e0c4ba9,Gadsden/gadsden-expstatrpt,Gadsden County - expstatrpt.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+a82c3241-0c75-4ce8-a662-faf6c8e7a511,Gadsden/gadsden-FLAP_20announcement,Gadsden County - FLAP%20announcement.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+9636bac5-1713-42d5-af85-ae41e98c6f4f,Gadsden/gadsden-FLAP_20announcement2,Gadsden County - FLAP%20announcement2.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+f22e06f5-c17f-448e-8783-ec1a11d8be5a,Gadsden/gadsden-INJUNCTION_20FOR_20PROTECTION_20OF_20MINOR,Gadsden County - INJUNCTION%20FOR%20PROTECTION%20OF%20MINOR.pdf,county_local,rejected,filing,high,filing signal: injunction
+9746d783-2415-4418-8755-eaadf10639df,Gadsden/gadsden-Probate_Clinic,Gadsden County - Probate_Clinic.pdf,county_local,rejected,filing,high,filing signal: probate
+7ec09fcf-c78c-4707-a5a2-f4f8230eb4ad,Gadsden/gadsden-Second_20Judicial_20Circuit_20Reports_20Data_20Breach_20of_20Gadsden_20County_20Court_20Records,Gadsden County - Second%20Judicial%20Circuit%20Reports%20Data%20Breach%20of%20Gadsden%20County%20Court%20Records.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+372f6587-5919-487b-8f5d-130e01e15373,Gadsden/gadsden-Traffic_20Citations,Gadsden County - Traffic%20Citations.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+6372bf88-e41b-4c2c-8ce4-144bedad1863,Gilchrist/gilchrist-Motion-to-Terminate-Child-Support,Motion to Terminate Child Support,county_local,published,filing,high,filing signal: motion
+4a3338c0-677d-4d12-bfe5-423af5f3018f,guardian_advocacy_13th,Guardian Advocacy 13Th,guardianship,review,filing,high,filing signal: guardian
+6823783e-f5fe-4451-93fd-e4ce5db949bf,guardian_advocacy_forms,Guardian Advocacy Forms,guardianship,review,filing,high,filing signal: guardian
+be9a5058-fd41-4ffb-a91d-a0bf391b30dc,Gulf/gulf-animal-control-appeal-1,Notice of Appeal - Animal Control (Gulf County),county_local,published,filing,high,filing signal: notice of
+372812d7-d3f1-4d81-8415-b8984a3ab057,Gulf/gulf-application-for-criminal-indigent-status-3-1,Application for Criminal Indigent Status,county_local,published,filing,high,filing signal: waiver
+7d41dfcb-2aa1-43a7-b928-1d8727e86db8,Gulf/gulf-dr485wi_ADA,VALUE ADJUSTMENT BOARD WITHDRAWAL OF PETITION,county_local,published,filing,high,filing signal: petition
+937c2c50-5f4b-4870-92ad-754bfced4640,Gulf/gulf-registration-agreement-to-view-records-online_ada,Gulf County - gulf-registration-agreement-to-view-records-online_ada.pdf,county_local,published,filing,high,filing signal: agreement
+4a503820-1645-4b37-813b-14aa9635b619,Hamilton/hamilton-allhow-tos4users,Hamilton County - allhow-tos4users.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+df2a6c46-165e-4e8a-83cd-a171f907beae,Hamilton/hamilton-DRuserguide,Hamilton County - DRuserguide.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+ad66ab55-0968-44b5-b5d8-a441cb32adee,Hamilton/hamilton-userguide,Hamilton County - userguide.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+3006a5cf-7538-48ad-9157-c9a23d24e393,Hardee/hardee-12.980f-Petition-for-Repeat-Violence-2024_ADA,Petition for Injunction for Protection Against Repeat Violence,county_local,published,filing,high,filing signal: petition
+7ca6c63b-1472-430f-ac1d-24cca71dca3e,Hardee/hardee-12.980n-Petition-for-Protection-Against-Dating-Violence-2024,Petition for Injunction for Protection Against Dating Violence,county_local,published,filing,high,filing signal: petition
+b726ed47-e525-44fb-b87b-f08b14ccbb1d,Hardee/hardee-12.980q-Petition-for-Injunction-for-Sexual-Violence-2024,Petition for Injunction for Protection Against Sexual Violence,county_local,published,filing,high,filing signal: petition
+4226aa2d-71c0-45b0-9d02-b1406981f59f,Hardee/hardee-12.980t-Petition-for-Injunction-for-Stalking-Violence-2024,Petition for Injunction against Stalking 12.980(t),county_local,published,filing,high,filing signal: petition
+6611e330-48ca-4c3d-900c-1c438ee19d14,Hardee/hardee-Baker-Act_tagged,Petition and Affidavit Seeking Ex Parte Order Requiring Involuntary Examination - Baker Act,county_local,published,filing,high,filing signal: petition
+1d656940-7eec-4320-b62d-4dd511f18459,Hardee/hardee-Civil-Indigent-Application_ada,Application for Determination of Civil Indigent Status,county_local,published,filing,high,filing signal: waiver
+807b1ed6-99d0-4fb4-a4c9-3f2773d69f75,Hardee/hardee-Civil-Indigent-Application-Juvenile_ADA,Application for Determination of Civil Indigent Status (Dependency and Termination of Parental Rights Cases),county_local,published,filing,high,filing signal: application
+14ca7858-f3cd-446b-a0f7-8e649e20c8db,Hardee/hardee-Criminal-Indigent-Application_ADA,Criminal Indigent Application,county_local,published,filing,high,filing signal: application
+10e8ce56-5e7b-4c40-b195-cede997691cb,Hardee/hardee-DH_1964_Putative_Father_Update_Claim_App_interactive_tagged,Florida Putative Father Registry Update to Claim of Paternity,county_local,published,filing,high,filing signal: information
+760c85f6-bbf9-45f1-84d4-4328fb408717,Hardee/hardee-DH_1965_Putative_Father_Claim_of_Paternity_App_interactive_tagged,Claim of Paternity Form DH-1965,county_local,published,filing,high,filing signal: notice of
+13ef3bfa-abc8-41c7-b4e1-f81fcced97ee,Hardee/hardee-DH150-771-Putative-Father-Brochure_ada,Putative Father Registry Information Brochure,county_local,rejected,filing,high,filing signal: information
+b18570cc-515e-488c-ba70-f8097a10a05d,Hardee/hardee-Form-12.980a-DVI-Petition-2024,Petition for Injunction against Domestic Violence 12.980(a),county_local,rejected,filing,high,filing signal: petition
+9dea2e38-5c82-4505-a68f-a1b963776202,Hardee/hardee-INFORMATION-SHEET-FOR-INJUNCTIONS-tagged,Information Sheet for Injunctions,county_local,published,filing,high,filing signal: petition
+91bc7490-fde6-4cf3-a9bd-7f982b5eb7d0,Hardee/hardee-MarchMan-Act2020_tagged,Petition and Affidavit for Involuntary Assessment and Stabilization,county_local,published,filing,high,filing signal: petition
+0709774d-0f15-4123-a144-ac3e5d17436e,Hardee/hardee-Microsoft-Word-2012-6-1-DH-1963-Putative-Father-registry-Claim-of-Paternity-Search-Application-07-12.doc,Application for Search form DH-1963,county_local,published,filing,high,filing signal: certificate
+e5de6293-a322-4c11-8017-f501dc343cf2,Hardee/hardee-Notice-of-Voluntary-Dismissal-Injunction-927,Notice of Voluntary Dismissal,county_local,published,filing,high,filing signal: petition
+3819c10e-39fa-4733-9288-75c8cfcf300f,Hardee/hardee-Petition-for-Dismissal-of-Injuction-for-Protection_ADA,Petition for Dismissal of Injunction for Protection,county_local,published,filing,high,filing signal: petition
+13bb4d6b-993d-4bf8-8e17-7f503654b440,Hendry/hendry-School-Election-Affidavit-1,Hendry County - hendry-School-Election-Affidavit-1.pdf,county_local,published,filing,high,filing signal: affidavit
+eb2f3c58-95a0-41b6-955b-8d993618567a,Hernando/hernando-2.603_Notice_of_Change_of_Mailing_Address_or_Designated_E-Mail_Address,Notice of Change of Mailing Address or Designated E-Mail Address,county_local,published,filing,high,filing signal: notice of
+4f8445af-cef4-42b6-9a84-75401bff6f06,Hernando/hernando-2026_20-_202025_20Holiday_20Schedule,Hernando County - hernando-2026%20-%202025%20Holiday%20Schedule.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+6f6d9aa8-b73b-4774-a3fa-a229845681cd,Hernando/hernando-INSTRUCTIONS_20AND_20COMPLAINT_20TO_20QUIET_20TITLE_20-_20FORGED_20DEED,Instructions and Complaint to Quiet Title (Forged Deed),county_local,published,filing,high,filing signal: complaint
+83afe881-8eba-4432-95f3-55451627e4df,Hernando/hernando-order-scheduling-case-for-pretrial,Hernando County - hernando-order-scheduling-case-for-pretrial.pdf,county_local,rejected,filing,high,filing signal: order
+055f00a5-4a09-47db-81fb-3d0a202ed9ec,Hernando/hernando-org_chart,Hernando County - hernando-org_chart.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+af944754-cb17-4742-b003-0101ea5ca5c7,Highlands/highlands-ClerkSaleCalendar,Highlands County - highlands-ClerkSaleCalendar.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+27b22509-2e0c-4e4e-883e-63cba3163034,Hillsborough/883dce7352de55734c9436e79f20200731f302b8ce44428da8a3f90d09951c87,Hillsborough County - packet10.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+af698773-2bfc-4ed6-a0e4-b31db7224a4d,Hillsborough/a4db28e9fc5dfb1410b44e9e2d878d4007b47180381c755fe7bc5c7da22cb602,Petition for Superseding Child Support Order with Timesharing,county_local,published,filing,high,filing signal: petition
+1234f4fd-a215-428c-84b3-48a399d2db50,Hillsborough/aa38ccffe630167635525145e4e2ac92aa1576750bae0a049d639f39c6bd9d7c,Packet #6 - Motion (Blank Motion),county_local,published,filing,high,filing signal: motion
+1b96e172-ac6a-4764-8ee1-4912a69f63cb,Hillsborough/b9ee34721d104acce4d64bc4a75e59994b30d1c053526c1f388336f9ed38f65f,Packet #8 – Petition to Contest Driver’s License Suspension,county_local,published,filing,high,filing signal: petition
+5c55fc0c-a876-43f5-a4ed-f45ed04f6599,Hillsborough/c38a882bba58053f5b3fffe02b6ebbebf1a03eeded126ec93e6748975e6f924a,Answer to Supplemental Petition to Modify Child Support or Parenting Plan/Time-Sharing Schedule (Packet #4),county_local,published,filing,high,filing signal: petition
+092c16e7-38a3-40e1-939e-fc2e903d84d5,Hillsborough/ce8eb874acff350125ec78e797ab7f52d29a3257b56112f42620eb9799823c6f,Petition for Support and Timesharing Unconnected with Dissolution of Marriage (Packet #5),county_local,published,filing,high,filing signal: petition
+8b482935-b8b0-4236-94fd-f8c39f620d03,Hillsborough/d55e0370cb1eb280e70a2c5e3b8cca14e3105a450bfb7510b0317c4bcd853e6a,Motion to Contest Notice of Delinquency and Impending Judgment (Packet #9),county_local,published,filing,high,filing signal: motion
+5692109c-ff15-41b5-8bd0-7404106d7392,Hillsborough/d611ed96c82ad4bc5cca705e30a5b5e6a0f685f7dc6110463d51a6f7b17a2fef,Hillsborough County - Pro se Motion to Terminate Probation English.pdf,county_local,rejected,filing,high,filing signal: motion
+cac57a28-e7e6-4418-b845-3a800cf4a542,Hillsborough/d894584feab43bcebeff5b4ba6fd5179fe8bb45a1a6e0ffdcb48e38f285d1af5,Motion for Payment Credit (Packet #7),county_local,published,filing,high,filing signal: motion
+fbcbedba-23c0-4af7-b932-27bd20439b9a,Hillsborough/ddb0da4bba90b61ab8dcbcec6fa4428ffde2ee0018f6df5396ca0bad94508999,Hillsborough County - indigent application.pdf,county_local,rejected,filing,high,filing signal: application
+56bb5c63-42f3-4784-b7eb-1dd70ba9cde0,Hillsborough/e90af30014a75742984e51e38819681be785172c6ed6ff8d7924ba78676cc725,Motion for Income Withholding Order (IWO) (Packet #43),county_local,published,filing,high,filing signal: motion
+91010187-1984-4f2b-bafb-48fd0eca6292,Hillsborough/ed24458946be7032056ebe56a7b2ec93967006f59bc0157508dd62225db961d6,Petition for Superseding Child Support Order Without Timesharing (Packet #40),county_local,published,filing,high,filing signal: petition
+c2818fc9-a0ad-43d3-b626-0cfd5a1d23a6,Hillsborough/Hillsborough-indigent_application,Application for Determination of Civil Indigent Status,county_local,published,filing,high,filing signal: application
+3f4b5e21-6498-4549-a075-17fb75ad1b16,Hillsborough/Hillsborough-Pro_se_Motion_to_Terminate_Probation_English,Pro se Motion to Modify or Terminate Probation or Community Control,county_local,published,filing,high,filing signal: motion
+ab73dd8f-256d-41c8-b27e-6190958ce639,Jackson/Jackson-Admin-Order-2024-00-01-Civil-Case-Management,Jackson County - Eviction Packet 3-Day (Non-Payment of Rent),county_local,rejected,filing,high,filing signal: eviction
+83f001d5-3fef-49e2-a1a7-c657e4ff19e1,Jackson/Jackson-Answer-Residential-Eviction,Answer to Complaint for Eviction (Residential),county_local,published,filing,high,filing signal: complaint
+e573a98d-86cd-4834-b0bc-9ddc17707194,Jackson/Jackson-CERTIFICATE-OF-MAILING-EVICTION,Certificate of Mailing (Eviction),county_local,published,filing,high,filing signal: complaint
+0702aec6-a1c2-47be-a68d-c3be6f68dfa9,Jackson/Jackson-EVICTION-PACKET-3-DAY-NP-RENT,Jackson County Eviction Packet - 3 Day Notice (Non-Payment of Rent),county_local,published,filing,high,filing signal: complaint
+8d647b73-392e-4f12-8f2c-17af00c5b36f,Jackson/Jackson-EVICTION-PACKET-7-DAY-CURE,Eviction Packet - 7 Day Notice to Cure (Noncompliance Other Than Failure to Pay Rent),county_local,published,filing,high,filing signal: complaint
+a41d114b-97ab-4ea2-87fc-556edca4b566,Jackson/Jackson-EVICTION-PACKET-7-DAY-NO-CURE,Jackson County - Eviction Packet 7-Day No Cure,county_local,published,filing,high,filing signal: complaint
+302becf8-6b51-4809-9f60-726ba6946b08,Jackson/Jackson-EVICTION-SUMMONS,Eviction Summons - Residential,county_local,published,filing,high,filing signal: summons
+ad267969-2c57-4a48-a206-a2a8039dd14f,Jackson/Jackson-Form-2.601-Request-to-be-Excused-from-E-mail-Service,Jackson County - Request Excused from Email Service,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+c94f0e2c-c43c-44a1-8ec4-ec0c32c896cf,Jefferson/jefferson-Affidavit-of-Defense,Jefferson County - Affidavit-of-Defense.pdf,county_local,published,filing,high,filing signal: affidavit
+0765e2e2-76f8-4133-a8d4-2012d0458f49,Jefferson/jefferson-Driver-Improvement-Course-Affidavit,Jefferson County - Driver-Improvement-Course-Affidavit.pdf,county_local,published,filing,high,filing signal: affidavit
+375c2733-52bc-4469-ad44-262d970653a4,Jefferson/jefferson-General-Motion-Form,Jefferson County - General-Motion-Form.pdf,county_local,published,filing,high,filing signal: petition
+2e7b58f0-53c3-4d10-928d-d8015f2b71b5,Jefferson/jefferson-Guilty-Plea-30-Over,Plea to Infraction Upon Mandatory Appearance,county_local,published,filing,high,filing signal: appearance
+9c33606b-2d77-4e97-82ba-d32f8ee5d1e8,Jefferson/jefferson-Motion-to-Abate-Child-Support,Jefferson County - Motion-to-Abate-Child-Support.pdf,county_local,published,filing,high,filing signal: motion
+c3391ac1-6fa5-4f42-ac0a-a3aabfe94007,Jefferson/jefferson-Motion-to-Contest-Drivers-License-Suspension,Pro Se Petition to Contest Driver's License Suspension (Jefferson County),county_local,published,filing,high,filing signal: petition
+253ce753-3f99-43b8-9287-b07d351d595b,Jefferson/jefferson-Notice-of-Hearing,Jefferson County - Notice-of-Hearing.pdf,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+7cfef21d-a44b-4bb8-a68c-4d79e50fd2d5,Jefferson/jefferson-Request-for-Hearing,Jefferson County - Request-for-Hearing.pdf,county_local,published,filing,high,filing signal: affidavit
+f809d0f1-d3d9-4527-b3e0-b3ffe8da9621,Lake/lake-982a,Petition for Change of Name (Adult) - Florida Supreme Court Approved Family Law Form 12.982(a),county_local,published,filing,high,filing signal: petition
+b0c363aa-32c7-4035-b788-01a8b3a4ecf4,Lake/lake-983a,PETITION TO DETERMINE PATERNITY AND FOR RELATED RELIEF,county_local,published,filing,high,filing signal: petition
+cdfc9875-550f-4af5-a4a0-80ea37d182cf,Lake/lake-SmallClaimsPacket,"Small Claims Packet and Statement of Claim (Lake County, Florida)",county_local,published,filing,high,filing signal: statement of claim
+5fa12a59-7f6a-476f-9655-5b05d4cd883b,Lee/b06b97976e35a09ff3219d743520afcae49994b5a87687f564fafd48e702ed78,PETITION TO DETERMINE INCAPACITY,county_local,published,filing,high,filing signal: petition
+807ff776-4704-4cca-a8be-a7ec5173063d,Lee/d651d60365abdcf52e3e99a4eec9b37bd2143fd7b2d80193116a3b4521b6df66,Petition for Appointment of Guardian Advocate of the Person,county_local,published,filing,high,filing signal: petition
+cf874220-e7ec-4c0e-8ed4-db8ce4557ef9,Lee/fd1ce0acdf76d53329f49d1fcc6524b5c4fc22f7a1fe43cd815b28681e76aa15,Lee County - Bld_Notice_of_Commencement_20240104_final.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+b487c6bb-59ad-4de1-a802-64899e6e0866,Lee/Lee-Bld_Notice_of_Commencement_20240104_final,Notice of Commencement (Lee County - City of Bonita Springs),county_local,published,filing,high,filing signal: notice of
+621b9cb4-d7aa-416f-a14a-0bb14a5929a8,Lee/lee-Civil-Indigency-Application-Supreme-Court-1,Application for Determination of Civil Indigent Status,county_local,published,filing,high,filing signal: application
+f634181c-8c54-4385-8b1f-6290fb024991,Lee/Lee-Civil-Indigency-Application-Supreme-Court-1,Application for Determination of Civil Indigent Status,county_local,published,filing,high,filing signal: summons
+1b2dd529-fdff-4de3-a2f6-335c0913eafc,Leon/leon-marriageweb,Leon County - marriageweb.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+4e22bab8-8213-4d61-a799-379f0d032de6,Liberty/liberty-2023governmentinthesunshinemanual,Liberty County - liberty-2023governmentinthesunshinemanual.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+90ffe5d2-f6d5-44c6-9ecc-8290561f140f,Manatee/manatee-cfassignmentofcashbond-1,Assignment of Cash Bond,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+c0f648df-c120-4a67-926b-725bb283ff8e,Manatee/manatee-change-of-address-1,Change of Address,county_local,published,clerk_admin,high,clerk transaction pattern: change of address
+27bd1fd2-c85c-441d-be78-8d4d317fc633,Manatee/manatee-change-of-address-10-07-2015-1,Change of Address (Manatee County),county_local,published,clerk_admin,high,clerk transaction pattern: change of address
+c0b33845-85e5-41d0-9dcd-aa3e042fbbea,Manatee/manatee-change-of-name-1,Change of Name,county_local,published,filing,high,filing signal: support
+cb6e8793-4f1d-419f-800c-bf504d28d7d8,Manatee/manatee-creditcardauthorization-1,Manatee County - creditcardauthorization-1.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+163990c7-204d-4fbd-96d0-fcb7cb2b9028,Manatee/manatee-escrow-set-up-sheet-10-14-2015-1,APPLICATION AND AUTHORIZATION FOR DEPOSITORY ACCOUNT,county_local,published,filing,high,filing signal: application
+901f34fa-5826-4119-8aba-853b1611f313,Manatee/manatee-vab-reschedule-request-2016,Value Adjustment Board Good Cause Reschedule Request,county_local,published,filing,high,filing signal: petition
+676c1b8b-4795-4e3a-81c7-d821add0d53d,Marion/marion-Handbook-with-Community-Resource-List,Handbook with Community Resource List,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+1804111a-ece3-4ec3-9555-598a9210fceb,Marion/marion-Injunction-for-Protection-Vulnerable-Adult-Brochure_ada,Injunction for Protection: Vulnerable Adult Brochure,county_local,rejected,filing,high,filing signal: injunction
+b8ad7bb5-b609-4849-8292-a50bdd9caaf7,Marion/marion-Orden-de-Proteccion-Adulto-Vulnerable-brochure_ada,Orden de Proteccion: Adulto Vulnerable Brochure,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+1b7a1f67-3c90-4a2b-b40d-36f1119b954d,Marion/marion-RPO-Informational-Brochure-1_ada,Risk Protection Informational Brochure,county_local,rejected,filing,high,filing signal: protection
+07518512-f9e1-4735-be7b-57e146601c38,Marion/marion-Schedule-of-Service-Charges-2023-01-20_ADA,Schedule of Fees and Charges document,county_local,rejected,clerk_admin,high,clerk transaction pattern: schedule of fees
+3cd575e7-1734-45e6-a08a-4ff5c78e1103,Miami-Dade/005-Web,Cover Sheet for Family Court Cases,county_local,published,filing,high,filing signal: divorce
+1ea962e9-b7eb-4882-bb38-163ee861d7e8,Miami-Dade/007-Web,Subpoena for Deposition,county_local,published,filing,high,filing signal: subpoena
+631b02c1-e418-4a26-9531-174c0a7b0f41,Miami-Dade/023-Web,Affidavit in support of Petition to Expunge,county_local,published,filing,high,filing signal: petition
+e9f4b15c-3c10-4a5b-a63f-d6a5b8b0a447,Miami-Dade/024-Web,Petition to Expunge,county_local,published,filing,high,filing signal: petition
+8232d1a6-b680-465f-894d-a869632af79c,Miami-Dade/033-Web,Subpoena for Trial (a) for Issuance by Clerk,county_local,published,filing,high,filing signal: subpoena
+b354dcb1-51d8-469f-a301-5fb88911a196,Miami-Dade/036-Web,Subpoena Duces Tecum for Deposition,county_local,published,filing,high,filing signal: subpoena
+5ddad841-d184-4698-a182-95765586f51f,Miami-Dade/037-Web,Final Disposition,county_local,published,filing,high,filing signal: judgment
+a5996340-7bd0-4bf1-8201-650f845c6898,Miami-Dade/058-Web,Statement of Claim (Co-Maker),county_local,published,filing,high,filing signal: statement of claim
+6990ed2f-b6d0-49fa-95b3-d269bca58d6f,Miami-Dade/070-Web,Civil Action Summons (B) Form for Personal Service on a Natural Person,county_local,published,filing,high,filing signal: summons
+487b695f-106c-4c4a-8554-42191024c5e3,Miami-Dade/084-Web,Final Judgment in Replevin (a) Judgment in Favor of Plaintiff when Plaintiff Has Possession,county_local,published,filing,high,filing signal: judgment
+d1ed01c2-f6b5-433f-9d11-a960fec68a28,Miami-Dade/096-Web,Civil Cover Sheet,county_local,published,filing,high,filing signal: petition
+aa177729-c6b7-4333-9050-4ec7ea8dfc58,Miami-Dade/118-Web,Order for Issuance of Writ of Replevin,county_local,published,filing,high,filing signal: complaint
+75d239d0-6cc0-46b3-8855-96c0a70609a3,Miami-Dade/136-Web,Order for Issuance of Writ of Replevin on Show Cause Hearing,county_local,published,filing,high,filing signal: writ
+72074f13-72e4-4867-9172-0cf8404d3bf1,Miami-Dade/139-Web,Subpoena Duces Tecum without Deposition,county_local,published,filing,high,filing signal: subpoena
+9e0f633f-6d97-41f8-9f2d-b38b73a5f1dd,Miami-Dade/141-Web-Creole,Residential Eviction Summons (Creole),county_local,published,filing,high,filing signal: summons
+329c67d2-a1ac-41d5-a9f7-e023d314d140,Miami-Dade/141-Web-English,Residential Eviction Summons (English),county_local,published,filing,high,filing signal: answer
+2d0721f5-f722-40b4-968f-e6859bb9d54e,Miami-Dade/141-Web-French,Residential Eviction Summons (French),county_local,published,filing,high,filing signal: answer
+e5e3a2bc-d97c-4347-9399-4ff2ea7ad59e,Miami-Dade/141-Web-Spanish,Residential Eviction Summons (Spanish),county_local,published,filing,high,filing signal: summons
+2bceca9e-ea1a-4eaa-8bb7-d6b3382729fc,Miami-Dade/147-Web,Summons 5 Days Corporate Service (Summary Procedure Pursuant to F.S. 51.011),county_local,published,filing,high,filing signal: petition
+4076ff36-f89b-4c3c-a0a0-1b82be8030f2,Miami-Dade/150-Web,Plaintiff Statement,county_local,published,filing,high,filing signal: support
+ae191e2b-0c4c-4eb8-b461-626056ec2879,Miami-Dade/160-Web,Affidavit of Corroborating Witness,county_local,published,filing,high,filing signal: petition
+33fca22b-33c9-4e68-9f10-9c2e5f5d726d,Miami-Dade/173-Web,Complaint for Replevin,county_local,published,filing,high,filing signal: complaint
+ff1f707a-9431-4d9c-82c3-0704560726a9,Miami-Dade/175-Web,Statement of Claim (Work Done and Materials Furnished),county_local,published,filing,high,filing signal: statement of claim
+3885a063-c028-460a-bff8-899b5708b235,Miami-Dade/208-Web,Subpoena Duces Tecum for Trial,county_local,published,filing,high,filing signal: subpoena
+9ff55944-c0b4-408d-b09d-b41225a9febe,Miami-Dade/216-Web,Execution,county_local,published,filing,high,filing signal: judgment
+45f85cbd-12df-4299-a0aa-4d1e49c68def,Miami-Dade/256-Web,Plea of Not Guilty and Request for Hearing,county_local,published,filing,high,filing signal: request for
+05a02398-c030-4a36-a358-fcad9bca62c4,Miami-Dade/278-Web,Plea of Guilty / No Contest and No Request for Hearing,county_local,published,filing,high,filing signal: request for
+cb929d80-91ab-42d2-adc3-a64d70392151,Miami-Dade/314-Web,Summons 20 Day Corporate Service,county_local,published,filing,high,filing signal: summons
+b7c7284d-f475-4d42-af49-1cf74e068489,Miami-Dade/410-Web,Petition to Seal,county_local,published,filing,high,filing signal: petition
+ccd238d9-cdbf-4cc3-9db9-6a0ad54dcbc9,Miami-Dade/414-Web,Affidavit in support of Petition to Seal,county_local,published,filing,high,filing signal: petition
+6ae70b53-3eb2-46ad-9817-6281341e9c9f,Miami-Dade/430-Web,Bond,county_local,published,filing,high,filing signal: injunction
+c2a3c239-4fff-42ed-8a62-0bdd4ae46382,Miami-Dade/464-Web,Attorney of Record Change of Address Form,county_local,published,clerk_admin,high,clerk transaction pattern: fax
+44650b5a-241d-4d28-ae6f-a0dd6d71abda,Miami-Dade/467-Web,Florida Contraband Forfeiture Act Cash Bond Receipt,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+5949a9f7-47a2-4650-bcd2-45804cb5ea4f,Miami-Dade/480-Web,Application For Determination of Civil Indigent Status,county_local,published,filing,high,filing signal: application
+77fc1824-3eef-4ad0-8d67-c1650c1360a3,Miami-Dade/494-Web,Traffic Mailer,county_local,published,filing,high,filing signal: response
+aae60952-d136-44f3-927d-810e63e6f02a,Miami-Dade/543-Web,Statement of Claim (Towed and /or Stored Vehicles),county_local,published,filing,high,filing signal: statement of claim
+1c872ba8-c829-48c3-8b19-42fcc37cb7a1,Miami-Dade/567-Web,Summons (Personal Service on a Natural Person – Unlawful Detainer),county_local,published,filing,high,filing signal: complaint
+b433a785-c3f8-4732-97f4-86a9c048a1a8,Miami-Dade/576-Web,Statement of Claim (Third Party-Bad Checks),county_local,published,filing,high,filing signal: affidavit
+854691bd-cf96-454b-af75-cb0a824794af,Miami-Dade/577-web,Payment Plan Agreement Request,county_local,published,filing,high,filing signal: installment
+b577fe95-829d-4973-a8cb-3aaa2b3d22ab,Miami-Dade/6122459396-UPDATED_20PROCEDURES_20FOR_20COUNTY_20COURT_20TRANSFERS_20WITHIN_20COUNTY_20COURT_20OR_20TO_20CIRCUIT_20COURT,Instructions on Jurisdictional Amount Transfers,county_local,rejected,filing,high,filing signal: instruction
+07511c3e-7397-43ba-8b2e-2e79693a9047,Miami-Dade/629-Web,Pro Se Motion To Clarify/Reconsider Prior Court Order,county_local,published,filing,high,filing signal: motion
+94cdc258-bb9e-4022-a21a-70525a3337d5,Miami-Dade/638-Web,Designation of Current Mailing and E-mail Address (Florida Family Law Form 12.915),county_local,published,filing,high,filing signal: petition
+3ab5ed8f-b3bc-4815-9371-d5868af13b9f,Miami-Dade/639-Web,Request to be Excused from E-mail Service for Party Not Represented by Attorney (Form 2.601),county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+b26a348b-3fde-41a4-ae3a-49a271408038,Miami-Dade/655-Web,Designation of E-mail Address for a Party Not Represented by an Attorney (Form 2.602),county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+9e060e41-66de-42ea-bcf5-6a8ac5bfd4f7,Miami-Dade/692-Web,Guidelines for Domestication of a Foreign Judgment,county_local,rejected,filing,high,filing signal: judgment
+63eefbb0-73f5-47cd-b06b-dae9dd6f4e39,Miami-Dade/694-Web,Request for Return of Original Note/Mortgage,county_local,published,filing,high,filing signal: request for
+6cae9315-b530-4b5e-8c7f-898faa328fa9,Miami-Dade/698-Web,Summons Action for Back Rent or Other Damages,county_local,published,filing,high,filing signal: complaint
+587e1462-09ef-4e2d-905d-f1de9d6576e6,Miami-Dade/704-Web,Answer - Residential Eviction Form 1.947(b),county_local,published,filing,high,filing signal: complaint
+3c440882-d119-49ce-b4a3-265fbc10addb,Miami-Dade/720-Web,"Complaint to Quiet Title Based on Fraudulent Conveyance Under Section 65.091, Florida Statutes",county_local,published,filing,high,filing signal: complaint
+74a145a9-760b-4ae4-aa96-1abec10f521c,Miami-Dade/726-Web,Writ of Garnishment Checklist,county_local,rejected,filing,high,filing signal: writ
+c0a86fa8-6148-4065-a73f-fd93b4da0a00,Miami-Dade/735-Web,Certificate of Mailing Eviction Summons,county_local,published,filing,high,filing signal: complaint
+331f9102-0ff2-497e-92ce-dc160d091c1b,Miami-Dade/785-Web,Subpoena Duces Tecum without Deposition-B,county_local,published,filing,high,filing signal: subpoena
+415f6cc9-a6cc-4b74-b007-c3c3ac298298,Miami-Dade/790-Web,Statement of Claim (Auto Negligence),county_local,published,filing,high,filing signal: affidavit
+ad98b489-d247-4a30-9680-5fbe60ac4b8e,Miami-Dade/791-Web,Statement of Claim (Back Rent),county_local,published,filing,high,filing signal: affidavit
+250cd388-bde5-4e0d-9aac-a98d46b84b21,Miami-Dade/792-Web,Statement of Claim (Promissory Note),county_local,published,filing,high,filing signal: affidavit
+53227d26-bef1-46ab-bfb9-28555b085767,Miami-Dade/795-Web,Statement of Claim (Money Lent),county_local,published,filing,high,filing signal: statement of claim
+0fc773f0-c2df-4e6e-90f9-9d7c78be0eae,Miami-Dade/826-Web,Statement of Claim (Return of Security Deposit),county_local,published,filing,high,filing signal: statement of claim
+d1002f07-ef2c-43ac-b3be-295c8d5ddb33,Miami-Dade/862-Web,Claim of Exemption and Request for Hearing,county_local,published,filing,high,filing signal: request for
+49d2d0af-4677-44b5-8caf-7fdbf138d358,Miami-Dade/886-Web,Notice of Appeal,county_local,published,filing,high,filing signal: notice of
+f2df020b-4b38-4911-a94e-a88aea446a22,Miami-Dade/894-Web,Request for Trial,county_local,published,filing,high,filing signal: request for
+f9f22d81-c2f9-4f1c-a4bc-5d78470b5311,Miami-Dade/896-Web,Final Judgment in Replevin (b) Judgment in Favor of Plaintiff when Defendant has Possession,county_local,published,filing,high,filing signal: judgment
+b4e6dcf6-7ac9-44f7-930a-6aa7acd74aa9,Miami-Dade/900-Web,Payment Form,county_local,published,clerk_admin,high,clerk transaction pattern: payment form\b
+d1c2d835-55ff-421d-adb3-e9c01cc3284f,Miami-Dade/901-Web,School Election Form,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+4fd15c57-bac9-4db4-844c-8b2efa87576b,Miami-Dade/913-Web,Notice of Commencement of Action,county_local,published,filing,high,filing signal: notice of
+eea14806-ecc6-455c-872a-30ba249866d3,Miami-Dade/914-Web,Waiver of Service of Process,county_local,published,filing,high,filing signal: complaint
+07fc4f46-1655-4d1d-aab9-07c5e7790d22,Miami-Dade/931-Web,Statement of Claim (Return of Stolen Property),county_local,published,filing,high,filing signal: statement of claim
+9d64b23e-d7f4-46fe-ba73-e7c6df6c7a3a,Miami-Dade/986-Web,Defendant's New Address,county_local,published,filing,high,filing signal: information
+27e5b99f-2ca1-4c6b-994f-84033fc0f602,Miami-Dade/987-Web,Motion for Relief,county_local,published,filing,high,filing signal: motion
+3b991850-f7b1-4a7b-8be9-611cdd1d1864,Miami-Dade/988-Web,Motion for Relief (Toll Violations Only),county_local,published,filing,high,filing signal: motion
+59d7b664-fd2f-4c2d-823b-2abfe3e13f52,Miami-Dade/989-Web,Affidavit of Non-Compliance,county_local,published,filing,high,filing signal: affidavit
+7a6c8218-0d4e-4c25-a6bc-d9b6bbc7fcc0,name_change_packet_13th,PACKET #42 – ADULT NAME CHANGE (01/02/2025),name_change,review,filing,high,filing signal: name change
+2569d11b-e9a5-455e-a24d-d163e26bb492,name_change_packet_8th,THINGS TO DO AFTER FORMS ARE COMPLETE:,name_change,review,uncertain,low,no filing/payment/redaction signal in metadata
+c8787d48-2467-4e29-8c62-84159295994a,None/None-,None County - None-,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+89b7b6b5-52af-45df-b475-26b127724cea,None/None-family-law-forms,None County - None-family-law-forms,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+3155e311-c252-451a-a4c7-210da8f33076,None/None-self-help-information,None County - None-self-help-information,county_local,rejected,filing,high,filing signal: information
+225f51f9-4260-4f59-9e36-16cd161bbe99,None/None-small-claims,None County - None-small-claims,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+e7925af0-84e4-4fcf-96ea-e0d479734762,Okaloosa/okaloosa-ds82_pdf,U.S. Passport Renewal Application for Eligible Individuals,county_local,published,filing,high,filing signal: application
+94eb3ffb-384c-4f9f-a1ee-7af16dd1fd24,Orange/orange-Accounting-of-Guardian-of-Property,Accounting of Guardian of Property,county_local,published,filing,high,filing signal: guardian
+1297ddb5-889f-4cab-8fa1-001bc4c0d87a,Orange/orange-Additional-Statement-Page,Additional Statement Page (Orange County),county_local,published,filing,high,filing signal: petition
+9f10a19c-b054-4913-88b6-7f6a1e2bbd78,Orange/orange-Address-and-Name-Change,Request for Name/Address Change and Email Designation Form,county_local,published,filing,high,filing signal: petition
+3c0e6cbf-8f23-43da-b3d8-3bead5f7c997,Orange/orange-Advisory,PDF,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+e5df20e4-193a-43a4-b4d4-e261e3f4ee1f,Orange/orange-Affidavit-Acknowledging-Responsibility_1,Affidavit Acknowledging Responsibility,county_local,published,filing,high,filing signal: affidavit
+e171699a-10be-43ec-8330-1d9224403180,Orange/orange-Affidavit-of-Claim-of-Exemption,PDF,county_local,rejected,filing,high,filing signal: affidavit
+90b1e7dd-f2d4-4c9e-80b0-2d35e5634b2c,Orange/orange-Affidavit-of-No-Contest_1,Affidavit of No Contest,county_local,published,filing,high,filing signal: affidavit
+d45ebf6e-acb5-4a98-a76e-dd6c05d689b5,Orange/orange-Affidavit-of-Non-Compliance,Affidavit of Non-Compliance,county_local,published,filing,high,filing signal: affidavit
+628d381c-74d7-45ad-9e81-7ce05d94ac07,Orange/orange-Affidavit-of-Non-Military-Proper-Venue-and-Indebtedness,"Affidavit as to Military Service, Proper Venue and Indebtedness",county_local,published,filing,high,filing signal: motion
+87e7c22a-deaa-4a2d-aaad-a356443d8c73,Orange/orange-Affidavit-of-Non-Ownership_1,Affidavit of Non-Ownership,county_local,published,filing,high,filing signal: affidavit
+7df4fbd7-521b-475a-9226-dc83af01e39e,Orange/orange-Affirmation-of-Children-Born-in-Florida_0,Affirmation of Common Child(Ren) Born in Florida,county_local,published,clerk_admin,high,clerk transaction pattern: marriage license
+bc72b651-327e-4862-b325-313ea826b5fe,Orange/orange-Annual-Guardianship-Plan-of-Person,PDF,county_local,rejected,filing,high,filing signal: guardian
+4953e7fd-65ca-415c-b872-5ebb92da647e,Orange/orange-Bail-Bond-Agent-Registration-Form,Bail Bond Agent Registration Form,county_local,published,filing,high,filing signal: information
+ed3b276d-0c76-45c3-bff8-8615837285e1,Orange/orange-Change-of-Address_1,Notice of Change of Address,county_local,published,clerk_admin,high,clerk transaction pattern: change of address
+4ad33019-5f91-41f4-ab56-7ef671c1e14c,Orange/orange-Child-Passenger-Restraint-Affidavit_1,Child Passenger Restraint Program Affidavit,county_local,published,filing,high,filing signal: affidavit
+9d5bd892-e672-4640-9202-e45c7c1ee08d,Orange/orange-Civil-Cover-Sheet,Civil Cover Sheet (Form 1.997),county_local,published,filing,high,filing signal: petition
+ce4387e3-55b7-48d1-adbf-d2769836d244,Orange/orange-Civil-Indigent-Status-Application,APPLICATION FOR DETERMINATION OF CIVIL INDIGENT STATUS,county_local,published,filing,high,filing signal: summons
+e8864a8e-4401-42bf-bfb0-b65fb777741f,Orange/orange-Designation-of-Current-Mailing-and-Email-Address_1,Designation of Current Mailing and E-mail Address,county_local,published,clerk_admin,high,clerk transaction pattern: change of address
+1ecbab91-b6ad-4f49-a6eb-11fff2e8de11,Orange/orange-Direct-Deposit-Request-Family,Direct Deposit Request for Child Support,county_local,published,filing,high,filing signal: request for
+1ac403e6-1919-490f-b27a-e3d28f2e9ae7,Orange/orange-Form-2.604-Notice-Of-Pending-Matter,Notice of Pending Matter,county_local,published,filing,high,filing signal: motion
+623e8e2a-bf20-4f3f-b04f-cbe71577d8b5,Orange/orange-Form-50,INFORMATION FOR SCHEDULING MEDIATION PRIOR TO TRIAL SETTING,county_local,published,filing,high,filing signal: petition
+78080098-c189-49ca-b3be-635742a29572,Orange/orange-Guardian-Statement-re-DNR,SUPPLEMENT TO THE ANNUAL GUARDIAN/GUARDIAN ADVOCATE REPORT OR ANNUAL GUARDIAN/GUARDIAN ADVOCATE PLAN OF GUARDIAN OF PERS,county_local,published,filing,high,filing signal: guardian
+339e3788-a591-4085-b0c5-109a215c389d,Orange/orange-Home-Solicitation-Sale-Permit,Home Solicitation Sale Permit – Application,county_local,published,filing,high,filing signal: application
+ef2144a1-631b-4576-8d04-f34da9619ede,Orange/orange-Implementation-of-District-Court-of-Appeal-Jurisdictional-Boundary-Changes-E-Filing-and-Electronic-Case-Management-Issues,PDF,county_local,rejected,filing,high,filing signal: appeal
+a749a7d2-2e11-4cf0-9358-132cc2ddb99e,Orange/orange-Judgment-Disposition-Final-Judgment,Final Judgment Against Defendant(s),county_local,published,filing,high,filing signal: judgment
+a9f14093-650f-4b78-8e42-2d99af3c3f78,Orange/orange-Judgment-Disposition-Replevin-Judgment,Final Judgment of Replevin,county_local,published,filing,high,filing signal: judgment
+d4816afc-b029-4149-8f69-6a4f5274265d,Orange/orange-Judgment-Disposition-Voluntary-Dismissal,Voluntary Dismissal,county_local,published,filing,high,filing signal: judgment
+81ae1e83-8d19-439c-b290-31b6808d4dd0,Orange/orange-Marriage-License-Application_0,Marriage License Application,county_local,published,clerk_admin,high,clerk transaction pattern: marriage license
+13cc7d66-315f-4ac4-9bae-54fb907d85db,Orange/orange-Motion,Motion,county_local,published,filing,high,filing signal: motion
+5a7206d8-917f-402f-b8fc-22122345ae03,Orange/orange-Motion-and-Family-Cover-Sheet,Motion to/For and Cover Sheet for Family Court Cases,county_local,published,filing,high,filing signal: petition
+66c623c0-f77f-4761-9bdc-bc1d6e47be6f,Orange/orange-Motion-for-Contempt-Enforcement,Motion for Civil Contempt/Enforcement,county_local,published,filing,high,filing signal: petition
+29a789ae-0f67-4541-b921-5d2de4d1cdc3,Orange/orange-Motion-for-Extension-for-Injunction,"MOTION FOR EXTENSION OF INJUNCTION FOR PROTECTION AGAINST DOMESTIC, REPEAT, DATING, OR SEXUAL VIOLENCE, OR STALKING",county_local,published,filing,high,filing signal: petition
+68e07240-2af5-4d63-b661-3b550a3458c4,Orange/orange-Motion-for-Modification-for-Injunction,"Motion for Modification of Injunction for Protection Against Domestic, Repeat, Dating, or Sexual Violence, or Stalking",county_local,published,filing,high,filing signal: motion
+fdc0a49e-7863-4fb5-be95-3128e76a08b3,Orange/orange-NinthCircuitProcessServers,Ninth Circuit Process Servers,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+1c618aab-14e8-4810-9e1a-b73b3da8900c,Orange/orange-Notice-of-Change-of-Address,NOTICE OF CHANGE OF ADDRESS,county_local,published,clerk_admin,high,clerk transaction pattern: change of address
+83b3b827-ce6a-4d58-8cdb-110043196cff,Orange/orange-Notice-of-Confidentiality-Form,Notice of Confidential Information Within Court Filing,county_local,published,redaction,high,redaction pattern: social security number
+4e5d759e-d584-485d-af7e-74e15d8f1572,Orange/orange-Payoff-Request,Request for Case Payoff/Payment History Records,county_local,published,filing,high,filing signal: request for
+2aec2844-3348-432c-b4c1-fa7571e58aa0,Orange/orange-Petition-Disposition-of-Personal-Property,Verified Statement for Disposition of Personal Property Without Administration,county_local,published,filing,high,filing signal: petition
+e0493b0f-16fc-4c71-a509-6c212ab2b835,Orange/orange-Petition-for-Injunction---Dating-Violence-Packet,Petition for Injunction for Protection Against Dating Violence Packet (Orange County),county_local,published,filing,high,filing signal: petition
+429389a3-fb8e-4354-bc19-94b5b6d85533,Orange/orange-Petition-for-Injunction---Domestic-Violence-Packet,Petition for Injunction for Protection Against Domestic Violence Packet,county_local,published,filing,high,filing signal: petition
+d95bc154-ee97-496a-85df-e8bf8c7a1a3c,Orange/orange-Petition-for-Injunction---Repeat-Violence-Packet,Petition for Injunction for Protection Against Repeat Violence Packet,county_local,published,filing,high,filing signal: petition
+65522066-3baf-41fb-ad6a-0e167a300f48,Orange/orange-Petition-for-Injunction---Sexual-Violence-Packet,Petition for Injunction for Protection Against Sexual Violence Packet,county_local,published,filing,high,filing signal: petition
+5d98f70d-f976-4982-8001-c39f1cb5ac08,Orange/orange-Petition-for-Injunction---Stalking-Packet,Petition for Injunction for Protection Against Stalking,county_local,published,filing,high,filing signal: petition
+a815ddeb-15f9-4b25-b2c1-3e4a71ee523e,Orange/orange-Petition-for-Violation-of-Injunction,Petition by Affidavit for Order to Show Cause for a Violation of Final Judgment of Injunction for Protection Against Dom,county_local,published,filing,high,filing signal: petition
+55da62b5-fb1c-41a6-a148-3754d24ec1a5,Orange/orange-Plain-Statement-of-Claim,Statement of Claim,county_local,published,filing,high,filing signal: statement of claim
+82836c7f-e960-4968-b20c-8f6cbf3471e0,Orange/orange-Plea-of-Guilty-or-No-Contest-and-No-Hearing-Request_1,Plea of Guilty or No Contest and No Request for Hearing,county_local,published,filing,high,filing signal: request for
+d266a7c9-e5b1-44e0-b2a0-daa75c651bb9,Orange/orange-Plea-of-Not-Guilty-and-Request-for-Hearing_1,Plea of Not Guilty & Request for Hearing,county_local,published,filing,high,filing signal: request for
+4554e3f8-a19f-45f8-9b94-1385c17a5610,Orange/orange-Post-Judgment-Final-Dispostion-Form,PDF,county_local,rejected,filing,high,filing signal: judgment
+ad2d2d3b-abbc-4aa1-b2c1-eac4d5f12a47,Orange/orange-Post-Judgment-Motion-for-Ex-Parte-Hearing-in-Aid-of-Execution,MOTION FOR EX-PARTE HEARING IN AID OF EXECUTION,county_local,published,filing,high,filing signal: motion
+761bd831-8074-42c6-9b67-b277cede9a10,Orange/orange-Pretrial-Release---Citizens-Right-to-Know,PDF,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+aa29b85c-456a-4126-aab1-fe33efa4c4d6,Orange/orange-Proposed-Notice-to-Appear-Form,PDF,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+75f1e2d4-714d-4fb1-80b5-4c3155f21605,Orange/orange-Quiet-Title-Orange-Forged-Deed-Complaint,Complaint to Quiet Title (Forged Deed),county_local,published,filing,high,filing signal: complaint
+73615b16-f552-4470-8b1d-0a761cdfdc30,Orange/orange-Quiet-Title-Orange-Forged-Deed-Complaint-Instructions,Quiet Title Orange Forged Deed Complaint Instructions,county_local,published,filing,high,filing signal: complaint
+c607383d-a5ba-4563-b0cd-4a577acddd8f,Orange/orange-Quiet-Title-Orange-Wild-Deed-Complaint,Complaint to Quiet Title (Wild Deed),county_local,published,filing,high,filing signal: complaint
+bb606d9b-3083-4110-ade2-42c9976e5537,Orange/orange-Quiet-Title-Orange-Wild-Deed-Complaint-Instructions,Quiet Title Orange Wild Deed Complaint Instructions,county_local,rejected,filing,high,filing signal: complaint
+289ad571-71a3-44c0-95b9-12e5711b29f7,Orange/orange-Report-of-Examining-Committee-Member,Report of Examining Committee Member,county_local,published,filing,high,filing signal: guardian
+5284b1e7-bd2c-4bab-bedd-789bc0537b49,Orange/orange-Request-Copies-of-Records-by-Mail,Request Copies of Court Records by Mail,county_local,published,clerk_admin,high,clerk transaction pattern: marriage license
+c8a5bea3-8086-44ad-9e8d-46abb646e465,Orange/orange-Request-to-Suspend-Driver_27s-License-Family,Request to Initiate Suspension of Delinquent Obligor’s Driver’s License,county_local,published,filing,high,filing signal: support
+19e0b411-4cb8-4cfe-a80a-22254f556bb3,Orange/orange-School-Zone---Affidavit-acknowledging-Responsibility_0,Affidavit Acknowledging Responsibility (Speeding in School Zone),county_local,published,filing,high,filing signal: affidavit
+89551747-f7ac-4c81-8d2e-abed095cdf58,Orange/orange-Service-Document-20-Day-Proposed-Summons,Summons (20 Day) - Orange County,county_local,published,filing,high,filing signal: complaint
+6c75c31d-14c1-4566-b850-d13ce26e67fc,Orange/orange-Service-Document-Certificate-of-Mailing,Certificate of Mailing,county_local,published,filing,high,filing signal: complaint
+9eedbfc5-9e4a-4cb0-a53b-646171eec100,Orange/orange-Service-Document-French-Version-of-Summons,Summons (French Version),county_local,published,filing,high,filing signal: summons
+676044d7-0124-47b3-b8dc-2dc57dd48136,Orange/orange-Service-Document-Notice-to-Appear-for-Pretrial-Conference,NOTICE TO APPEAR FOR PRETRIAL CONFERENCE/ MEDIATION,county_local,published,filing,high,filing signal: judgment
+011d7f83-3279-43d0-8abd-26ea69bf56f1,Orange/orange-Service-Document-Spanish-Version-of-Summons,Spanish Version of Summons,county_local,published,filing,high,filing signal: complaint
+a1980f1e-4b35-4577-9017-c8e607d395d6,Orange/orange-Simplified-Accounting-of-Guardian-of-Property,Simplified Accounting of Guardian of Property,county_local,published,filing,high,filing signal: guardian
+65a3a9c4-8d63-4ea0-ad0d-04746587e5fc,Orange/orange-Statement-of-Claim,STATEMENT OF CLAIM,county_local,published,filing,high,filing signal: statement of claim
+ff18139b-0ee9-4f93-a6fb-0dd04380d595,Orange/orange-Vulnerable_Adult_Brochure_-_Creole,Vulnerable Adult Brochure - Creole,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+0dd07e93-bf49-40d7-ab63-2d2f416e4e15,Orange/orange-Vulnerable_Adult_Brochure_-_English,Vulnerable Adult Brochure - English,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+769c60af-dcb8-4025-a1ae-187b43e90985,Orange/orange-Vulnerable-Adult-Brochure---Spanish,Vulnerable Adult Brochure - Spanish,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+15267360-236e-4825-94f1-828ddac6a75b,Orange/orange-Waiver-of-Return-Hearing,PETITIONER’S WAIVER OR NON-WAIVER OF RETURN HEARING AND SERVICE OF INITIAL ORDER VIA EMAIL,county_local,published,filing,high,filing signal: petition
+58e3844c-1c72-481a-97a7-797e306c4e5b,Orange/orange-Wireless-Proof-of-Purchase_1,PROOF OF PURCHASE,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+af409421-b5db-431c-b94b-559ed44b069b,Osceola/osceola-Family-Law-Handbook-2023,Florida Law Handbook,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+5ab09135-40cb-4191-a676-bc5993660e1f,Pinellas/pinellas-2012-053,PDF,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+d9d54468-e66f-4522-9ab2-7c2345c25b16,Pinellas/pinellas-2014-015,PDF,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+9be09837-969d-4a74-a0d3-fb0786db5fcc,probate_formal_admin_ddpa,•  LEGAL SERVICES,probate_estate,review,filing,high,filing signal: probate
+519f995b-2245-4563-93a8-a9814faa8739,probate_further_admin_justia,PETITION FOR FURTHER ADMINISTRATION,probate_estate,published,filing,high,filing signal: petition
+5e01f763-007d-4f2b-8863-1c7b80470e5b,probate_summary_admin_c5,Petition for Summary Administration with Will (Testate),probate_estate,published,filing,high,filing signal: petition
+bfb97b4b-7c3a-42ec-b121-c70c1da2d4eb,probate_summary_admin_ddpa,•  LEGAL SERVICES,probate_estate,review,filing,high,filing signal: probate
+a30de7f4-3a93-43e7-94c5-628ace8b0399,probate_summary_admin_flcourts,Petition for Summary Administration (Testate),probate_estate,published,filing,high,filing signal: petition
+2280bc5e-3579-4dbe-a89e-5a097e3e1ce2,probate_summary_admin_will,PETITION FOR SUMMARY ADMINISTRATION WITH WILL (TESTATE),probate_estate,published,filing,high,filing signal: petition
+2bc40e37-fd56-47a5-98d8-de79fdcf9c27,Santa_Rosa/santa-rosa-5bab367f456d5751abb25e2f8efeba944a3c39b2,Santa Rosa County - 5bab367f456d5751abb25e2f8efeba944a3c39b2.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+e312f31d-80a7-4ac8-b01b-0c664b845c96,Sarasota/sarasota-2019-comprehensive-strategic-plan-and-balanced-scorecar,Sarasota County - 2019-comprehensive-strategic-plan-and-balanced-scorecar.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+924e6272-6475-43b5-8d61-01de6dfaf862,Sarasota/sarasota-complaint-to-quiet-title-circuit-court,"Complaint to Quiet Title Based on Fraudulent Conveyance under Section 65.091, Florida Statutes",county_local,published,filing,high,filing signal: complaint
+4d6fe872-10cc-4f44-8a08-3bc11094ef59,Sarasota/sarasota-complaint-to-quiet-title-county-court,"Complaint to Quiet Title Based on Fraudulent Conveyance Under Section 65.091, Florida Statutes",county_local,published,filing,high,filing signal: complaint
+8c7f5379-40ad-43b3-bd93-e7757f782dba,Sarasota/sarasota-County-Court-Case-management-report,Sarasota County - County-Court-Case-management-report.docx,county_local,published,filing,high,filing signal: petition
+a283490f-5fd6-44bc-9bf3-d585568d8694,Sarasota/sarasota-designation-of-email-address-form-2602,Designation of E-Mail Address by a Party Not Represented by an Attorney (Form 2.602),county_local,published,filing,high,filing signal: certificate
+58850023-0347-41f5-b0b3-f40dc9bc748d,Sarasota/sarasota-form-civil-cover-sheet-form-1997,FORM 1.997. CIVIL COVER SHEET,county_local,published,filing,high,filing signal: petition
+32c1cab9-4729-4747-a955-2929ec06df0d,Sarasota/sarasota-form-request-to-be-excused-from-email-service-for-a-party-not-represented-by-an-attorney,Request to be Excused from E-Mail Service for a Party Not Represented by an Attorney,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+fa6e4e7f-2c47-4839-bd0e-126c93c14cbe,Sarasota/sarasota-IVD-Respondent-Packet-Form-C,REQUEST FOR HEARING OF PLEADING/MOTION IN OPEN CHILD SUPPORT ENFORCEMENT CASES FORM C,county_local,published,filing,high,filing signal: motion
+54f85989-1685-416b-8ba0-633f2c1d64f1,Sarasota/sarasota-supreme-court-order-aosc-09-30-section-7.1,Sarasota County - supreme-court-order-aosc-09-30-section-7.1.pdf,county_local,rejected,filing,high,filing signal: order
+0b2ad530-fb0d-4251-b7ca-7e57a7aece27,Sarasota/sarasota-twelfth-judicial-circuit-administrative-order-ao-2012-3.1,Sarasota County - twelfth-judicial-circuit-administrative-order-ao-2012-3.1.pdf,county_local,rejected,filing,high,filing signal: order
+187f91f7-54ae-4a20-8d31-663d4adc1df2,small-claims-rules-2026.pdf,Florida Small Claims Rules (2026),small_claims,rejected,filing,high,filing signal: small claims
+297aa6b6-e8f0-4bba-aede-6ccf9bdb8e7d,St._Johns/st-johns-3-DAY-2-COUNT-EVICTION-COMPLAINT-DAMAGES,Complaint for Eviction and Damages,county_local,published,filing,high,filing signal: complaint
+95bdcd0e-0b6d-4713-8d07-ed084d749bde,St._Johns/st-johns-3-DAY-EVICTION-COMPLAINT-POSSESSION-ONLY,Complaint for Eviction (Possession Only),county_local,published,filing,high,filing signal: complaint
+78f9b572-9b22-407d-aee5-851f0edc378e,St._Johns/st-johns-3-DAY-NOTICE,3 Day Notice,county_local,published,filing,high,filing signal: eviction
+30bd359e-f0c3-4f54-99fa-51c50e9a74f9,St._Johns/st-johns-7-DAY-COMPLAINT,Complaint for Eviction (7 Day Notice) - Residential Use Only,county_local,published,filing,high,filing signal: complaint
+7bd2f88a-00dd-47b3-bce2-01b4f6f7528f,St._Johns/st-johns-7-DAY-NOTICE-WITH-REMEDY,7 DAY NOTICE FOR TERMINATION OF TENANCY DUE TO NONCOMPLIANCE (With Remedy),county_local,published,filing,high,filing signal: eviction
+ccd92a1d-5b01-4fca-8838-fb270be35e0d,St._Johns/st-johns-7-DAY-NOTICE-WITHOUT-REMEDY,7 Day Notice – WITHOUT remedy,county_local,published,filing,high,filing signal: writ
+b1a5497f-5621-4d2a-adc4-cd45ad2b049a,St._Johns/st-johns-Admission-of-Guilt,Admission of Guilt,county_local,published,filing,high,filing signal: admission
+a16cee0b-52c1-4dce-8692-b656a814ae17,St._Johns/st-johns-affidavit_of_default,Affidavit of Default (Violation of Stipulation),county_local,published,filing,high,filing signal: affidavit
+b52eb0cb-e486-4049-ba43-6f9008ca3854,St._Johns/st-johns-Affidavit-of-Compliance,Affidavit of Compliance,county_local,published,filing,high,filing signal: affidavit
+7415499d-6680-4c9f-8f2e-14e6fb07397f,St._Johns/st-johns-Affidavit-of-Mis-identity,Affidavit of Mis-Identity,county_local,published,filing,high,filing signal: affidavit
+94b398d1-129b-4355-8e12-99aad47c17f9,St._Johns/st-johns-Affirmation-of-common-children,Affirmation of Common Child(Ren) Born in Florida,county_local,published,clerk_admin,high,clerk transaction pattern: marriage license
+340b1fd5-99b0-4797-9a50-0c51c34f1659,St._Johns/st-johns-agreement_for_viewing_electronic_court_records_online,Court Records Registration Agreement,county_local,published,filing,high,filing signal: agreement
+8afeae7d-645b-48ee-8c12-abf2b75f26bf,St._Johns/st-johns-annual_accounting_form,Annual Accounting Form,county_local,published,filing,high,filing signal: guardian
+c39d9d36-2a9e-433f-941f-c74f720ca558,St._Johns/st-johns-ApplicationOfCriminalIndigentStatus_4-2026,Application for Criminal Indigent Status,county_local,published,filing,high,filing signal: waiver
+d4a47e28-a191-4d7e-a14f-28c7e03c35c2,St._Johns/st-johns-BAKER_20ACT,Petition and Affidavit Seeking Ex Parte Order Requiring Involuntary Examination,county_local,published,filing,high,filing signal: petition
+2555867c-ffa4-4378-bab6-1037cf259f6f,St._Johns/st-johns-Cheryl_20Strickland,Complaint for Eviction on Notice of Termination of Tenancy,county_local,published,filing,high,filing signal: complaint
+6f9fe4a0-d085-4c77-a88d-bcb16f81498e,St._Johns/st-johns-Circuit-Court-Quiet-Title,Complaint to Quiet Title – Circuit Court,county_local,published,filing,high,filing signal: complaint
+414c886e-c84f-4ff3-93e2-9739aa9afb01,St._Johns/st-johns-CivilCoverSheet04012022,Civil Cover Sheet,county_local,published,filing,high,filing signal: petition
+36ed1abe-5840-471d-88f7-73ee16452f72,St._Johns/st-johns-Clerk-Patty-Claim-Form-1,Unclaimed Funds Claim Form,county_local,published,clerk_admin,high,clerk transaction pattern: change of address
+9a07671a-8820-435d-beb4-e93b8b9c92af,St._Johns/st-johns-COC_20Escrow_20docs,Depository Account Election and Authorization Form,county_local,published,filing,high,filing signal: writ
+a970a10c-573f-4f79-8f0b-32a95ea62e37,St._Johns/st-johns-Conditional-Plea-of-No-Contest,Conditional Plea of No Contest,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+42895c84-02da-4236-873c-19e74ad74e4b,St._Johns/st-johns-Consent_20to_20Case_20Closure_20After_2090_20Days_20of_20Inactivity,Consent to Case Closure After 90 Days of Inactivity,county_local,published,filing,high,filing signal: eviction
+93d14b45-2363-4dbf-9833-3956ac9fdde4,St._Johns/st-johns-COURT-RECORD-REQUEST-FORM-Jan-2024,Court Record Request Form,county_local,published,filing,high,filing signal: request for
+b18570cc-b699-4b47-bf54-89d8a3e7eb4d,St._Johns/st-johns-creditcardform,Credit Card Form,county_local,published,clerk_admin,high,clerk transaction pattern: credit card
+a9eb4dde-6fbe-40da-89dc-8d55539114de,St._Johns/st-johns-Driver-Improvement-School-Election,Driver Improvement School Election,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+f0addb0a-9930-4de9-ab83-f3b94a8b02ce,St._Johns/st-johns-Drivers-License-Transcript-Request-,Driver's License Transcript Request,county_local,published,filing,high,filing signal: information
+ead050bc-6c60-486f-8ad2-71fb9f23d783,St._Johns/st-johns-eviction_affidavit_of_default,Affidavit of Default,county_local,published,filing,high,filing signal: affidavit
+227d3a06-068d-4e23-bcba-f1b9f3f4ca85,St._Johns/st-johns-Excusal-Postponement-Jury-Duty-Medical_4-2026,Jury Duty Excusal for Medical Reasons Form for Physician,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+2d706f77-ad1d-43cf-b963-ea0bfe5a85bc,St._Johns/st-johns-F.S._20_C2_A778_20Statement_20of_20Claims_20for_20Replevin,Chapter 78 – Statement of Claim for Replevin Form,county_local,published,filing,high,filing signal: statement of claim
+23b99529-9827-432d-938f-69d1ce4eef1b,St._Johns/st-johns-Faulty-Equipment-Affidavit,Faulty Equipment Affidavit,county_local,published,filing,high,filing signal: affidavit
+6cd61e34-c3d6-4ea4-9ffa-9c836809dba8,St._Johns/st-johns-Fillable-FDLE-40-021-Seal-and-Expunge-Application-Final-,Application for a Certificate of Eligibility for Sealing or Expunction,county_local,published,filing,high,filing signal: petition
+447f6acd-0694-4277-912c-a7137d48257a,St._Johns/st-johns-Fillable-Seal-or-Expunge-Packet-April-2025,Seal or Expunge Packet,county_local,published,filing,high,filing signal: petition
+71bad277-9f06-47b5-83ed-e8c22f856c6e,St._Johns/st-johns-Final-ETG-Form,Final Report of Emergency Temporary Guardian,county_local,published,filing,high,filing signal: guardian
+e5bba029-b0dc-46b2-a98d-7ce3539cd2f5,St._Johns/st-johns-FINALIZED_STIPULATION_FOR_INSTALLMENT_SETTLEMENT_ORDER_APPROVING_STIPULATION_AND_DISMISSAL,"STIPULATION FOR INSTALLMENT SETTLEMENT, ORDER APPROVING STIPULATION AND DISMISSAL",county_local,published,filing,high,filing signal: stipulation
+f6270ace-3a7c-42db-bb1e-30a692125a2b,St._Johns/st-johns-Fla._20R._20Gen_20Prac_20__20Jud_20Admin_20-_20Form_202.601_20-_20Request_20to_20be_20excused_20from_20email_20service_20for_20party_20not_20represented_20by_20attorney,Request to be Excused from Email Service for Party Not Represented by Attorney,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+aff539e1-3051-49a0-9ba3-a1d7a4193c5a,St._Johns/st-johns-Fla._20R._20Gen._20Prac._20__20Jud._20Admin._20-_20Form_202.602_20-_20Designation_20of_20E-Mail_20Address_20by_20a_20Party_20Not_20Represented_20by_20an_20Attorney,Designation of Email Address by a Party Not Represented by an Attorney,county_local,published,filing,high,filing signal: order
+3b0a8a78-a494-48da-888f-55f8b2757071,St._Johns/st-johns-Fla._20R._20of_20Gen._20Prac._20__20Jud._20Admin._20-_20Form_202.603_20-_20Change_20of_20Mailing_20Address_20or_20Email_20Address,Change of Mailing Address or Email Address,county_local,published,filing,high,filing signal: information
+6824fa2e-b7d3-4504-baa5-abdbfc0ccb41,St._Johns/st-johns-FORM-2.604.-NOTICE-OF-PENDING-MATTER,Notice of Pending Matter,county_local,published,filing,high,filing signal: notice of
+f6f1d4ff-2186-47fd-ab01-360f92916c25,St._Johns/st-johns-FORM-2.605.-NOTICE-OF-INACTIVE-STATUS,Notice of Inactive Status,county_local,published,filing,high,filing signal: notice of
+7ddc8e71-6310-4bf2-b0e6-0d03863c9a89,St._Johns/st-johns-FORM-2.606.-NOTICE-OF-ACTIVE-STATUS,Notice of Active Status,county_local,published,filing,high,filing signal: notice of
+1a92d296-b4ab-4ea3-a5c1-77b5870d23a4,St._Johns/st-johns-Form-5.904-b-Annual-Plan-for-Minor,Annual Guardianship Plan for Minor,county_local,published,filing,high,filing signal: guardian
+c10ef6ea-7bdd-4854-b227-38da20a3746f,St._Johns/st-johns-Form-5.904-c-Initial-Plan-Adult-,Initial Guardianship Plan (Initial Report of Guardian/Guardian Advocate),county_local,published,filing,high,filing signal: guardian
+b31df07c-67fe-43f4-9234-d8e40d3946fb,St._Johns/st-johns-Form-5.904a-Intial-Plan-Minor,Initial Guardianship Plan for Minor,county_local,published,filing,high,filing signal: guardian
+826d198e-368a-4c28-87bb-ebabf06a1c10,St._Johns/st-johns-Form-5.904d-Annual-Guardianship-Plan-Adult,Annual Guardianship Plan of Guardian/Guardian Advocate of the Person,county_local,published,filing,high,filing signal: guardian
+0ab463c4-6129-4071-93dc-ea6a3df00d59,St._Johns/st-johns-Form-5.910-Initial-Inventory,Initial Verified Inventory Form,county_local,published,filing,high,filing signal: guardian
+10679f27-e8d2-4d06-aa54-2b6b3012f874,St._Johns/st-johns-form-78,Motion for Default Final Judgment (Residential Eviction),county_local,published,filing,high,filing signal: motion
+5ddd8770-c590-4d7b-96e6-f40436c65b86,St._Johns/st-johns-form-79,Motion for Default Final Judgment- Damages (Residential Eviction),county_local,published,filing,high,filing signal: motion
+44f03e73-4cbd-47cb-82cb-bc9b462b0d21,St._Johns/st-johns-FORM-Motion-for-Payment-Credit-rev-08-03-2021,Motion for Payment Credit,county_local,published,filing,high,filing signal: petition
+071d9a8a-e7c0-46bc-9107-69ec00633868,St._Johns/st-johns-FORM-Motion-to-Contest-Suspension-of-Drivers-License-rev-08-03-2021,Motion to Contest Suspension of Driver’s License,county_local,published,filing,high,filing signal: motion
+ecc535b9-1468-4fd6-82f2-ebe7bad7a9b8,St._Johns/st-johns-FORM-Pro-Se-Motion,Pro Se Motion,county_local,published,filing,high,filing signal: motion
+f1d90243-3d18-4451-9c38-0cbbc0e0fa6c,St._Johns/st-johns-FORM-Request-to-Perform-Community-Service,Request to Perform Community Service,county_local,published,filing,high,filing signal: information
+6a8fbd8c-1557-418f-ba75-1629d81f25d0,St._Johns/st-johns-FORM-Support-Information-Sheet,Support Information Sheet,county_local,published,filing,high,filing signal: divorce
+fa459763-d586-4765-870f-bccf567e0123,St._Johns/st-johns-Insurance-Rejection,Insurance Rejection,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+89970b0a-1e66-47ec-9c22-9244b3045ab7,St._Johns/st-johns-JuryExcusalForm,Request for Excusal or Deferral From Jury Duty,county_local,published,filing,high,filing signal: request for
+ccb007a4-bdbb-45c8-88c7-fd0dc7c14903,St._Johns/st-johns-Local_20Form_20-_20Owner_s_20Claim_20for_20Surplus,Owner’s Claim for Mortgage Foreclosure Surplus,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+06c3c777-cddd-40bf-a10e-13a4b90317cc,St._Johns/st-johns-Minor_20consent_20for_20marriage_20aff-1,Minor Consent For Marriage Affidavit,county_local,published,clerk_admin,high,clerk transaction pattern: marriage license
+01fc899a-fca9-45fa-b05a-b4851a026c83,St._Johns/st-johns-Minor_20consent_20for_20marriage_20Inst-1,Minor Consent For Marriage Additional Information,county_local,rejected,filing,high,filing signal: information
+27c61752-b5c1-47c0-b241-7396351072c9,St._Johns/st-johns-Misdemeanor-Request-for-Continuance-or-Reset-Fillable,Misdemeanor Request for Continuance or Reset,county_local,published,filing,high,filing signal: request for
+f520b1cc-3bca-465e-8c20-666c906b881d,St._Johns/st-johns-Motion_20to_20Determine_20Confidentiality_20of_20Trial_20Court_20Records,Motion to Determine Confidentiality of Trial Court Records,county_local,published,filing,high,filing signal: motion
+a26af708-12a1-43e5-b444-b6aa1f3e21e4,St._Johns/st-johns-Motion-for-Hearing,Motion for Hearing,county_local,published,filing,high,filing signal: petition
+7594183b-1d00-4477-95bb-b8069cb4188e,St._Johns/st-johns-Motion-to-Continue-Civil-Traffic-Hearing,Motion to Continue Civil Traffic Hearing,county_local,published,filing,high,filing signal: motion
+a08fe69c-037d-4f82-be34-23b47ddc165c,St._Johns/st-johns-NON_20Criminal_20Court_20Request_20form,Non-Criminal Citation Court Request,county_local,published,filing,high,filing signal: appearance
+fd46e672-88b5-4252-974a-2371ef00bd4c,St._Johns/st-johns-Notice_20of_20Confidential_20Information_20Within_20Court_20Filing,Notice of Confidential Information Within Court Filing,county_local,published,filing,high,filing signal: notice of
+e9a79e17-0bbb-4ca5-9b9d-d33254aa1f34,St._Johns/st-johns-NOTICE_20OF_20TERMINATION_20OF_20TENANCY_20_7_20or_2030_20Day__20Website_20_20rev_2003_18_2024,Notice of Termination of Tenancy (7 or 30 Day Notice),county_local,published,filing,high,filing signal: notice of
+59103b6d-d755-42eb-9722-dcafbf2b7ad4,St._Johns/st-johns-Notice-of-Commencement,Notice of Commencement,county_local,published,filing,high,filing signal: notice of
+dd6c5c0a-ad52-4a6a-b04d-1dd4bf755133,St._Johns/st-johns-Notice-of-Termination-of-Notice-of-Commencement,Notice of Termination of Notice of Commencement,county_local,published,filing,high,filing signal: notice of
+fbaad8cf-1e1e-4716-916c-2b98c44d0917,St._Johns/st-johns-Notice-of-Voluntary-Dismissal,Notice of Voluntary Dismissal,county_local,published,filing,high,filing signal: petition
+e2426b87-9b6c-4d3a-9445-a9767fdf3583,St._Johns/st-johns-owners_authorization,Owner's Authorization for Property Manager to Prosecute Eviction Action,county_local,published,filing,high,filing signal: complaint
+2f3b93e3-1f85-485d-b742-8ea63eb3c432,St._Johns/st-johns-PACKET-EXPLOITATION-OF-A-VULNERABLE-ADULT-INJUNCTION-1,Injunctions for Protection Against the Exploitation of Vulnerable Adults,county_local,published,filing,high,filing signal: petition
+76079f56-37aa-40df-a505-4d6c6696d8d7,St._Johns/st-johns-Parking-Citation-Court-Request,Parking Citation Court Request,county_local,published,filing,high,filing signal: information
+d8e2c3cc-ad70-4b93-a2e3-9256a2fe5075,St._Johns/st-johns-Payment-Plan-Contract-Fillable-3-30-2026,Payment Plan Contract,county_local,published,filing,high,filing signal: payment plan
+1a25d8e5-b05e-4836-a30d-6de69675d394,St._Johns/st-johns-Payment-Plan-Contract-form,Payment Plan Contract,county_local,published,filing,high,filing signal: payment plan
+5b6e6ee3-e075-4784-bd9e-6c347168ed1b,St._Johns/st-johns-Petition_20for_20Involuntary_20Substance_20Abuse_20Assessment_20and_20Stablization_20Packet,Petition for Involuntary Substance Abuse Assessment and Stabilization,county_local,rejected,filing,high,filing signal: petition
+6352c474-4135-4c4a-873a-2f01f04d54e0,St._Johns/st-johns-Plea-of-Guilty-No-Contest-and-No-Request-for-Hearing-6.340d-1,Plea of Guilty / No Contest and No Request for Hearing,county_local,published,filing,high,filing signal: request for
+98b31d99-a78c-4e00-a7bd-5fdd958bb3d6,St._Johns/st-johns-Plea-of-Nolo-Contendere,Plea of Nolo Contendere,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+4089e5cc-1bf0-4799-bff0-a1a5e13d8c79,St._Johns/st-johns-Plea-of-Not-Guilty-and-Request-for-Hearing-6.340e-1,Plea of Not Guilty and Request for Hearing,county_local,published,filing,high,filing signal: request for
+ba2b6ec7-7493-4d01-8634-f73c90b3a139,St._Johns/st-johns-PREMARITAL_20CLASS_20PROV,Marriage Course Provider Registration Form,county_local,published,clerk_admin,high,clerk transaction pattern: marriage license
+cd827d0b-8eec-4e6e-bb1c-8bd1b7cff4d0,St._Johns/st-johns-Proof-of-purchase,Proof of Purchase,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+f7276d34-e5d8-466c-811e-d367bd7c0afb,St._Johns/st-johns-PRR-Form_Updated-29JUL25,Request for Records Research and/or Copies Form,county_local,published,filing,high,filing signal: request for
+9e6ada7d-dae6-46bb-9ea3-84491bc9eb63,St._Johns/st-johns-Quiet-Title-County-Court,Complaint to Quiet Title – County Court,county_local,published,filing,high,filing signal: complaint
+1d728726-9f6d-4064-9bca-0faa5712be15,St._Johns/st-johns-Request_20to_20be_20excused_20from_20email_20service_20for_20party_20not_20represented_20by_20attorney,Request to be Excused From Email Service For Party Not Represented by Attorney,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+8d1e6e1d-471d-490e-a399-bbd7dd5feb12,St._Johns/st-johns-request_for_issuance_of_alias_or_pluries_summons,Request for Issuance of Alias or Pluries Summons,county_local,published,filing,high,filing signal: summons
+d4eb2104-382b-4d0c-8603-a61c320de28c,St._Johns/st-johns-request_to_release_unredacted_recorded-doc,Request to Release Unredacted Recorded Documents,county_local,published,redaction,high,redaction pattern: redact
+ae409998-c778-48cd-bb18-c647666d2b79,St._Johns/st-johns-Request-for-Dismissal-of-DWLSR,Request for Dismissal of DWLSR,county_local,published,filing,high,filing signal: request for
+efcaae99-fbb9-4567-912e-be8f4ca16372,St._Johns/st-johns-Request-for-Dismissal-of-Handicap-Parking-Citation,Request for Dismissal of Handicap Parking Citation,county_local,published,filing,high,filing signal: request for
+3a76677a-d3a7-4e23-a649-c0d5a0171bad,St._Johns/st-johns-REQUEST-FOR-EXCEPTION-TO-THE-DELAYED-EFFECTIVE-DATE-REQUIREMENT-AND-HARDSHIP-AFFIDAVIT,Request for Exception to the Delayed Effective Date Requirement and Hardship Affidavit,county_local,published,clerk_admin,high,clerk transaction pattern: marriage license
+775e817c-7115-4c2d-b690-cd02de8d25cc,St._Johns/st-johns-Request-for-Late-Court-Appearance,Request for Late Court Appearance,county_local,published,filing,high,filing signal: request for
+f97dcdc3-1c51-4de7-b46b-caeb6ae371fd,St._Johns/st-johns-RequestPermanentRemovalMilitaryDischarge,Request for Permanent Removal of Military Discharge Documents per Florida Statute §295.186,county_local,published,clerk_admin,high,clerk transaction pattern: official records
+e4d48179-caac-498e-9f35-2e1c53b2985c,St._Johns/st-johns-RequestRedactionSSNFinancialAccountNumbers,Request for Redaction of SSN and Financial Account Numbers,county_local,published,redaction,high,redaction pattern: redact
+c96f9e6a-e32c-44e1-8d0b-05f4884781e4,St._Johns/st-johns-RequestRemovalDocumentsInternet,Request for Removal of Documents from the Publicly Available Internet Website Per Florida Statute §28.2221(5),county_local,published,filing,high,filing signal: certificate
+0536aa3f-d562-41bb-8f4c-eb2c30d33763,St._Johns/st-johns-Requests_to_Redact_Exemp_3_2026,Request for Redaction of Exempt Personal Information from Public Records,county_local,published,redaction,high,redaction pattern: redact
+f3c1c57d-264d-41f9-86e3-640ec2a12a01,St._Johns/st-johns-Required-Premarital-Statement,Required Premarital Statement,county_local,published,clerk_admin,high,clerk transaction pattern: marriage license
+74da7f4c-4557-4e8e-8ee8-f15885f5ff63,St._Johns/st-johns-Satisfaction-of-Lien,Release and Satisfaction of Recorded Lien,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+e4b5e583-6f65-4498-a057-49c3fafd8572,St._Johns/st-johns-Simplified-Accounting-Form,Simplified Annual Accounting Form,county_local,published,filing,high,filing signal: guardian
+edff00d1-6e8b-4965-af28-d45400e5fcf5,St._Johns/st-johns-Simplified-Payment-Plan-02182025,Payment Plan Agreement Request Form,county_local,published,filing,high,filing signal: request for
+34a748ee-f65c-4951-bcf4-4d9790ea4e6a,St._Johns/st-johns-small_claims_instruction_and_general_complaint_form,General Complaint Form with Instructions,county_local,published,filing,high,filing signal: complaint
+66366ad5-630e-4056-8ba6-c2825c981bd9,St._Johns/st-johns-St-Johns-County-Clerk-of-Court-Quit-Claim-Deed,Quit Claim Deed,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+f092977c-bb7b-4534-ba0e-d406fa1effd4,St._Johns/st-johns-Tax-Deed-Surplus-Form-8-2025,Affidavit of Claim to Surplus Proceeds of a Tax Deed Sale,county_local,published,filing,high,filing signal: affidavit
+1a1f35ef-f206-4ae5-86a8-95090f55032f,St._Johns/st-johns-Template-Non-Military-Affidavit-2025,Affidavit of Military Service,county_local,published,filing,high,filing signal: motion
+1e84be60-e821-4cbe-8fb7-9f94106b4f4d,St._Johns/st-johns-Traffic-Court-Request,Court Request,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+d4276c7a-474f-438f-9ae5-7f8dded62d82,St._Johns/st-johns-Traffic-Infraction-Motion,Traffic Infraction Motion,county_local,published,filing,high,filing signal: motion
+45a8b92a-091f-4396-82c4-f47cd7c50648,St._Johns/st-johns-unlawful_detainer-complaint,Unlawful Detainer Complaint Form,county_local,published,filing,high,filing signal: complaint
+9b7f99a7-91df-4272-9699-e70406ad1ae9,St._Johns/st-johns-unlawful_detainer-motion_for_default,Motion for Default and Clerk’s Default Form,county_local,published,filing,high,filing signal: motion
+145eed3f-4ce6-473b-bb38-d32d96b84817,St._Johns/st-johns-Vehicle-Owner-Affidavit,Vehicle Owner Affidavit,county_local,published,filing,high,filing signal: affidavit
+026e26be-fe22-49f0-b227-297ecf22b135,St._Johns/st-johns-w-9,PDF,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+527fa246-14d3-4702-a109-4ff7237dae35,St._Johns/st-johns-Wireless-Communications-Device-Driving-Safety-School-Election-Affidavit,Wireless Communications Device Driving Safety School Election Affidavit,county_local,published,filing,high,filing signal: affidavit
+d93fa1dd-b63c-4b9f-a49f-711acd77ede3,St._Johns/st-johns-Withdraw-of-Court,Withdraw of Court Option,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+2cd29651-29ea-48e0-9d7e-f00663871e49,St._Johns/st-johns-Withdraw-of-School,Withdraw of School Option,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+23789776-7b0f-42ac-bb93-8a3228339553,St._Lucie/st.-lucie-2025-10,St. Lucie County - 2025-10.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+ac47208e-d60a-4b80-bae5-cf4a80d18848,St._Lucie/st.-lucie-Change-of-Address-Form,Notice of Change of Mailing Address or Designated E-Mail Address (Form 2.603) - St. Lucie County,county_local,published,filing,high,filing signal: petition
+56a54b55-cd25-4e98-8e13-55138af3f569,St._Lucie/st.-lucie-Complaint-to-Quiet-Title-with-Instructions,St. Lucie County - Complaint-to-Quiet-Title-with-Instructions.pdf,county_local,published,filing,high,filing signal: complaint
+0694320f-d6fc-4642-b28e-e4a367ffea34,St._Lucie/st.-lucie-Designation-of-email-address-no-att,Designation of E-mail Address for a Party Not Represented by an Attorney,county_local,published,filing,high,filing signal: order
+5b8d6f7b-32cb-4a44-b84a-bf3058e75e62,St._Lucie/st.-lucie-legal-resources-brochure,St. Lucie County - legal-resources-brochure.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+1c280b1d-c094-42a3-9415-04174f180c76,St._Lucie/st.-lucie-Opinion_SC2023-1401,St. Lucie County - Opinion_SC2023-1401.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+fa318e91-a773-4cf8-a076-372675d053b1,St._Lucie/st.-lucie-Request-to-be-excused-from-email-service-form2601,Request to be Excused from E-Mail Service for Party Not Represented by Attorney (Form 2.601),county_local,published,filing,high,filing signal: exemption
+cd9be8e2-cd62-4cf8-afe4-9f5616bd1178,Sumter/sumter-PDF_FAQS_Apr_2021-2,Sumter County - PDF_FAQS_Apr_2021-2.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+8e89d5cf-e6d9-433c-8508-3594573c7720,Volusia/volusia-CL-0341-Request-for-Removal-Official-Records,Request for Removal (Official Records),county_local,published,clerk_admin,high,clerk transaction pattern: credit card
+6b6e3347-33b6-46c7-822d-778f977c1477,Volusia/volusia-SocialSecurityNoticeCourtRelated,Volusia County - SocialSecurityNoticeCourtRelated.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+afe9be9d-b3a5-4f53-903e-a98bdac51b2f,Volusia/volusia-SocialSecurityNoticeNoncourtRelated,Volusia County - SocialSecurityNoticeNoncourtRelated.pdf,county_local,rejected,uncertain,low,no filing/payment/redaction signal in metadata
+de3f82b5-b52f-48e6-8c08-9b65a6b9eb0f,Walton/walton-ADULT_EXPUNGE_SEAL_PACKET,Walton County - ADULT EXPUNGE SEAL PACKET,county_local,published,filing,high,filing signal: petition
+b9edfd3d-3d7e-4eea-86c5-93f856a4ed7e,Walton/walton-Claim_for_Surplus_Foreclosure,Owner's Claim for Mortgage Foreclosure Surplus,county_local,published,uncertain,low,no filing/payment/redaction signal in metadata
+7594ca19-0d41-4abe-8c67-decfe1a3c05b,Walton/walton-County_Court_Replevin_Packet_updated_7-20,Walton County - County Court Replevin Packet,county_local,published,filing,high,filing signal: complaint
+0fb305c1-bc58-454b-a894-8b48e0998d33,Walton/walton-JUVENILE_EXPUNGE_SEAL_PACKET,Walton County - JUVENILE_EXPUNGE_SEAL_PACKET.pdf,county_local,published,filing,high,filing signal: petition
+d69a0866-7b4d-47ed-8b5b-09e6763bffa0,Walton/walton-LANDLORD_TENANT_RESIDENTIAL_EVICTION(1)_(1),Landlord Tenant Residential Eviction Packet,county_local,published,filing,high,filing signal: complaint
+758a1710-c4af-4ee7-b1b5-15c754bfc51c,Walton/walton-PARTIAL_PAYMENT_PLAN_AGREEMENT_2019_NEW(3),Partial Payment Plan Agreement,county_local,published,filing,high,filing signal: petition
+45e9bd93-b48c-4b93-8ac0-9c0ff9a5bf00,Walton/walton-Small_Claims_Packet_updated_1-25,Walton County - Small_Claims_Packet_updated_1-25.pdf,county_local,published,filing,high,filing signal: statement of claim
+cdd80258-05d9-4971-be44-7ae929b39c70,Walton/walton-Unlawful_Detainer_Packet_12-31-2020,Walton County - Unlawful_Detainer_Packet_12-31-2020.pdf,county_local,published,filing,high,filing signal: complaint
