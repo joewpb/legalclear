@@ -11,6 +11,12 @@ interface Provider {
   description: string;
 }
 
+interface PublicDefender {
+  circuit: number;
+  counties: string;
+  site: string;
+}
+
 export default function FindLegalHelpFL() {
   const [county, setCounty] = useState("");
 
@@ -140,7 +146,7 @@ export default function FindLegalHelpFL() {
             </tr>
           </thead>
           <tbody>
-            {publicDefenders.map((pd: any) => (
+            {publicDefenders.map((pd: PublicDefender) => (
               <tr key={pd.circuit}>
                 <td style={tdStyle}>{pd.circuit}</td>
                 <td style={tdStyle}>{pd.counties}</td>
