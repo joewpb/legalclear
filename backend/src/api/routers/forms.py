@@ -41,6 +41,8 @@ _anthropic = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
 
 # Statuses servable to end users (matches list_forms / download_form gating).
 _SERVABLE = ["published", "active"]
+# Categories that must never surface to end users (Phase forms-audit, Aug 2026).
+_HIDDEN_CATEGORY = "clerk_administrative"
 
 FL_FAMILY_LAW_FORMS_PAGE = (
     "https://www.flcourts.gov/Resources-Services/"
@@ -61,7 +63,7 @@ async def list_forms(category: str | None = None):
         q = db.client.table("court_forms").select(
             "form_number,title,category,court_revision_date,"
             "situation_tags,plain_language_summary,source_page_url,status"
-        ).in_("status", ["published", "active"])
+        ).in_("status", ["published", "active"]).neq("category", _HIDDEN_CATEGORY)
         if category:
             q = q.eq("category", category)
         result = q.order("form_number").execute()
@@ -125,6 +127,7 @@ def _candidate_forms_for_situation(situation: str, limit: int = 10) -> list[dict
                 "form_number,title,category,plain_language_summary,situation_tags"
             )
             .in_("status", _SERVABLE)
+            .neq("category", _HIDDEN_CATEGORY)
             .or_(f"form_text.wfts(english).{kw},title.ilike.*{kw}*")
             .limit(40)
             .execute()
@@ -146,11 +149,12 @@ def _search_court_forms(
     category: str | None = None,
     limit: int = 20,
     offset: int = 0,
+    county: str | None = None,
 ):
     """Shared search over servable forms. Returns (rows, total).
 
     Full-text search uses the GIN tsvector index on form_text, OR-ed with an
-    ilike match on title. Filters by category only.
+    ilike match on title. Filters by category and/or county prefix.
     """
     query = (
         db.client.table("court_forms")
@@ -160,6 +164,7 @@ def _search_court_forms(
             count="exact",
         )
         .in_("status", _SERVABLE)
+        .neq("category", _HIDDEN_CATEGORY)
     )
 
     if q:
@@ -170,6 +175,8 @@ def _search_court_forms(
             )
     if category:
         query = query.eq("category", category)
+    if county:
+        query = query.like("form_number", f"{county}/%")
 
     result = (
         query.order("form_number")
@@ -252,6 +259,7 @@ async def recommend_forms(case: str, county: str = ""):
                 )
                 .in_("form_number", case_type.form_numbers)
                 .in_("status", ["published", "active"])
+                .neq("category", _HIDDEN_CATEGORY)
                 .order("form_number")
                 .execute()
             )
@@ -324,10 +332,11 @@ async def get_decision_tree():
 async def search_forms(
     q: str | None = None,
     category: str | None = None,
+    county: str | None = None,
     limit: int = 20,
     offset: int = 0,
 ):
-    """Keyword + category search over servable forms, with pagination."""
+    """Keyword + category + county search over servable forms, with pagination."""
     if db.client is None:
         raise HTTPException(status_code=503, detail="Database unavailable")
 
@@ -335,7 +344,7 @@ async def search_forms(
     offset = max(0, offset)
 
     try:
-        rows, total = _search_court_forms(q, category, limit, offset)
+        rows, total = _search_court_forms(q, category, limit, offset, county)
     except Exception as e:
         logger.error("search_forms failed: %s", e)
         raise HTTPException(status_code=500, detail="Could not search forms") from e
@@ -361,6 +370,7 @@ async def form_facets():
             db.client.table("court_forms")
             .select("category")
             .in_("status", _SERVABLE)
+            .neq("category", _HIDDEN_CATEGORY)
             .execute()
         )
     except Exception as e:
@@ -381,6 +391,49 @@ async def form_facets():
     }
 
 
+# ── Counties ──────────────────────────────────────────────────────────────────
+
+@router.get("/counties")
+async def form_counties():
+    """Distinct county prefixes available for county_local forms.
+
+    County-local form_numbers look like \"St._Johns/st-johns-...\" — the part
+    before the first \"/\" is the scrape-provenance county key. This endpoint
+    returns those keys (with counts) for the frontend county filter.
+    """
+    if db.client is None:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+
+    try:
+        result = (
+            db.client.table("court_forms")
+            .select("form_number")
+            .in_("status", _SERVABLE)
+            .neq("category", _HIDDEN_CATEGORY)
+            .execute()
+        )
+    except Exception as e:
+        logger.error("form_counties failed: %s", e)
+        raise HTTPException(status_code=500, detail="Could not load counties") from e
+
+    county_counts: dict[str, int] = {}
+    for row in result.data or []:
+        fn = row.get("form_number") or ""
+        if "/" not in fn:
+            continue
+        key = fn.split("/", 1)[0]
+        if key == "circuits":
+            continue  # circuit_specific forms carry a "circuits/" prefix, not a county
+        county_counts[key] = county_counts.get(key, 0) + 1
+
+    return {
+        "counties": [
+            {"value": k, "count": v}
+            for k, v in sorted(county_counts.items())
+        ],
+    }
+
+
 # ── Metadata ─────────────────────────────────────────────────────────────────
 
 @router.get("/meta/{form_number:path}")
@@ -397,6 +450,8 @@ async def form_meta(form_number: str):
                 "situation_tags,source_page_url,court_revision_date,status"
             )
             .eq("form_number", form_number)
+            .in_("status", _SERVABLE)
+            .neq("category", _HIDDEN_CATEGORY)
             .execute()
         )
     except Exception as e:
@@ -535,6 +590,7 @@ async def download_form(form_number: str):
     result = (db.client.table("court_forms")
               .select("form_number,title,status,storage_path,source_page_url")
               .eq("form_number", form_number)
+              .neq("category", _HIDDEN_CATEGORY)
               .execute())
 
     if not result.data:

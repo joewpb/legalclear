@@ -358,8 +358,10 @@ function ResultCard({ form }: { form: FormRow }) {
 export default function FormsFinderFL() {
   // ── Browse / filter state ──
   const [categories, setCategories] = useState<Facet[]>([]);
+  const [counties, setCounties] = useState<Facet[]>([]);
   const [keyword, setKeyword] = useState("");
   const [category, setCategory] = useState("");
+  const [county, setCounty] = useState("");
   const [results, setResults] = useState<FormRow[]>([]);
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);
@@ -376,7 +378,7 @@ export default function FormsFinderFL() {
 
   // ── Data fetching ──
   const runSearch = useCallback(
-    async (q: string, cat: string, off: number) => {
+    async (q: string, cat: string, off: number, cty: string = "") => {
       setLoading(true);
       setSearchError(null);
       try {
@@ -386,6 +388,7 @@ export default function FormsFinderFL() {
         };
         if (q.trim()) params.q = q.trim();
         if (cat) params.category = cat;
+        if (cty) params.county = cty;
         const { data } = await api.get("/api/forms/search", { params });
         setResults(data.forms || []);
         setTotal(data.total || 0);
@@ -401,19 +404,24 @@ export default function FormsFinderFL() {
     [],
   );
 
-  // On load: facets + initial unfiltered results.
+  // On load: facets + counties + initial unfiltered results.
   useEffect(() => {
     api
       .get("/api/forms/facets")
       .then(({ data }) => setCategories(data.categories || []))
       .catch(() => setCategories([]));
+    api
+      .get("/api/forms/counties")
+      .then(({ data }) => setCounties(data.counties || []))
+      .catch(() => setCounties([]));
     runSearch("", "", 0);
   }, [runSearch]);
 
-  const onSearch = () => runSearch(keyword, category, 0);
+  const onSearch = () => runSearch(keyword, category, 0, county);
   const onClear = () => {
     setKeyword("");
     setCategory("");
+    setCounty("");
     runSearch("", "", 0);
   };
 
@@ -538,6 +546,18 @@ export default function FormsFinderFL() {
               </option>
             ))}
           </select>
+          <select
+            style={S.select}
+            value={county}
+            onChange={(e) => setCounty(e.target.value)}
+          >
+            <option value="">All counties</option>
+            {counties.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.value.replace(/_/g, " ")} ({c.count})
+              </option>
+            ))}
+          </select>
           <button type="button" style={S.btn} onClick={onSearch}>
             Search
           </button>
@@ -572,7 +592,7 @@ export default function FormsFinderFL() {
                 style={{ ...S.btnGhost, opacity: offset === 0 ? 0.5 : 1 }}
                 disabled={offset === 0}
                 onClick={() =>
-                  runSearch(keyword, category, Math.max(0, offset - PAGE_SIZE))
+                  runSearch(keyword, category, Math.max(0, offset - PAGE_SIZE), county)
                 }
               >
                 ← Prev
@@ -587,7 +607,7 @@ export default function FormsFinderFL() {
                   opacity: pageEnd >= total ? 0.5 : 1,
                 }}
                 disabled={pageEnd >= total}
-                onClick={() => runSearch(keyword, category, offset + PAGE_SIZE)}
+                onClick={() => runSearch(keyword, category, offset + PAGE_SIZE, county)}
               >
                 Next →
               </button>

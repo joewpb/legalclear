@@ -64,6 +64,7 @@ async def classify_document(document_id: str):
                 result = (db.client.table("court_forms")
                           .select("form_number,title,court_revision_date,status")
                           .in_("status", ["published", "active"])
+                          .neq("category", "clerk_administrative")
                           .contains("situation_tags", [tag])
                           .execute())
                 suggested_forms.extend(result.data or [])
