@@ -64,7 +64,8 @@ def _tag_to_search_terms(tags: set[str]) -> list[str]:
     return out
 
 
-def _sanitize_term(term: str) -> str:
+def sanitize_term(term: str) -> str:
+    """Scrub chars that would break a PostgREST ``or``/``ilike`` filter value."""
     return _TERM_SCRUB.sub(" ", term).strip()
 
 
@@ -75,7 +76,7 @@ def _build_ilike_filter(terms: list[str]) -> str:
     """
     parts = []
     for t in terms:
-        clean = _sanitize_term(t)
+        clean = sanitize_term(t)
         if not clean:
             continue
         parts.append(f"summary_plain.ilike.%{clean}%")

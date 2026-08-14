@@ -25,7 +25,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import re
 
 import httpx
 from fastapi import APIRouter
@@ -34,6 +33,7 @@ from pydantic import BaseModel
 from src.core.config import settings
 from src.core.upl import apply_disclaimer
 from src.memory.db import DatabaseManager
+from src.services.opinion_retrieval import sanitize_term
 
 router = APIRouter(prefix="/api/case-law")
 logger = logging.getLogger(__name__)
@@ -68,24 +68,15 @@ _CL_BASE = "https://www.courtlistener.com"
 _CL_V4_SEARCH = "https://www.courtlistener.com/api/rest/v4/search/"
 _RESULT_LIMIT = 10
 
-# Strip chars that would break a PostgREST `or`/`ilike` filter value or let
-# a user term escape the predicate (commas separate predicates, parens
-# group, colons split col.op.value, * is a wildcard).
-_TERM_SCRUB = re.compile(r"[,():*]")
-
 
 class CaseLawSearchRequest(BaseModel):
     query: str
     court_filter: str = "all"
 
 
-def _sanitize_term(term: str) -> str:
-    return _TERM_SCRUB.sub(" ", term).strip()
-
-
 def _build_or_filter(term: str) -> str:
     """PostgREST `or=` filter across the searchable text columns."""
-    t = _sanitize_term(term)
+    t = sanitize_term(term)
     if not t:
         return ""
     frag = f"%{t}%"
