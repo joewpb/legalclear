@@ -71,3 +71,35 @@ budgets.
   lookup first.
 - S1-1 deploy gating: confirm API_KEY set in Railway before merging/deploying the branch.
 - All four fix branches await Joe's manual review. Nothing pushed, nothing merged.
+
+---
+
+# GROUP B (S3 silent failures) — run 2026-08-14
+
+| # | Item | Status | Branch | Commit | Files touched | Test delta | Cost |
+|---|---|---|---|---|---|---|---|
+| 8 | S3-3 startup config validation | PASS | fix/s3-3-startup-validation | 423b470 | config.py, routes.py (startup hook), test_startup_config_validation.py (new) | +3 tests; CI-scope 199/1 | $0.82 |
+| 9 | S3-4 closure-fetch must not silently compute | PASS | fix/s3-4-closure-fetch | 28ff4e2 | deadline/pipeline.py, test_deadline_pipeline.py (new) | +2 tests; CI-scope 198/1 | $1.00 |
+| 10 | S3-5a intake outage → 503 | PASS | fix/s3-5a-intake-swallow | 74058e8 | routers/intake.py, test_intake_router.py (new) | +2 tests; CI-scope 198/1 | $0.63 |
+| 11 | S3-5b discovery risk-parse log | PASS | fix/s3-5b-discovery-swallow | a6748b7 | agents/discovery_motion.py, test_discovery_motion.py (new) | +1 test; CI-scope 197/1 | $0.91 |
+| 12 | S3-5c upl unparseable-date escalate | PASS | fix/s3-5c-upl-swallow | 0c86cd0 | core/upl.py, test_upl.py | +1 test (25 passed); CI-scope 197/1 | $0.50 |
+
+Group B total: $3.86. Zero exhaustions (S3-5 split into three single-surface
+dispatches per the skill instead of one 60-turn run). S3-1 remains blocked on the
+migration-tooling answer.
+
+## Design notes (Group B)
+
+- S3-3: validation runs at FastAPI startup, NOT import — deliberately avoiding the
+  S1-1 CI-collection pitfall. Required vars (SUPABASE_URL, SUPABASE_SERVICE_KEY,
+  ANTHROPIC_API_KEY) fatal outside ENVIRONMENT=development, matching the triage entry.
+  Divergence to review: S1-1 gates API_KEY unconditionally at import; S3-3 carves out
+  development for the other creds. Decide at review time which policy wins.
+- S3-4: chose the assumption_disclosure route over refusing computation — existing
+  response fields carried it, no API shape change. Flag + forced escalation per
+  deadline.
+- S3-5b: run chose log-at-error over a new SSE event after reading the client
+  (whitelists only risk_analysis; unmatched chunks corrupt the final parse). Scope
+  discipline — correct refusal, surfaced here for review.
+- S3-5c: check_escalation has no in-repo callers yet (pre-existing state, not a
+  regression of this fix).
