@@ -79,9 +79,14 @@ backend/src/data/court_closures_seed.json (99 closures, all 20 circuits, no runt
 loaders), and docs/court-closures-florida-2026.md. Gap: 99 local-holiday rows missing
 across every circuit. Reopen pending the migration mechanism decision (see S3-1).
 
-## BLOCKER — deadline pipeline must not serve real users until closure table is complete
-Court closures are an input to deadline computation. With only statewide holidays
-seeded, deadlines computed for any circuit-specific closure (e.g., local Good Friday,
-Yom Kippur, discretionary Christmas Eve) are WRONG legal dates. Applying
-20260808000000_seed_local_court_closures.sql is a prerequisite to enabling the pipeline
-for anyone but a supervised test. Do not ship deadline features until this lands.
+## BLOCKER — RESOLVED 2026-08-14: closure table complete (kept for the record)
+Court closures are an input to deadline computation. The Aug 8 local-closures seed
+(20260808000000_seed_local_court_closures.sql, 99 rows, circuits 1–20) was applied
+MANUALLY via the REST API on 2026-08-14 with ON CONFLICT DO NOTHING semantics
+(ignore-duplicates). Verified: 9 → 108 rows, all 20 circuits represented, spot-checks
+against docs/court-closures-florida-2026.md matched. The deadline pipeline may now
+proceed for supervised use.
+Still open: the application was manual (REST), not through any migration mechanism —
+the S3-1 migration-mechanism question remains open and the seed is idempotent, so it
+must be re-applied through whatever mechanism is settled on. The attorney-referral
+tables migration remains BLOCKED on RLS (unchanged).
