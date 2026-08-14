@@ -119,16 +119,15 @@ async def run_deadline_pipeline(
         confidence = _safe_float(event.get("confidence"))
         circuit = _safe_int(event.get("circuit"))
 
-        # Missing service date → escalate immediately
+        # Missing service date → skip the write (event_date is NOT NULL in the
+        # DB; there is no non-fabricated value to store) and escalate instead
+        # of ever persisting a placeholder date such as 1970-01-01.
         if not event_date_str:
             result["escalation_needed"] = True
             result["escalation_reasons"].append(
                 f"Service/event date could not be extracted for {rule_key!r}. "
                 "Manual review required to determine the applicable deadline."
             )
-            # Still write the trigger event for audit purposes
-            _write_trigger_event(db, document_id, event, is_escalated=True)
-            result["trigger_events_written"] += 1
             continue
 
         # Unknown document type → escalate
@@ -229,7 +228,7 @@ def _write_trigger_event(
         row = {
             "document_id": document_id,
             "event_type": event.get("event_type", "unknown"),
-            "event_date": event.get("event_date") or "1970-01-01",  # placeholder for null
+            "event_date": event.get("event_date"),
             "service_method": event.get("service_method", "unknown"),
             "document_type": event.get("document_type", "unknown"),
             "jurisdiction": event.get("jurisdiction", "FL"),

@@ -98,6 +98,14 @@ def _date_appears_in_text(iso_date_str: str, text: str) -> bool:
     m_full = calendar.month_name[d.month]
     m_abbr = calendar.month_abbr[d.month]
 
+    # Ordinal suffix (1st, 2nd, 3rd, 4th, 11th-13th, ...) for legal-filing
+    # date conventions like "DATED this 14th day of August, 2026."
+    if 11 <= d.day % 100 <= 13:
+        suffix = "th"
+    else:
+        suffix = {1: "st", 2: "nd", 3: "rd"}.get(d.day % 10, "th")
+    day_ordinal = f"{day}{suffix}"
+
     variants = {
         iso_date_str,                        # 2025-01-01
         iso_date_str.replace("-", "/"),      # 2025/01/01
@@ -112,6 +120,11 @@ def _date_appears_in_text(iso_date_str: str, text: str) -> bool:
         variants.add(f"{name} {dd}, {yr}")
         variants.add(f"{name} {day} {yr}")
         variants.add(f"{name} {dd} {yr}")
+        # Ordinal legal-filing convention: "this 14th day of August, 2026"
+        variants.add(f"{day_ordinal} day of {name}, {yr}")
+        variants.add(f"{day_ordinal} day of {name} {yr}")
+        variants.add(f"{name} {day_ordinal}, {yr}")
+        variants.add(f"{name} {day_ordinal} {yr}")
 
     return any(v.lower() in haystack for v in variants)
 

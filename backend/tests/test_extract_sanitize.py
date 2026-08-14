@@ -55,6 +55,19 @@ def test_invalid_iso_returns_false():
     assert not _date_appears_in_text(None, "whatever")
 
 
+def test_ordinal_legal_filing_convention():
+    # S2-5c root cause: "DATED this 14th day of August, 2026." was a real,
+    # verbatim date that _date_appears_in_text falsely rejected as a
+    # hallucination because it only recognized "Month Day, Year" forms.
+    assert _date_appears_in_text(
+        "2026-08-14", "DATED this 14th day of August, 2026."
+    )
+    assert _date_appears_in_text("2025-03-01", "this 1st day of March, 2025")
+    assert _date_appears_in_text("2025-03-02", "this 2nd day of March 2025")
+    assert _date_appears_in_text("2025-03-03", "this 3rd day of March, 2025")
+    assert _date_appears_in_text("2025-03-11", "this 11th day of March, 2025")
+
+
 # ── _sanitize_events ────────────────────────────────────────────────────────
 
 def test_hallucinated_date_is_nullified_and_escalated():
