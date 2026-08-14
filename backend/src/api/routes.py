@@ -330,7 +330,7 @@ async def process_document(session_id: str, background_tasks: BackgroundTasks, l
         # Run explanation and risk scan concurrently — both only depend on
         # classification which is already resolved at this point.
         explanation, risk_scan = await asyncio.gather(
-            explainer.explain(doc, classification, lang),
+            explainer.explain(document_text, lang),
             risk_scanner.scan(doc, classification, lang),
         )
 
