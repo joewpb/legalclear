@@ -69,3 +69,19 @@ rule. This is the THIRD parallel disclaimer text in the codebase (alongside
 `get_disclaimer` and `apply_disclaimer` from the S1-6 report). Direct evidence for
 consolidating on a single `apply_disclaimer` source rather than patching each site.
 Added to the UPL fix footprint.
+## S2-3 REOPENED — correction (2026-08-14, closure-table verification)
+Earlier resolution "S2-3 already applied — 9 rows ✓" was WRONG. The 9 prod rows are the
+May Phase-3 STATEWIDE holiday seed (20260519220500, circuit=0 only, created 2026-05-19).
+The Aug 8 local-closures seed (20260808000000_seed_local_court_closures.sql — 99 rows,
+circuits 1–20, 2026-01-02 through 2027-12-27) has NEVER been applied to prod: 0 rows
+with circuit != 0. Sources exist and are intact: the migration, its raw scan output at
+backend/src/data/court_closures_seed.json (99 closures, all 20 circuits, no runtime
+loaders), and docs/court-closures-florida-2026.md. Gap: 99 local-holiday rows missing
+across every circuit. Reopen pending the migration mechanism decision (see S3-1).
+
+## BLOCKER — deadline pipeline must not serve real users until closure table is complete
+Court closures are an input to deadline computation. With only statewide holidays
+seeded, deadlines computed for any circuit-specific closure (e.g., local Good Friday,
+Yom Kippur, discretionary Christmas Eve) are WRONG legal dates. Applying
+20260808000000_seed_local_court_closures.sql is a prerequisite to enabling the pipeline
+for anyone but a supervised test. Do not ship deadline features until this lands.

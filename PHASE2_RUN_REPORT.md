@@ -103,3 +103,21 @@ migration-tooling answer.
   discipline — correct refusal, surfaced here for review.
 - S3-5c: check_escalation has no in-repo callers yet (pre-existing state, not a
   regression of this fix).
+
+# CORRECTION (2026-08-14) — S2-3 finding revisited
+
+Earlier in this report S2-3 was noted as satisfied by the 9 closure rows then present in
+prod. That was incorrect. Read-only verification on 2026-08-14 established:
+
+- Prod `court_closures` = 9 rows, ALL circuit=0 (statewide 2026 holidays from the May
+  Phase-3 seed `20260519220500_phase_3_seed_2026_closures.sql`).
+- The Aug 8 local-closures seed (`20260808000000_seed_local_court_closures.sql`, 99 rows,
+  circuits 1–20, 2026-01-02 → 2027-12-27) has never been applied: zero rows with
+  circuit != 0.
+- Raw sources are intact in-repo: `backend/src/data/court_closures_seed.json` (99
+  closures, all 20 circuits; no runtime loaders reference it) and
+  `docs/court-closures-florida-2026.md` (the research doc, updated 2026-08-08).
+
+S2-3 is REOPENED (see FOLLOW_UPS.md). The closure table is incomplete for every circuit;
+per the new BLOCKER entry, the deadline pipeline must not serve real users until the
+seed is applied through the agreed migration mechanism.
