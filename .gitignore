@@ -80,3 +80,8 @@ scripts/opinion_pipeline/data/*
 scripts/opinion_pipeline/logs/*
 !scripts/opinion_pipeline/data/.gitkeep
 !scripts/opinion_pipeline/logs/.gitkeep
+
+# Claude Code local state — track skills/ and commands/ only
+.claude/*
+!.claude/skills/
+!.claude/commands/
