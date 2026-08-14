@@ -56,3 +56,9 @@ Same class as S2-5a: the upload handler reads `doc.get("token_estimate", 0)` but
 ingestion return dict has no such key, so sessions are created with token_count=0.
 Bookkeeping only — does not affect document text or the pipeline. Fix with any future
 upload-handler work.
+## S2-5 follow-up — legacy documents: 422 with no explanation (smoke test finding)
+Returning users opening the Deadlines tab on a pre-S2-5a document get a 422 (no
+extractable text) with no explanation. The 45 legacy documents' original files are
+unrecoverable (no storage bucket for uploads — Supabase Storage holds court-forms only;
+text was never stored due to S2-5a). Needs a clear empty-state message telling the user
+to re-upload. Not a silent failure — currently it IS a silent 422.
