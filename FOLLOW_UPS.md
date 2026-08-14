@@ -50,3 +50,9 @@ site-wide footer (none exists). Its only inbound link is from the
 `LEGAL_AID_LINKS` list rendered inside `CaseLawLookupFL.tsx`'s disclaimer section
 — not discoverable from the home hub. Belongs to S2-1, not S2-2 (S2-2 scope is
 `/find-legal-help` only. Needs its own HomeHub tile or nav entry.
+
+## S2-5 follow-up — token_estimate key also nonexistent (routes.py:288)
+Same class as S2-5a: the upload handler reads `doc.get("token_estimate", 0)` but the
+ingestion return dict has no such key, so sessions are created with token_count=0.
+Bookkeeping only — does not affect document text or the pipeline. Fix with any future
+upload-handler work.
