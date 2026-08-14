@@ -42,3 +42,9 @@ migratable, inspectable, and already holds the parked values in prod.
 Sequence: S3-1 parity check → apply the migration → amend the SQL → enable pg_net →
 schedule the cron. (Phase 2/3 cron jobs carry the identical dead GUC read and get the
 same treatment.)
+
+## S2-1 follow-up — /attorney-referral has no main-nav tile (found during S2-2)
+Pre-check for S2-2 confirmed `/attorney-referral` (App.tsx:92) has the same
+inbound-link gap as `/find-legal-help` did: no HomeHub tile, no Navbar entry, no
+site-wide footer (none exists). Its only inbound link is from the
+`LEGAL_AID_LINKS` list rendered inside `CaseLawLookupFL.tsx`s disclaimer section
