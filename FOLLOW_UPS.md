@@ -62,3 +62,10 @@ extractable text) with no explanation. The 45 legacy documents' original files a
 unrecoverable (no storage bucket for uploads — Supabase Storage holds court-forms only;
 text was never stored due to S2-5a). Needs a clear empty-state message telling the user
 to re-upload. Not a silent failure — currently it IS a silent 422.
+## UPL follow-up — third parallel disclaimer text found (S2-5c smoke test)
+`backend/src/api/routers/deadline.py`'s analyze response carries a disclaimer with
+EXTERNAL links (floridalawhelp.org, floridabar.org) — contradicts the no-external-links
+rule. This is the THIRD parallel disclaimer text in the codebase (alongside
+`get_disclaimer` and `apply_disclaimer` from the S1-6 report). Direct evidence for
+consolidating on a single `apply_disclaimer` source rather than patching each site.
+Added to the UPL fix footprint.
