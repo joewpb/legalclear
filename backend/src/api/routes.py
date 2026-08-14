@@ -291,7 +291,7 @@ async def upload_document(
             payment_type="free"
         )
 
-        document_id = db.create_document(session_id, doc.get("text", ""))
+        document_id = db.create_document(session_id, doc.get("cleaned_text", ""))
 
         return {
             "session_id": session_id,
