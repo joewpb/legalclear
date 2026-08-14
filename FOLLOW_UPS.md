@@ -47,4 +47,6 @@ same treatment.)
 Pre-check for S2-2 confirmed `/attorney-referral` (App.tsx:92) has the same
 inbound-link gap as `/find-legal-help` did: no HomeHub tile, no Navbar entry, no
 site-wide footer (none exists). Its only inbound link is from the
-`LEGAL_AID_LINKS` list rendered inside `CaseLawLookupFL.tsx`s disclaimer section
+`LEGAL_AID_LINKS` list rendered inside `CaseLawLookupFL.tsx`'s disclaimer section
+— not discoverable from the home hub. Belongs to S2-1, not S2-2 (S2-2 scope is
+`/find-legal-help` only. Needs its own HomeHub tile or nav entry.
