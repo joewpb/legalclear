@@ -169,3 +169,10 @@ UPL/CORRECTNESS-adjacent — external legal-aid links the site promised to elimi
 (Note: the disclaimer-field links seen in the same test run are pre-existing
 disclaimer.py text, already fixed by B4b-1 canonicalization on its branch — not this
 finding.)
+## S2-5/UPL follow-up — deadline router error paths carry NO disclaimer (B4b-2, 2026-08-15)
+deadline.py's GET /deadlines and GET /trigger-events except blocks (:62-64, :82-84) and
+all HTTPException raises return only {"detail": "..."} — no disclaimer key. Only happy
+paths carry one. Pinned by test_deadline_disclaimer.py (error-path absence asserted
+deliberately). If error-path disclaimers become required (B4 typed-event goal or UPL
+audit), this is the gap. Decision owed: is a bare-error response UPL-acceptable, or
+must errors carry the disclaimer too?
