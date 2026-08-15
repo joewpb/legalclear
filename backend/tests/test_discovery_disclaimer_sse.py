@@ -1,10 +1,13 @@
-"""B4b-4 — discovery_motion.py disclaimer: typed SSE event on success + error paths.
+"""B4b-4 / B4e-a — discovery_motion.py disclaimer: typed SSE event on
+success + error paths.
 
 Pins that DiscoveryMotionAnalyzer.analyze_stream emits a typed
-``event: disclaimer`` SSE frame on both the normal completion path and every
-mid-stream error exit (PDF extraction failure, unreadable text, unsupported
-file type, and the top-level stream exception), while leaving the embedded
-``disclaimer`` field inside each error frame unchanged (backward compat).
+``event: disclaimer`` SSE frame on the normal completion path and on any
+error exit that follows emitted content, while leaving the embedded
+``disclaimer`` field inside each error frame unchanged (backward compat). Per
+Decision 5, errors with no prior substantive content (PDF extraction
+failure, unreadable text, unsupported file type, or an LLM-stream failure on
+the first chunk) carry no disclaimer event.
 """
 import asyncio
 import json
@@ -18,9 +21,15 @@ from src.core.disclaimer import get_disclaimer
 
 
 class _FakeStream:
-    def __init__(self, text: str = None, raise_on_iter: bool = False) -> None:
+    def __init__(
+        self,
+        text: str = None,
+        raise_on_iter: bool = False,
+        raise_after_chunk: bool = False,
+    ) -> None:
         self._text = text
         self._raise_on_iter = raise_on_iter
+        self._raise_after_chunk = raise_after_chunk
 
     async def __aenter__(self):
         return self
@@ -31,6 +40,9 @@ class _FakeStream:
     async def _gen(self):
         if self._raise_on_iter:
             raise RuntimeError("upstream failure")
+        if self._raise_after_chunk:
+            yield self._text
+            raise RuntimeError("upstream failure mid-stream")
         yield self._text
 
     @property
@@ -39,17 +51,28 @@ class _FakeStream:
 
 
 class _FakeMessages:
-    def __init__(self, text: str = None, raise_on_iter: bool = False) -> None:
+    def __init__(
+        self,
+        text: str = None,
+        raise_on_iter: bool = False,
+        raise_after_chunk: bool = False,
+    ) -> None:
         self._text = text
         self._raise_on_iter = raise_on_iter
+        self._raise_after_chunk = raise_after_chunk
 
     def stream(self, **kwargs):
-        return _FakeStream(self._text, self._raise_on_iter)
+        return _FakeStream(self._text, self._raise_on_iter, self._raise_after_chunk)
 
 
 class _FakeClient:
-    def __init__(self, text: str = None, raise_on_iter: bool = False) -> None:
-        self.messages = _FakeMessages(text, raise_on_iter)
+    def __init__(
+        self,
+        text: str = None,
+        raise_on_iter: bool = False,
+        raise_after_chunk: bool = False,
+    ) -> None:
+        self.messages = _FakeMessages(text, raise_on_iter, raise_after_chunk)
 
 
 async def _collect(agen):
@@ -63,9 +86,9 @@ def _extract_frame(body: str, event_name: str) -> str:
     return body[start:end]
 
 
-def _new_analyzer(text=None, raise_on_iter=False):
+def _new_analyzer(text=None, raise_on_iter=False, raise_after_chunk=False):
     analyzer = DiscoveryMotionAnalyzer.__new__(DiscoveryMotionAnalyzer)
-    analyzer.client = _FakeClient(text, raise_on_iter)
+    analyzer.client = _FakeClient(text, raise_on_iter, raise_after_chunk)
     analyzer.model = "claude-sonnet-4-6"
     return analyzer
 
@@ -84,7 +107,8 @@ def test_analyze_stream_success_emits_typed_disclaimer():
     assert json.loads(frame) == {"disclaimer": expected}
 
 
-def test_analyze_stream_unsupported_file_emits_typed_disclaimer():
+def test_analyze_stream_unsupported_file_omits_disclaimer():
+    """Decision 5: pre-stream error with no content carries no disclaimer event."""
     analyzer = _new_analyzer()
 
     events = asyncio.run(
@@ -92,18 +116,37 @@ def test_analyze_stream_unsupported_file_emits_typed_disclaimer():
     )
     body = "".join(events)
 
-    assert "event: disclaimer" in body
-    expected = get_disclaimer("en")
-    frame = _extract_frame(body, "disclaimer")
-    assert json.loads(frame) == {"disclaimer": expected}
+    assert "event: disclaimer" not in body
 
+    expected = get_disclaimer("en")
     assert '"error": true' in body
-    error_payload = json.loads(body.split("\n\n")[1][len("data: "):])
+    error_payload = json.loads(body.split("\n\n")[0][len("data: "):])
     assert error_payload["disclaimer"] == expected
 
 
-def test_analyze_stream_upstream_error_emits_typed_disclaimer():
+def test_analyze_stream_upstream_error_before_content_omits_disclaimer():
+    """Decision 5: LLM-stream failure on the first chunk carries no disclaimer event."""
     analyzer = _new_analyzer(raise_on_iter=True)
+
+    events = asyncio.run(
+        _collect(analyzer.analyze_stream(b"fake-bytes", "motion.jpg", "en"))
+    )
+    body = "".join(events)
+
+    assert "event: disclaimer" not in body
+
+    expected = get_disclaimer("en")
+    assert '"error": true' in body
+    error_line = [
+        line for line in body.split("\n\n") if line.startswith("data: ") and "error" in line
+    ][-1]
+    error_payload = json.loads(error_line[len("data: "):])
+    assert error_payload["disclaimer"] == expected
+
+
+def test_analyze_stream_upstream_error_after_content_emits_typed_disclaimer():
+    """Decision 5: LLM-stream failure after content still carries the disclaimer."""
+    analyzer = _new_analyzer(text="partial content", raise_after_chunk=True)
 
     events = asyncio.run(
         _collect(analyzer.analyze_stream(b"fake-bytes", "motion.jpg", "en"))

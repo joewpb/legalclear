@@ -147,6 +147,7 @@ class CriminalProcedureExplainer:
             charge_type, severity, current_stage, language
         )
 
+        emitted_content = False
         try:
             full_text = ""
             url_filter = StreamingURLFilter("criminal_procedure")
@@ -164,6 +165,7 @@ class CriminalProcedureExplainer:
             ) as stream:
                 async for chunk in stream.text_stream:
                     full_text += chunk
+                    emitted_content = True
                     safe = url_filter.feed(chunk)
                     if safe:
                         yield f"data: {safe}\n\n"
@@ -222,10 +224,11 @@ class CriminalProcedureExplainer:
                 "CriminalProcedureExplainer stream error:\n%s",
                 traceback.format_exc(),
             )
-            yield (
-                "event: disclaimer\n"
-                f"data: {json.dumps({'disclaimer': get_disclaimer(language)})}\n\n"
-            )
+            if emitted_content:
+                yield (
+                    "event: disclaimer\n"
+                    f"data: {json.dumps({'disclaimer': get_disclaimer(language)})}\n\n"
+                )
             error_payload = json.dumps(
                 {
                     "error": True,
