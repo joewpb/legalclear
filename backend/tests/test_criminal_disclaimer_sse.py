@@ -171,3 +171,41 @@ def test_explain_stream_error_after_content_emits_typed_disclaimer():
     ][-1]
     error_payload = json.loads(error_line[len("data: "):])
     assert error_payload["disclaimer"] == expected
+def test_explain_stream_url_only_chunk_then_error_still_emits_disclaimer():
+    """Resolution-rule case: a chunk that filters to empty still sets
+    emitted_content, so a subsequent error must carry the typed disclaimer."""
+    explainer = CriminalProcedureExplainer.__new__(CriminalProcedureExplainer)
+    explainer.client = _FakeClient(
+        text="https://clsmf.org", raise_after_chunk=True
+    )
+    explainer.model = "claude-sonnet-4-6"
+
+    events = asyncio.run(
+        _collect(
+            explainer.explain_stream(
+                charge_type="DUI",
+                severity="misdemeanor",
+                current_stage="charged",
+                language="en",
+            )
+        )
+    )
+    body = "".join(events)
+
+    # The URL chunk filtered to empty -> no data frame carried it.
+    assert "clsmf.org" not in body
+
+    # But content arrived, so the error still carries the typed disclaimer.
+    assert "event: disclaimer" in body
+    expected = get_disclaimer("en")
+    frame = _extract_frame(body, "disclaimer")
+    assert json.loads(frame) == {"disclaimer": expected}
+
+    assert '"error": true' in body
+    error_line = [
+        line
+        for line in body.split("\n\n")
+        if line.startswith("data: ") and "error" in line
+    ][-1]
+    error_payload = json.loads(error_line[len("data: "):])
+    assert error_payload["disclaimer"] == expected
