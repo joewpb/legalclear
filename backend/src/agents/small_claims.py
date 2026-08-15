@@ -87,6 +87,7 @@ class SmallClaimsExplainer:
     ) -> AsyncGenerator[str, None]:
         """Stream a small-claims explanation as SSE chunks."""
         user_prompt = self._build_user_prompt(entities, language)
+        disclaimer = get_disclaimer(language)
 
         try:
             async with self.client.messages.stream(
@@ -104,16 +105,25 @@ class SmallClaimsExplainer:
                 async for chunk in stream.text_stream:
                     yield f"data: {chunk}\n\n"
 
+            yield (
+                "event: disclaimer\n"
+                f"data: {json.dumps({'disclaimer': disclaimer})}\n\n"
+            )
+
         except Exception:
             logger.error(
                 "SmallClaimsExplainer stream error:\n%s",
                 traceback.format_exc(),
             )
+            yield (
+                "event: disclaimer\n"
+                f"data: {json.dumps({'disclaimer': disclaimer})}\n\n"
+            )
             error_payload = json.dumps(
                 {
                     "error": True,
                     "message": "Explanation could not be generated.",
-                    "disclaimer": get_disclaimer(language),
+                    "disclaimer": disclaimer,
                 }
             )
             yield f"data: {error_payload}\n\n"

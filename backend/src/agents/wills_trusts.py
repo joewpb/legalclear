@@ -179,6 +179,11 @@ class WillsTrustsExplainer:
                 async for chunk in stream.text_stream:
                     yield f"data: {json.dumps({'chunk': chunk})}\n\n"
 
+                yield (
+                    "event: disclaimer\n"
+                    f"data: {json.dumps({'disclaimer': disclaimer})}\n\n"
+                )
+
                 # Append disclaimer as final chunk
                 yield f"data: {json.dumps({'disclaimer': disclaimer})}\n\n"
                 # Signal end of stream
@@ -188,6 +193,10 @@ class WillsTrustsExplainer:
             logger.error(
                 "WillsTrustsExplainer stream error:\n%s",
                 traceback.format_exc(),
+            )
+            yield (
+                "event: disclaimer\n"
+                f"data: {json.dumps({'disclaimer': disclaimer})}\n\n"
             )
             error_payload = json.dumps({
                 "error": True,
