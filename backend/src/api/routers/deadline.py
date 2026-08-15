@@ -2,8 +2,6 @@
 
 import logging
 
-from typing import Optional
-
 from fastapi import APIRouter, Depends, HTTPException
 
 from src.api.dependencies import require_api_key
@@ -13,6 +11,20 @@ from src.memory.db import DatabaseManager
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/deadline", tags=["deadline"])
 db = DatabaseManager()
+
+
+def _require_document(document_id: str, session_id: str | None) -> dict:
+    """Fetch a document and enforce session scoping.
+
+    503 when the database is unavailable; 404 when the document does not
+    exist or the caller's session does not own it (IDOR guard).
+    """
+    if db.client is None:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+    doc = db.get_document(document_id)
+    if not doc or not session_id or doc.get("session_id") != session_id:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return doc
 
 
 @router.post("/analyze/{document_id}", dependencies=[Depends(require_api_key)])
@@ -43,13 +55,9 @@ async def analyze_document(document_id: str):
 
 
 @router.get("/{document_id}/deadlines")
-async def get_deadlines(document_id: str, session_id: Optional[str] = None):
+async def get_deadlines(document_id: str, session_id: str | None = None):
     """Return all computed deadlines for a document, ordered by due_date."""
-    if db.client is None:
-        raise HTTPException(status_code=503, detail="Database unavailable")
-    doc = db.get_document(document_id)
-    if not doc or not session_id or doc.get("session_id") != session_id:
-        raise HTTPException(status_code=404, detail="Document not found")
+    _require_document(document_id, session_id)
     try:
         result = (db.client.table("deadlines")
                   .select("id,label,due_date,governing_rule,consequence_if_missed,"
@@ -65,13 +73,9 @@ async def get_deadlines(document_id: str, session_id: Optional[str] = None):
 
 
 @router.get("/{document_id}/trigger-events")
-async def get_trigger_events(document_id: str, session_id: Optional[str] = None):
+async def get_trigger_events(document_id: str, session_id: str | None = None):
     """Return extracted trigger events for a document."""
-    if db.client is None:
-        raise HTTPException(status_code=503, detail="Database unavailable")
-    doc = db.get_document(document_id)
-    if not doc or not session_id or doc.get("session_id") != session_id:
-        raise HTTPException(status_code=404, detail="Document not found")
+    _require_document(document_id, session_id)
     try:
         result = (db.client.table("trigger_events")
                   .select("*")
