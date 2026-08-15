@@ -164,6 +164,11 @@ class CriminalProcedureExplainer:
                     full_text += chunk
                     yield f"data: {chunk}\n\n"
 
+            yield (
+                "event: disclaimer\n"
+                f"data: {json.dumps({'disclaimer': get_disclaimer(language)})}\n\n"
+            )
+
             # ── Post-stream: retrieve relevant opinions ──
             parsed = None
             try:
@@ -209,6 +214,10 @@ class CriminalProcedureExplainer:
             logger.error(
                 "CriminalProcedureExplainer stream error:\n%s",
                 traceback.format_exc(),
+            )
+            yield (
+                "event: disclaimer\n"
+                f"data: {json.dumps({'disclaimer': get_disclaimer(language)})}\n\n"
             )
             error_payload = json.dumps(
                 {

@@ -156,10 +156,18 @@ class DiscoveryMotionAnalyzer:
                 extraction = await self._pdf_parser.extract_from_bytes_async(file_bytes)
             except Exception:
                 logger.error("PDF extraction failed:\n%s", traceback.format_exc())
+                yield (
+                    "event: disclaimer\n"
+                    f"data: {json.dumps({'disclaimer': get_disclaimer(language)})}\n\n"
+                )
                 yield f"data: {json.dumps({'error': True, 'message': 'Could not extract text from this PDF.', 'disclaimer': get_disclaimer(language)})}\n\n"
                 return
             raw_text = extraction.get("raw_text", "")
             if not raw_text.strip():
+                yield (
+                    "event: disclaimer\n"
+                    f"data: {json.dumps({'disclaimer': get_disclaimer(language)})}\n\n"
+                )
                 yield f"data: {json.dumps({'error': True, 'message': 'No readable text found.', 'disclaimer': get_disclaimer(language)})}\n\n"
                 return
             user_content.append({
@@ -167,6 +175,10 @@ class DiscoveryMotionAnalyzer:
                 "text": self._build_text_message(raw_text, lang_label),
             })
         else:
+            yield (
+                "event: disclaimer\n"
+                f"data: {json.dumps({'disclaimer': get_disclaimer(language)})}\n\n"
+            )
             yield f"data: {json.dumps({'error': True, 'message': 'Unsupported file type.', 'disclaimer': get_disclaimer(language)})}\n\n"
             return
 
@@ -181,6 +193,11 @@ class DiscoveryMotionAnalyzer:
                 async for chunk in stream.text_stream:
                     full_text += chunk
                     yield f"data: {chunk}\n\n"
+
+            yield (
+                "event: disclaimer\n"
+                f"data: {json.dumps({'disclaimer': get_disclaimer(language)})}\n\n"
+            )
 
             # ── Post-stream: compute risk score deterministically ──
             try:
@@ -214,6 +231,10 @@ class DiscoveryMotionAnalyzer:
 
         except Exception:
             logger.error("DiscoveryMotionAnalyzer stream error:\n%s", traceback.format_exc())
+            yield (
+                "event: disclaimer\n"
+                f"data: {json.dumps({'disclaimer': get_disclaimer(language)})}\n\n"
+            )
             yield f"data: {json.dumps({'error': True, 'message': 'Analysis could not be completed.', 'disclaimer': get_disclaimer(language)})}\n\n"
 
     # ── non-streaming ───────────────────────────────────────────────────
