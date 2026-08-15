@@ -116,3 +116,17 @@ reads it over REST. Belt-and-suspenders if it ever holds a live key: revoke all 
 public.app_config from anon, authenticated (cron runs as postgres — unaffected), and
 create a migration for the table so it stops being invisible to the parity check.
 - This fix will crash Railway (`zesty-delight`) on next deploy if `API_KEY` is unset in Railway env — confirm it's set there before merging/deploying (see DECISIONS.md S1-1 verification-half note).
+## DO NOT MERGE — origin/fix/extract-hallucinated-date-49 (c00c698)
+Fully superseded by S2-5c (merged as bb0dcfd). Merging it would delete the
+ordinal-date support in _date_appears_in_text and re-break the eviction-summons parse
+(the original smoke-test failure). Verified: its extract.py is main's extract.py minus
+exactly the ordinal block (13 deletions). Leave the branch as a record; never merge.
+
+## DEFERRED — fix/pc-upl-stale-tests (71601f4) → Phase B4
+Dropped from Phase A (2026-08-15) without resolution. It rewrites test_pc_upl.py to
+import get_disclaimer from src/core/upl.py with signature ("standard", "en"),
+against src/core/disclaimer.py's ("en", "standard"). Main's UPL surface moved under it
+(s3-5c-upl-swallow), so both sides now edit overlapping regions of the same test file.
+Resolving it requires choosing the canonical disclaimer source, which is Phase B4's
+decision (B4 consolidates on apply_disclaimer across all three known parallel
+disclaimer texts). Expect this branch to be rewritten rather than merged once B4 lands.
