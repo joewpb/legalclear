@@ -206,3 +206,12 @@ finding verbatim and its dependency, and let the human decide scope.
 - **Continuation runs get 25 turns, not fewer.** Two continuations (b4a, b4d) died on
   final housekeeping after finishing their substantive work. The orchestrator owns
   build and suite verification, so the continuation does not have to spend turns on it.
+
+- **Count behaviors, not files.** B5-c was a single file and still blew its cap —
+  endpoint design, validation, 422 contract, escalation contract, and recompute
+  contract are five behaviors. The call-site rule reads a one-file dispatch as
+  single-surface. Before dispatching, count the distinct contracts the run must
+  satisfy; more than three, split.
+- **Continuations are for GREEN branches with housekeeping left.** A branch left
+  red mid-implementation gets re-dispatched, not continued — a continuation inherits
+  a design it did not make and spends its budget debugging rather than building.
