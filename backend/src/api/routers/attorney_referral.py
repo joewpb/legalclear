@@ -17,11 +17,12 @@ from datetime import UTC, datetime
 from typing import Any
 
 import httpx
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from ...core.config import settings
 from ...memory.db import DatabaseManager
+from ..dependencies import require_api_key
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +86,7 @@ Rules:
 
 # ── Endpoints ───────────────────────────────────────────────────────────────────
 
-@router.post("/users")
+@router.post("/users", dependencies=[Depends(require_api_key)])
 def upsert_user(req: UserProfileRequest) -> dict[str, Any]:
     """Create or update a user profile. Returns the user_id."""
     now = datetime.now(UTC).isoformat()
@@ -125,7 +126,7 @@ def upsert_user(req: UserProfileRequest) -> dict[str, Any]:
     return {"user_id": user_id, "is_new": user_id is not None and req.email is not None}
 
 
-@router.get("/users/{user_id}")
+@router.get("/users/{user_id}", dependencies=[Depends(require_api_key)])
 def get_user(user_id: str) -> dict[str, Any]:
     if not db.client:
         raise HTTPException(503, "Database unavailable")
