@@ -156,3 +156,17 @@ All mandatory constraints:
 - Ask HOW service occurred, not only when. Fla. Stat. § 48.183 permits service by
   posting when the tenant cannot be found; a tenant who found papers on the door may
   not know the actual service date. Method affects the analysis.
+## Decision 4 — External links: deterministic output filter, NOT an allowlist (2026-08-15)
+Strip every URL from generated agent output at the boundary. Log each stripped URL with
+the agent name so emission rates are visible. Rationale: prompt edits cannot guarantee
+the rule (proven by B4b-1a); models also invent plausible legal-aid domains that may be
+dead or squatted, and directing a distressed user there is a real harm. An allowlist
+implies endorsement and requires perpetual maintenance; the rule is no external links,
+so enforce exactly that. Consistent with AGENTS.md: LLMs generate, deterministic code
+guarantees.
+
+## Decision 5 — Disclaimers on error paths: conditional on emitted content (2026-08-15)
+An error carrying no substantive content needs no disclaimer — deadline.py's bare
+{"detail"} is correct and needs no change. An error occurring AFTER substantive content
+has been emitted MUST carry the disclaimer, because the user is left holding legal
+analysis with no wall. Applies to the streaming routers only.
