@@ -130,3 +130,16 @@ against src/core/disclaimer.py's ("en", "standard"). Main's UPL surface moved un
 Resolving it requires choosing the canonical disclaimer source, which is Phase B4's
 decision (B4 consolidates on apply_disclaimer across all three known parallel
 disclaimer texts). Expect this branch to be rewritten rather than merged once B4 lands.
+## B5 — service date capture (scoped 2026-08-15 from Decision 2; NOT dispatched)
+G1 does not open until B5 ships. Decision 2 verbatim:
+- Service date stored with provenance `user_supplied`, never extracted. Distinct field,
+  distinct audit trail. It must never be recorded as an extracted fact.
+- Deadline presented conditionally: "If you were served on X, your response is due Y."
+- Input remains visible and editable; correction recomputes the deadline.
+- "I don't know" escalates and does NOT compute. Tell the user the return of service is
+  filed with the clerk and the case docket shows the service date.
+- Ask HOW service occurred, not only when. Fla. Stat. § 48.183 permits service by
+  posting when the tenant cannot be found; a tenant who found papers on the door may
+  not know the actual service date. Method affects the analysis.
+Requires UI work (service-date prompt, method question, validation, provenance field) —
+multi-surface, to be split per the standing dispatch rules when scheduled.

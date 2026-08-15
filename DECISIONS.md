@@ -139,3 +139,20 @@ confirmed:
 - S1-3 attorney-referral endpoint auth (code-only; tables need not exist to add
   auth).
 - Decision 1 test (flag-off assertion test is code-only).
+## Decision 3 — Canonical disclaimer source: `apply_disclaimer` (2026-08-15)
+Single versioned source, imported by every path. `get_disclaimer` and `deadline.py`'s
+inline disclaimer text are SUPERSEDED. External links (floridalawhelp.org,
+floridabar.org) removed per the no-external-links rule. This unblocks
+fix/pc-upl-stale-tests (rewrite its assertions against apply_disclaimer).
+
+## Decision 2 — Service date: ASK THE USER, do not refuse to compute (2026-08-15)
+All mandatory constraints:
+- Service date stored with provenance `user_supplied`, never extracted. Distinct field,
+  distinct audit trail. It must never be recorded as an extracted fact.
+- Deadline presented conditionally: "If you were served on X, your response is due Y."
+- Input remains visible and editable; correction recomputes the deadline.
+- "I don't know" escalates and does NOT compute. Tell the user the return of service is
+  filed with the clerk and the case docket shows the service date.
+- Ask HOW service occurred, not only when. Fla. Stat. § 48.183 permits service by
+  posting when the tenant cannot be found; a tenant who found papers on the door may
+  not know the actual service date. Method affects the analysis.
