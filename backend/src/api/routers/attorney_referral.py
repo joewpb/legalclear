@@ -21,6 +21,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from ...core.config import settings
+from ...core.upl import apply_disclaimer
 from ...memory.db import DatabaseManager
 from ..dependencies import require_api_key
 
@@ -46,6 +47,9 @@ class IntakeResponse(BaseModel):
     content: str
     stage: str
     user_id: str | None = None
+    disclaimer: str
+    attorney_referral_links: list[dict] = Field(default_factory=list)
+    language: str = "en"
 
 
 class UserProfileRequest(BaseModel):
@@ -123,7 +127,10 @@ def upsert_user(req: UserProfileRequest) -> dict[str, Any]:
         if r.data:
             user_id = r.data[0]["id"]
 
-    return {"user_id": user_id, "is_new": user_id is not None and req.email is not None}
+    return apply_disclaimer(
+        {"user_id": user_id, "is_new": user_id is not None and req.email is not None},
+        lang="en",
+    )
 
 
 @router.get("/users/{user_id}", dependencies=[Depends(require_api_key)])
@@ -133,7 +140,7 @@ def get_user(user_id: str) -> dict[str, Any]:
     r = db.client.table("user_profiles").select("*").eq("id", user_id).limit(1).execute()
     if not r.data:
         raise HTTPException(404, "User not found")
-    return r.data[0]
+    return apply_disclaimer(r.data[0], lang="en")
 
 
 @router.post("/intake")
@@ -148,12 +155,16 @@ async def intake_chat(req: IntakeRequest) -> IntakeResponse:
     # Prefer Anthropic (Claude) for quality, fall back to DeepSeek
     ai_content, stage = await _call_ai(messages)
 
-    return IntakeResponse(
-        role="assistant",
-        content=ai_content,
-        stage=stage,
-        user_id=req.user_id,
+    wrapped = apply_disclaimer(
+        {
+            "role": "assistant",
+            "content": ai_content,
+            "stage": stage,
+            "user_id": req.user_id,
+        },
+        lang="en",
     )
+    return IntakeResponse(**wrapped)
 
 
 @router.post("/submit")
@@ -174,11 +185,14 @@ def submit_inquiry(req: SubmitRequest) -> dict[str, Any]:
         "created_at": now,
     }).execute()
 
-    return {
-        "inquiry_id": inquiry_id,
-        "status": "pending",
-        "message": "Your case has been submitted. An attorney will review it within 1-2 business days.",
-    }
+    return apply_disclaimer(
+        {
+            "inquiry_id": inquiry_id,
+            "status": "pending",
+            "message": "Your case has been submitted. An attorney will review it within 1-2 business days.",
+        },
+        lang="en",
+    )
 
 
 # ── Helpers ─────────────────────────────────────────────────────────────────────

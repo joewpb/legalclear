@@ -13,8 +13,8 @@ from fastapi import APIRouter, Body, HTTPException
 from pydantic import BaseModel, Field
 
 from src.core.config import settings
-from src.core.disclaimer import get_disclaimer
 from src.core.json_utils import strip_markdown_fences
+from src.core.upl import apply_disclaimer
 
 logger = logging.getLogger(__name__)
 
@@ -208,7 +208,7 @@ async def intake(payload: IntakeRequest = Body(...)) -> IntakeResponse:
             detail="Intake classification is temporarily unavailable. Please try again.",
         )
 
-    disclaimer = get_disclaimer(payload.language)
+    disclaimer = apply_disclaimer({}, lang=payload.language, level="standard")["disclaimer"]
 
     return IntakeResponse(
         module=module,
