@@ -170,3 +170,16 @@ An error carrying no substantive content needs no disclaimer — deadline.py's b
 {"detail"} is correct and needs no change. An error occurring AFTER substantive content
 has been emitted MUST carry the disclaimer, because the user is left holding legal
 analysis with no wall. Applies to the streaming routers only.
+## Decision 6 — § 48.183 posted service: later-of computation (2026-08-15)
+Fla. Stat. § 48.183(2): service by posting is effective on the date of posting OR the
+date of clerk mailing, whichever occurs LATER. The clerk mails a copy and files a
+certificate of the fact and date of mailing.
+- The prior code was WRONG: posting fell into publication/unknown and computed the
+  EARLIER of personal-or-mail variants. Required: posted becomes its own
+  service_method bucket computing from the LATER of posting date and clerk-mailing
+  date.
+- Product consequence (mandatory in B5): a tenant knows the posting date but cannot
+  know the clerk-mailing date. For posted service, the UI must capture the posting
+  date AND direct the user to the case docket for the mailing certificate. If the
+  mailing date is unavailable, ESCALATE — do not compute from the posting date alone.
+- PENDING CONFIRMATION by a Florida attorney before shipping.
