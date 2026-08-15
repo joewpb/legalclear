@@ -14,7 +14,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from datetime import date
 
 from deadline.compute import compute_deadline_for_event
-from src.core.disclaimer import get_disclaimer
 from src.core.upl import apply_disclaimer, audit_output_for_upl
 
 # ══════════════════════════════════════════════════════════════════════
@@ -75,16 +74,32 @@ def test_informational_text_passes_audit():
     assert flags == [], f"Clean text must return empty; got: {flags}"
 
 
-def test_disclaimer_via_middleware_not_local_literal():
-    """Prove the disclaimer text originates from the canonical get_disclaimer()
-    in src/core/disclaimer.py — the frozen contract — not a P&C-local copy."""
-    standard = get_disclaimer("en", "standard")
-    assert "legal information" in standard.lower()
-    assert "attorney" in standard.lower()
-    # Verify apply_disclaimer produces a valid disclaimer (uses its own text source).
-    applied = apply_disclaimer({"test": True}, lang="en", level="standard")
-    assert applied["disclaimer"], "apply_disclaimer must produce a non-empty disclaimer"
-    assert "legal" in applied["disclaimer"].lower()
+def test_disclaimer_sourced_from_canonical_upl():
+    """Prove the disclaimer text is sourced from apply_disclaimer()'s canonical
+    per-(level, lang) table in src/core/upl.py — not an ad-hoc, per-call, or
+    P&C-local string.
+
+    Decision 3 makes apply_disclaimer() in src/core/upl.py the single source
+    of truth for disclaimer text. This test asserts structural properties of
+    that source (same level+lang always yields the same text; different
+    levels yield different text) rather than pinning literal wording, so it
+    survives the B4b-1 canonicalization pass (which strips external links and
+    bumps DISCLAIMER_VERSION) without modification.
+    """
+    standard_a = apply_disclaimer({}, lang="en", level="standard")["disclaimer"]
+    standard_b = apply_disclaimer({"unrelated_payload": True}, lang="en", level="standard")["disclaimer"]
+    assert standard_a == standard_b, (
+        "Same (level, lang) must yield identical disclaimer text regardless "
+        "of the wrapped payload — proves the text comes from a canonical "
+        "table, not something derived per-call."
+    )
+    assert "legal information" in standard_a.lower()
+    assert "attorney" in standard_a.lower()
+
+    urgent = apply_disclaimer({}, lang="en", level="urgent")["disclaimer"]
+    assert urgent != standard_a, (
+        "Different disclaimer levels must resolve to different canonical text."
+    )
 
 
 def test_first_party_output_includes_key_deadlines():
