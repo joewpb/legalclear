@@ -119,6 +119,12 @@ Three parallel disclaimer texts known: `get_disclaimer`, `apply_disclaimer`, and
 `deadline.py`'s inline text (which carries **external links**, violating the
 no-external-links rule).
 
+> CORRECTION (2026-08-15, B4b-0 scoping): deadline.py has NO inline text — the links
+> were apply_disclaimer's own text surfacing through it. Real state: TWO sources
+> (get_disclaimer, apply_disclaimer), both with external links, plus two agent prompts
+> instructing the LLM to print floridalawhelp.org (explainer.py:35, form_guide.py:23).
+> Consolidation target unchanged: apply_disclaimer canonical.
+
 - **First decision: which source is canonical.** Recommendation is `apply_disclaimer`.
   This unblocks `fix/pc-upl-stale-tests`, deferred from Phase A
 - Single source, versioned, imported by every path

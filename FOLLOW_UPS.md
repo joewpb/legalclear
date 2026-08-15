@@ -143,3 +143,13 @@ G1 does not open until B5 ships. Decision 2 verbatim:
   not know the actual service date. Method affects the analysis.
 Requires UI work (service-date prompt, method question, validation, provenance field) —
 multi-surface, to be split per the standing dispatch rules when scheduled.
+## CORRECTION (2026-08-15) — the "third parallel disclaimer" was a misdiagnosis
+Re-examined during B4b-0 scoping: backend/src/api/routers/deadline.py has NO inline
+disclaimer text (verified — no floridalawhelp/floridabar references in the file). The
+external links seen in the smoke-test analyze response were apply_disclaimer's OWN text
+(src/core/upl.py:37-56) surfacing through deadline.py's apply_disclaimer call. Real
+state: TWO parallel disclaimer sources — get_disclaimer (src/core/disclaimer.py:74) and
+apply_disclaimer (src/core/upl.py), both carrying external links — plus two agent
+prompts that instruct the LLM to print floridalawhelp.org (explainer.py:35,
+form_guide.py:23). B4's consolidation target is unchanged (apply_disclaimer canonical);
+the "third parallel text" claim in the UPL follow-up above is superseded by this.
