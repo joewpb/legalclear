@@ -186,3 +186,14 @@ finding verbatim and its dependency, and let the human decide scope.
    the body. Return to main.
 6. Report per item: id, pass/fail, files, test counts before/after, cost, halt flags.
 7. Keep per-item logs in runs/<item>/ — the artifacts are the audit trail.
+
+## 11. Sizing lessons (b4a, 2026-08-15)
+
+- **N independent call sites is N verify cycles, not one surface.** A shared library
+  plus eight call-site conversions blew a 40-turn cap AND its 25-turn continuation
+  (b4a, 2026-08-15). Batch 2–3 call sites per dispatch maximum. A dispatch spanning
+  more than three files that each need read/rewrite/verify should be split before it
+  is dispatched, not after it fails.
+- **The continuation pattern worked** — it finished the remaining conversions — but it
+  had no budget left for build verification. Reserve build/test verification for the
+  orchestrator rather than the final continuation.
