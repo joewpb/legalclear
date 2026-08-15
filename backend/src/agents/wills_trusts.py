@@ -166,6 +166,7 @@ class WillsTrustsExplainer:
         user_prompt = self._build_user_prompt(situation, sub_type, language)
         disclaimer = get_disclaimer(language)
 
+        emitted_content = False
         try:
             async with self.client.messages.stream(
                 model=self.model,
@@ -179,6 +180,7 @@ class WillsTrustsExplainer:
             ) as stream:
                 url_filter = StreamingURLFilter("wills_trusts")
                 async for chunk in stream.text_stream:
+emitted_content = True
                     safe = url_filter.feed(chunk)
                     if safe:
                         yield f"data: {json.dumps({'chunk': safe})}\n\n"
@@ -201,10 +203,11 @@ class WillsTrustsExplainer:
                 "WillsTrustsExplainer stream error:\n%s",
                 traceback.format_exc(),
             )
-            yield (
-                "event: disclaimer\n"
-                f"data: {json.dumps({'disclaimer': disclaimer})}\n\n"
-            )
+            if emitted_content:
+                yield (
+                    "event: disclaimer\n"
+                    f"data: {json.dumps({'disclaimer': disclaimer})}\n\n"
+                )
             error_payload = json.dumps({
                 "error": True,
                 "message": "Response could not be generated. Please try again.",

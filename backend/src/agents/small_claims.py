@@ -90,6 +90,7 @@ class SmallClaimsExplainer:
         user_prompt = self._build_user_prompt(entities, language)
         disclaimer = get_disclaimer(language)
 
+        emitted_content = False
         try:
             async with self.client.messages.stream(
                 model=self.model,
@@ -105,6 +106,7 @@ class SmallClaimsExplainer:
             ) as stream:
                 url_filter = StreamingURLFilter("small_claims")
                 async for chunk in stream.text_stream:
+emitted_content = True
                     safe = url_filter.feed(chunk)
                     if safe:
                         yield f"data: {safe}\n\n"
@@ -122,10 +124,11 @@ class SmallClaimsExplainer:
                 "SmallClaimsExplainer stream error:\n%s",
                 traceback.format_exc(),
             )
-            yield (
-                "event: disclaimer\n"
-                f"data: {json.dumps({'disclaimer': disclaimer})}\n\n"
-            )
+            if emitted_content:
+                yield (
+                    "event: disclaimer\n"
+                    f"data: {json.dumps({'disclaimer': disclaimer})}\n\n"
+                )
             error_payload = json.dumps(
                 {
                     "error": True,

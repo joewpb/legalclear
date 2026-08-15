@@ -1,9 +1,12 @@
-"""B4b-5 — small_claims.py disclaimer: typed SSE event on success + error paths.
+"""B4b-5 / B4e-b — small_claims.py disclaimer: typed SSE event on
+success + error paths.
 
 Pins that SmallClaimsExplainer.explain_stream emits a typed
-``event: disclaimer`` SSE frame on both the normal completion path and the
-mid-stream error path, while leaving the embedded ``disclaimer`` field
-inside the error frame unchanged (backward compat with older clients).
+``event: disclaimer`` SSE frame on the normal completion path and on any
+error path that follows emitted content, while leaving the embedded
+``disclaimer`` field inside the error frame unchanged (backward compat with
+older clients). Per Decision 5, an error that fires before any substantive
+content has been streamed carries no disclaimer event.
 """
 import asyncio
 import json
@@ -19,9 +22,15 @@ from src.core.disclaimer import get_disclaimer
 class _FakeStream:
     """Mimics the AsyncAnthropic `messages.stream(...)` async context manager."""
 
-    def __init__(self, text: str = None, raise_on_iter: bool = False) -> None:
+    def __init__(
+        self,
+        text: str = None,
+        raise_on_iter: bool = False,
+        raise_after_chunk: bool = False,
+    ) -> None:
         self._text = text
         self._raise_on_iter = raise_on_iter
+        self._raise_after_chunk = raise_after_chunk
 
     async def __aenter__(self):
         return self
@@ -32,6 +41,9 @@ class _FakeStream:
     async def _gen(self):
         if self._raise_on_iter:
             raise RuntimeError("upstream failure")
+        if self._raise_after_chunk:
+            yield self._text
+            raise RuntimeError("upstream failure mid-stream")
         yield self._text
 
     @property
@@ -40,17 +52,28 @@ class _FakeStream:
 
 
 class _FakeMessages:
-    def __init__(self, text: str = None, raise_on_iter: bool = False) -> None:
+    def __init__(
+        self,
+        text: str = None,
+        raise_on_iter: bool = False,
+        raise_after_chunk: bool = False,
+    ) -> None:
         self._text = text
         self._raise_on_iter = raise_on_iter
+        self._raise_after_chunk = raise_after_chunk
 
     def stream(self, **kwargs):
-        return _FakeStream(self._text, self._raise_on_iter)
+        return _FakeStream(self._text, self._raise_on_iter, self._raise_after_chunk)
 
 
 class _FakeClient:
-    def __init__(self, text: str = None, raise_on_iter: bool = False) -> None:
-        self.messages = _FakeMessages(text, raise_on_iter)
+    def __init__(
+        self,
+        text: str = None,
+        raise_on_iter: bool = False,
+        raise_after_chunk: bool = False,
+    ) -> None:
+        self.messages = _FakeMessages(text, raise_on_iter, raise_after_chunk)
 
 
 async def _collect(agen):
@@ -64,9 +87,9 @@ def _extract_frame(body: str, event_name: str) -> str:
     return body[start:end]
 
 
-def _new_explainer(text=None, raise_on_iter=False):
+def _new_explainer(text=None, raise_on_iter=False, raise_after_chunk=False):
     explainer = SmallClaimsExplainer.__new__(SmallClaimsExplainer)
-    explainer.client = _FakeClient(text, raise_on_iter)
+    explainer.client = _FakeClient(text, raise_on_iter, raise_after_chunk)
     explainer.model = "claude-sonnet-4-6"
     return explainer
 
@@ -90,8 +113,35 @@ def test_explain_stream_success_emits_typed_disclaimer():
     assert json.loads(frame) == {"disclaimer": expected}
 
 
-def test_explain_stream_error_emits_typed_disclaimer():
+def test_explain_stream_error_before_content_omits_disclaimer():
+    """Decision 5: error with no prior content carries no disclaimer event."""
     explainer = _new_explainer(raise_on_iter=True)
+
+    events = asyncio.run(
+        _collect(
+            explainer.explain_stream(
+                entities={"amount": "1500"},
+                language="en",
+            )
+        )
+    )
+    body = "".join(events)
+
+    assert "event: disclaimer" not in body
+
+    # Terminal error frame is still present with disclaimer embedded (compat).
+    expected = get_disclaimer("en")
+    assert '"error": true' in body
+    error_line = [
+        line for line in body.split("\n\n") if line.startswith("data: ") and "error" in line
+    ][-1]
+    error_payload = json.loads(error_line[len("data: "):])
+    assert error_payload["disclaimer"] == expected
+
+
+def test_explain_stream_error_after_content_emits_typed_disclaimer():
+    """Decision 5: error after substantive content still carries the disclaimer."""
+    explainer = _new_explainer(text="partial content", raise_after_chunk=True)
 
     events = asyncio.run(
         _collect(
