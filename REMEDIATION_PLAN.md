@@ -235,6 +235,12 @@ no-external-links rule).
 
 ---
 
+## PHASE I — P&C Claim Guide module
+**Recorded 2026-08-15. NOT scoped, NOT dispatched.**
+Spec lives at docs/pc-claim-guide-module.md; the module is not yet built.
+Sequenced AFTER Phase F: it needs the migration mechanism for its content corpus
+and deadline rules. Recorded here so it stops being an unspoken assumption.
+
 ## Sequencing
 
 ```
