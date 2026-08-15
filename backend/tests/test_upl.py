@@ -154,6 +154,16 @@ def test_clean_document_does_not_escalate():
     assert r.reasons == []
 
 
+# ── Malformed due_date must fail toward escalation, not silence ─────────────
+
+def test_unparseable_due_date_escalates():
+    dl = {"severity": "high", "confidence": 0.95,
+          "due_date": "not-a-date", "label": "Response Deadline"}
+    r = check_escalation(_cls("civil_summons"), [dl], now=NOW)
+    assert r.should_escalate is True
+    assert any("could not be parsed" in reason.lower() for reason in r.reasons)
+
+
 # ── Disclaimer layer ──────────────────────────────────────────────────────────
 
 def test_standard_disclaimer_present():

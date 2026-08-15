@@ -214,7 +214,13 @@ def check_escalation(
                     urgency = "immediate"
                     disclaimer_level = "urgent"
             except (ValueError, TypeError):
-                pass
+                reasons.append(
+                    f"Deadline date could not be parsed ('{due_date_str}') for "
+                    f"{dl.get('label', 'unknown')}. Treat as urgent and direct "
+                    f"to attorney for verification."
+                )
+                urgency = "immediate"
+                disclaimer_level = "urgent"
 
     should_escalate = bool(reasons)
     referral_text = _referral_text(reasons, urgency, lang)
