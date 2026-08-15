@@ -8,6 +8,7 @@ from anthropic import AsyncAnthropic
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.core.json_utils import strip_markdown_fences
+from src.core.url_filter import filter_json_strings, strip_urls_final
 
 logger = logging.getLogger(__name__)
 
@@ -111,6 +112,7 @@ Document text:
             )
             raw = response.content[0].text
             result = json.loads(strip_markdown_fences(raw))
+            result = filter_json_strings(result, "form_guide")
             result["disclaimer"] = get_disclaimer(
                 lang, "standard")
             return result
@@ -177,7 +179,8 @@ Document text:
                 }],
                 messages=messages
             )
-            answer = response.content[0].text.strip()
+            answer = strip_urls_final(
+                response.content[0].text.strip(), "form_guide")
             return {
                 "answer": answer,
                 "confidence": "high",

@@ -15,6 +15,7 @@ from anthropic import AsyncAnthropic
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.core.json_utils import strip_markdown_fences
+from src.core.url_filter import StreamingURLFilter, filter_json_strings
 from src.services.opinion_retrieval import (
     derive_criminal_tags,
     generate_attorney_questions,
@@ -148,6 +149,7 @@ class CriminalProcedureExplainer:
 
         try:
             full_text = ""
+            url_filter = StreamingURLFilter("criminal_procedure")
             async with self.client.messages.stream(
                 model=self.model,
                 max_tokens=4096,
@@ -162,7 +164,12 @@ class CriminalProcedureExplainer:
             ) as stream:
                 async for chunk in stream.text_stream:
                     full_text += chunk
-                    yield f"data: {chunk}\n\n"
+                    safe = url_filter.feed(chunk)
+                    if safe:
+                        yield f"data: {safe}\n\n"
+            tail = url_filter.flush()
+            if tail:
+                yield f"data: {tail}\n\n"
 
             yield (
                 "event: disclaimer\n"
@@ -257,6 +264,7 @@ class CriminalProcedureExplainer:
             )
             raw = response.content[0].text
             parsed = json.loads(strip_markdown_fences(raw))
+            parsed = filter_json_strings(parsed, "criminal_procedure")
             parsed["disclaimer"] = get_disclaimer(language)
             return parsed
 

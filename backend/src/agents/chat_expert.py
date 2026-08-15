@@ -27,6 +27,7 @@ from anthropic import AsyncAnthropic
 
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
+from src.core.url_filter import StreamingURLFilter
 
 logger = logging.getLogger(__name__)
 
@@ -217,6 +218,7 @@ class ChatExpertAgent:
         # Add current message
         messages.append({"role": "user", "content": message})
 
+        url_filter = StreamingURLFilter(f"chat_expert:{module}")
         try:
             async with self.client.messages.stream(
                 model=self.model,
@@ -229,7 +231,12 @@ class ChatExpertAgent:
                 messages=messages,
             ) as stream:
                 async for chunk in stream.text_stream:
-                    yield f"data: {json.dumps({'chunk': chunk})}\n\n"
+                    safe = url_filter.feed(chunk)
+                    if safe:
+                        yield f"data: {json.dumps({'chunk': safe})}\n\n"
+                tail = url_filter.flush()
+                if tail:
+                    yield f"data: {json.dumps({'chunk': tail})}\n\n"
 
                 # Append disclaimer as final chunk
                 yield f"data: {json.dumps({'disclaimer': disclaimer})}\n\n"

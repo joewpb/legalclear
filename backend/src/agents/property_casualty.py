@@ -29,6 +29,7 @@ from src.agents.police_report_v2 import compute_risk_score
 from src.core.config import settings
 from src.core.json_utils import strip_markdown_fences
 from src.core.upl import apply_disclaimer
+from src.core.url_filter import StreamingURLFilter, filter_json_strings
 from src.ingestion.pdf_parser import PDFParser
 
 logger = logging.getLogger(__name__)
@@ -351,6 +352,7 @@ class PropertyCasualtyExplainer:
 
         try:
             full_text = ""
+            url_filter = StreamingURLFilter("property_casualty")
             async with self.client.messages.stream(
                 model=self.model,
                 max_tokens=4096,
@@ -359,11 +361,17 @@ class PropertyCasualtyExplainer:
             ) as stream:
                 async for chunk in stream.text_stream:
                     full_text += chunk
-                    yield f"data: {chunk}\n\n"
+                    safe = url_filter.feed(chunk)
+                    if safe:
+                        yield f"data: {safe}\n\n"
+            tail = url_filter.flush()
+            if tail:
+                yield f"data: {tail}\n\n"
 
             # ── Post-stream: inject computed deadlines if LLM dropped them ──
             try:
                 parsed = json.loads(strip_markdown_fences(full_text))
+                parsed = filter_json_strings(parsed, "property_casualty")
                 if is_first_party and computed_deadlines:
                     parsed["key_deadlines"] = computed_deadlines
                 # ── Compute risk score from watch_out_for ──

@@ -7,6 +7,7 @@ from anthropic import AsyncAnthropic
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.core.json_utils import strip_markdown_fences
+from src.core.url_filter import filter_json_strings
 
 logger = logging.getLogger(__name__)
 
@@ -114,6 +115,7 @@ Document text:
             )
             raw = response.content[0].text
             result = json.loads(strip_markdown_fences(raw))
+            result = filter_json_strings(result, "expungement")
             result["disclaimer"] = get_disclaimer(
                 lang, "standard")
             return result
@@ -171,7 +173,8 @@ only and not legal advice"""
                 }]
             )
             raw = response.content[0].text
-            return json.loads(strip_markdown_fences(raw))
+            parsed = json.loads(strip_markdown_fences(raw))
+            return filter_json_strings(parsed, "expungement")
         except Exception as e:
             logger.error(
                 "Anthropic call failed in %s: %s\n%s",

@@ -19,6 +19,7 @@ from anthropic import AsyncAnthropic
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.core.json_utils import strip_markdown_fences
+from src.core.url_filter import StreamingURLFilter, filter_json_strings
 from src.ingestion.pdf_parser import PDFParser
 from src.services.opinion_retrieval import (
     derive_situation_tags,
@@ -303,6 +304,7 @@ class PoliceReportAnalyzerV2:
         # ── Call Claude ─────────────────────────────────────────────────
         try:
             full_text = ""
+            url_filter = StreamingURLFilter("police_report_v2")
             async with self.client.messages.stream(
                 model=self.model,
                 max_tokens=4096,
@@ -317,7 +319,12 @@ class PoliceReportAnalyzerV2:
             ) as stream:
                 async for chunk in stream.text_stream:
                     full_text += chunk
-                    yield f"data: {chunk}\n\n"
+                    safe = url_filter.feed(chunk)
+                    if safe:
+                        yield f"data: {safe}\n\n"
+            tail = url_filter.flush()
+            if tail:
+                yield f"data: {tail}\n\n"
 
             # ── Post-stream: compute risk score deterministically ──
             parsed = None
@@ -495,6 +502,7 @@ class PoliceReportAnalyzerV2:
             )
             raw = response.content[0].text
             parsed = json.loads(strip_markdown_fences(raw))
+            parsed = filter_json_strings(parsed, "police_report_v2")
             parsed["disclaimer"] = get_disclaimer(language)
 
             # Compute deterministic risk score from findings

@@ -7,6 +7,7 @@ from anthropic import AsyncAnthropic
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.core.json_utils import strip_markdown_fences
+from src.core.url_filter import StreamingURLFilter, filter_json_strings, strip_urls_final
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +55,7 @@ class ExplainerAgent:
             )
             content = response.content[0].text
             parsed = json.loads(strip_markdown_fences(content))
+            parsed = filter_json_strings(parsed, "explainer")
             parsed["disclaimer"] = get_disclaimer(language)
             return parsed
         except Exception as e:
@@ -67,6 +69,7 @@ class ExplainerAgent:
     async def explain_stream(self, text: str, language: str = "en"):
         """Streaming explanation — yields SSE chunks."""
         try:
+            url_filter = StreamingURLFilter("explainer")
             async with self.client.messages.stream(
                 model=self.model,
                 max_tokens=8192,
@@ -74,7 +77,12 @@ class ExplainerAgent:
                 messages=[{"role": "user", "content": text}]
             ) as stream:
                 async for chunk in stream.text_stream:
-                    yield f"data: {chunk}\n\n"
+                    safe = url_filter.feed(chunk)
+                    if safe:
+                        yield f"data: {safe}\n\n"
+            tail = url_filter.flush()
+            if tail:
+                yield f"data: {tail}\n\n"
         except Exception as e:
             logger.error(f"Explainer stream error: {e}\n{traceback.format_exc()}")
             error_json = json.dumps({
@@ -98,7 +106,7 @@ class ExplainerAgent:
             return {
                 "document_id": document_id,
                 "question": question,
-                "answer": content,
+                "answer": strip_urls_final(content, "explainer"),
                 "disclaimer": get_disclaimer(language)
             }
         except Exception as e:

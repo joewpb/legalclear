@@ -20,6 +20,7 @@ from src.agents.police_report_v2 import compute_risk_score
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.core.json_utils import strip_markdown_fences
+from src.core.url_filter import StreamingURLFilter, filter_json_strings
 from src.ingestion.pdf_parser import PDFParser
 
 logger = logging.getLogger(__name__)
@@ -184,6 +185,7 @@ class DiscoveryMotionAnalyzer:
 
         try:
             full_text = ""
+            url_filter = StreamingURLFilter("discovery_motion")
             async with self.client.messages.stream(
                 model=self.model,
                 max_tokens=4096,
@@ -192,7 +194,12 @@ class DiscoveryMotionAnalyzer:
             ) as stream:
                 async for chunk in stream.text_stream:
                     full_text += chunk
-                    yield f"data: {chunk}\n\n"
+                    safe = url_filter.feed(chunk)
+                    if safe:
+                        yield f"data: {safe}\n\n"
+            tail = url_filter.flush()
+            if tail:
+                yield f"data: {tail}\n\n"
 
             yield (
                 "event: disclaimer\n"
@@ -278,6 +285,7 @@ class DiscoveryMotionAnalyzer:
                 messages=[{"role": "user", "content": user_content}],
             )
             parsed = json.loads(strip_markdown_fences(response.content[0].text))
+            parsed = filter_json_strings(parsed, "discovery_motion")
             parsed["disclaimer"] = get_disclaimer(language)
 
             # Compute deterministic risk score from findings

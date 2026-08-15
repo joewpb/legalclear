@@ -14,6 +14,7 @@ from anthropic import AsyncAnthropic
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.core.json_utils import strip_markdown_fences
+from src.core.url_filter import StreamingURLFilter, filter_json_strings
 
 logger = logging.getLogger(__name__)
 
@@ -102,8 +103,14 @@ class SmallClaimsExplainer:
                 ],
                 messages=[{"role": "user", "content": user_prompt}],
             ) as stream:
+                url_filter = StreamingURLFilter("small_claims")
                 async for chunk in stream.text_stream:
-                    yield f"data: {chunk}\n\n"
+                    safe = url_filter.feed(chunk)
+                    if safe:
+                        yield f"data: {safe}\n\n"
+                tail = url_filter.flush()
+                if tail:
+                    yield f"data: {tail}\n\n"
 
             yield (
                 "event: disclaimer\n"
