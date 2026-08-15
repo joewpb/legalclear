@@ -142,8 +142,7 @@ async def run_deadline_pipeline(
                 f"Document type could not be determined (got {rule_key!r}). "
                 "Manual review required."
             )
-            _write_trigger_event(db, document_id, event, is_escalated=True)
-            result["trigger_events_written"] += 1
+            _record_trigger_event(db, document_id, event, result, is_escalated=True)
             continue
 
         # Wrong date anchor → skip the rule and escalate (S2-7). Each rule
@@ -177,8 +176,7 @@ async def run_deadline_pipeline(
                 f"The event date for {rule_key!r} could not be parsed "
                 f"({event_date_str!r}). Manual review required to compute the deadline."
             )
-            _write_trigger_event(db, document_id, event, is_escalated=True)
-            result["trigger_events_written"] += 1
+            _record_trigger_event(db, document_id, event, result, is_escalated=True)
             continue
 
         compute_result = compute_deadline_for_event(
@@ -195,8 +193,13 @@ async def run_deadline_pipeline(
         )
 
         # Write trigger_event row
-        trigger_id = _write_trigger_event(db, document_id, event)
-        result["trigger_events_written"] += 1
+        trigger_id = _record_trigger_event(db, document_id, event, result)
+        if trigger_id is None:
+            # Trigger event failed to persist: there is nothing to attach
+            # deadline rows to (deadlines.trigger_event_id would be orphaned/
+            # wrong), so skip computing deadlines for this event rather than
+            # write deadlines that silently point at a row that doesn't exist.
+            continue
 
         # Write deadline rows
         for deadline in compute_result.deadlines:
@@ -247,12 +250,44 @@ async def run_deadline_pipeline(
                     result["deadlines_written"] += 1
                 except Exception as e:
                     logger.error("Failed to write deadline: %s", e)
+                    result["escalation_needed"] = True
+                    result["escalation_reasons"].append(
+                        f"Deadline {deadline.label!r} was computed but could not be "
+                        "saved due to a system error. Manual review required — this "
+                        "deadline is NOT recorded and will not trigger a reminder."
+                    )
 
         if compute_result.escalation_needed:
             result["escalation_needed"] = True
             result["escalation_reasons"].extend(compute_result.escalation_reasons)
 
     return result
+
+
+def _record_trigger_event(
+    db: DatabaseManager,
+    document_id: str,
+    event: dict,
+    result: dict,
+    is_escalated: bool = False,
+) -> str | None:
+    """Write a trigger_event row and update `result` to reflect the outcome.
+
+    trigger_events_written must only count rows that actually landed in the
+    DB — incrementing it unconditionally let a failed insert be reported to
+    the caller as a success (S3-5d).
+    """
+    trigger_id = _write_trigger_event(db, document_id, event, is_escalated=is_escalated)
+    if trigger_id is not None:
+        result["trigger_events_written"] += 1
+    else:
+        result["escalation_needed"] = True
+        result["escalation_reasons"].append(
+            f"Trigger event for {event.get('document_type', 'unknown')!r} could not "
+            "be saved due to a system error. Manual review required — this event is "
+            "NOT recorded."
+        )
+    return trigger_id
 
 
 def _write_trigger_event(

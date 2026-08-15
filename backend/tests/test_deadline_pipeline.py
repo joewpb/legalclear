@@ -104,3 +104,35 @@ def test_closure_fetch_failure_escalates_instead_of_silent_compute(monkeypatch):
     assert any(
         "could not be retrieved" in r for r in result["escalation_reasons"]
     ), result["escalation_reasons"]
+
+
+# ── S3-5d: insert failures must surface, never be reported as success ───────
+
+def test_trigger_event_insert_failure_does_not_claim_success(monkeypatch):
+    """A failed trigger_events insert must not be counted as written, and
+    must escalate — before the fix, trigger_events_written was incremented
+    unconditionally regardless of whether the insert actually succeeded."""
+    result = _run_pipeline(fail_tables={"trigger_events"}, monkeypatch=monkeypatch)
+
+    assert result["trigger_events_written"] == 0
+    assert result["deadlines_written"] == 0
+    assert result["escalation_needed"] is True
+    assert any(
+        "trigger event" in r.lower() and "could not be saved" in r.lower()
+        for r in result["escalation_reasons"]
+    ), result["escalation_reasons"]
+
+
+def test_deadline_insert_failure_does_not_claim_success(monkeypatch):
+    """A failed deadlines insert must not be counted as written, and must
+    escalate — the trigger event (written successfully) is still counted,
+    reporting partial success truthfully rather than a blanket 200."""
+    result = _run_pipeline(fail_tables={"deadlines"}, monkeypatch=monkeypatch)
+
+    assert result["trigger_events_written"] == 1
+    assert result["deadlines_written"] == 0
+    assert result["escalation_needed"] is True
+    assert any(
+        "deadline" in r.lower() and "could not be saved" in r.lower()
+        for r in result["escalation_reasons"]
+    ), result["escalation_reasons"]
