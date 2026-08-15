@@ -40,6 +40,7 @@ const MODULE_TILES = [
   { title: "Expungement Check", subtitle: "Eligibility + filing packet", to: "/expungement", icon: "✅" },
   { title: "Traffic / Tickets", subtitle: "Pay, contest, or traffic school", to: "/traffic", icon: "🚗" },
   { title: "Landlord / Tenant", subtitle: "Deposits, repairs, eviction", to: "/landlord", icon: "🏘️" },
+  { title: "Find Legal Help", subtitle: "Free legal aid by county", to: "/find-legal-help", icon: "🤝" },
 ];
 
 // ---------------------------------------------------------------------------
