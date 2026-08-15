@@ -153,3 +153,19 @@ apply_disclaimer (src/core/upl.py), both carrying external links — plus two ag
 prompts that instruct the LLM to print floridalawhelp.org (explainer.py:35,
 form_guide.py:23). B4's consolidation target is unchanged (apply_disclaimer canonical);
 the "third parallel text" claim in the UPL follow-up above is superseded by this.
+## S1-adjacent — model-level external-link emission (found B4b-1a, 2026-08-15)
+Prompt edits removed the floridalawhelp.org INSTRUCTIONS, and the instructed closing
+line now correctly reads "Free help: LegalClear /find-legal-help" (verified live).
+But live agent runs against representative inputs show the model still emits external
+URLs from training knowledge, unprompted:
+- explainer.py spontaneously added a `free_resources` field (not in the prompt schema):
+  clsmf.org, orangecountybar.org, flcourts.gov, 211 Florida.
+- form_guide.py invented `where_to_file.online_url = https://myflcourtaccess.com` (the
+  prompt does ask for that field, but the URL is model-invented and unvetted).
+This is NOT fixable by prompt edits and needs a decision: post-processing
+filter/allowlist on agent output (recommended shape: strip any URL not on an explicit
+allowlist; keep /find-legal-help), vs accept-risky-emission with logging. Severity:
+UPL/CORRECTNESS-adjacent — external legal-aid links the site promised to eliminate.
+(Note: the disclaimer-field links seen in the same test run are pre-existing
+disclaimer.py text, already fixed by B4b-1 canonicalization on its branch — not this
+finding.)
