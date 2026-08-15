@@ -180,7 +180,7 @@ class WillsTrustsExplainer:
             ) as stream:
                 url_filter = StreamingURLFilter("wills_trusts")
                 async for chunk in stream.text_stream:
-emitted_content = True
+                    emitted_content = True
                     safe = url_filter.feed(chunk)
                     if safe:
                         yield f"data: {json.dumps({'chunk': safe})}\n\n"

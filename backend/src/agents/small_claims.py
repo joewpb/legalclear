@@ -106,7 +106,7 @@ class SmallClaimsExplainer:
             ) as stream:
                 url_filter = StreamingURLFilter("small_claims")
                 async for chunk in stream.text_stream:
-emitted_content = True
+                    emitted_content = True
                     safe = url_filter.feed(chunk)
                     if safe:
                         yield f"data: {safe}\n\n"
