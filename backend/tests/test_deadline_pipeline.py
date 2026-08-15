@@ -20,7 +20,9 @@ EVENT = {
     "service_method": "personal",
     "confidence": 0.95,
     "circuit": 13,
-    "event_type": "service_of_process",
+    # "served" is the schema enum value (extract.py); civil_summons requires a
+    # service anchor (S2-7) — an off-schema label would now escalate instead.
+    "event_type": "served",
 }
 
 

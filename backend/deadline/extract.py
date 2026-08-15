@@ -22,6 +22,13 @@ from .rules import KNOWN_DOCUMENT_TYPES
 
 logger = logging.getLogger(__name__)
 
+# Date-kind labels the extractor may emit. Deadline rules declare which of
+# these they can consume (rules.py required_anchors); anything off-schema is
+# coerced to "unknown" so it can never satisfy a rule's anchor downstream.
+ALLOWED_EVENT_TYPES: frozenset[str] = frozenset(
+    {"served", "filed", "issued", "rendered", "hearing", "unknown"}
+)
+
 _client: anthropic.Anthropic | None = None
 
 
@@ -42,7 +49,7 @@ Return valid JSON matching this schema exactly — no markdown fences, no extra 
 {
   "events": [
     {
-      "event_type": "served" | "filed" | "issued" | "rendered" | "unknown",
+      "event_type": "served" | "filed" | "issued" | "rendered" | "hearing" | "unknown",
       "event_date": "YYYY-MM-DD" | null,
       "service_method": "personal" | "mail" | "e_service" | "publication" | "unknown",
       "document_type": "<one of the allowed types below>" | "unknown",
@@ -70,7 +77,13 @@ Rules you must follow:
    set escalation_needed to true.
 6. "unknown" is always a valid output. A confident wrong answer is worse than
    admitting uncertainty.
-7. NEVER invent or guess a date. Do NOT output placeholder dates such as
+7. Label each date by what it IS, not by what a deadline needs. "served" means
+   the document explicitly states the date of SERVICE of process on the
+   recipient. A clerk/judge signature or issuance date (e.g. "DATED this 14th
+   day of August, 2026") is "issued", NEVER "served". A signed order/judgment
+   filing date is "rendered". A scheduled court appearance is "hearing". If
+   the date's role is unclear, use "unknown".
+8. NEVER invent or guess a date. Do NOT output placeholder dates such as
    2025-01-01, 1970-01-01, or any January 1 / round-number date. Every
    non-null event_date MUST be a date that appears verbatim in the document
    text — if no date is stated, set event_date to null. The raw_text_excerpt
@@ -141,6 +154,12 @@ def _sanitize_events(data: dict[str, Any], document_text: str) -> dict[str, Any]
     genuinely missing date takes in pipeline.py.
     """
     for ev in data.get("events", []):
+        ev_type = ev.get("event_type")
+        if ev_type not in ALLOWED_EVENT_TYPES:
+            logger.warning(
+                "Coerced off-schema event_type %r to 'unknown'.", ev_type,
+            )
+            ev["event_type"] = "unknown"
         ev_date = ev.get("event_date")
         if not ev_date:
             continue

@@ -146,6 +146,28 @@ async def run_deadline_pipeline(
             result["trigger_events_written"] += 1
             continue
 
+        # Wrong date anchor → skip the rule and escalate (S2-7). Each rule
+        # declares which event kinds its period runs from; a date of any other
+        # kind must never stand in for it — § 83.60(2) runs from SERVICE of
+        # process, and computing from the issuance date on the summons can
+        # produce a default judgment.
+        rule = RULES[rule_key]
+        required_anchors = rule.get("required_anchors")
+        event_type = event.get("event_type", "unknown")
+        if required_anchors is not None and event_type not in required_anchors:
+            result["escalation_needed"] = True
+            result["escalation_reasons"].append(
+                f"The deadline for {rule_key!r} ({rule['governing_rule']}) runs "
+                f"from a {' or '.join(required_anchors)} date, but the only date "
+                f"extracted from this document is of type {event_type!r} "
+                f"({event_date_str}). A {event_type!r} date must never stand in "
+                "for the required trigger. Manual review required to determine "
+                "the correct trigger date."
+            )
+            _write_trigger_event(db, document_id, event, is_escalated=True)
+            result["trigger_events_written"] += 1
+            continue
+
         # Malformed event date → escalate this event rather than 500 the request
         try:
             event_date = date.fromisoformat(event_date_str)

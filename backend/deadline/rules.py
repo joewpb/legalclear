@@ -13,7 +13,7 @@ from __future__ import annotations
 from datetime import date, timedelta
 from typing import Literal, TypedDict
 
-RULES_VERSION = "2026-07-04-v2"
+RULES_VERSION = "2026-08-14-v3"
 
 Severity = Literal["fatal", "high", "medium", "low"]
 DayCounting = Literal["calendar", "business"]
@@ -27,6 +27,14 @@ class DeadlineRule(TypedDict):
     deadline_type: str                  # "SOL" | "insurer_deadline" | "pre_suit_gate" | "court_filing"
     day_counting: DayCounting | None
     explicitly_business_days: bool
+    # Event kinds this rule's period runs from (extractor event_type values,
+    # or domain anchors like "date_of_loss" for statutory insurance periods).
+    # None means the rule is date-independent (the date is set by the court
+    # and printed on the document, never computed from a period).
+    # A rule must NEVER be applied to a date kind outside this set — an
+    # issuance date standing in for service of process (S2-7) can produce a
+    # default judgment.
+    required_anchors: tuple[str, ...] | None
     governing_rule: str
     severity: Severity
     consequence: str
@@ -41,6 +49,7 @@ RULES: dict[str, DeadlineRule] = {
         "response_days":            20,
         "day_counting":             "calendar",   # ≥7 days → calendar per 2.514
         "explicitly_business_days": False,
+        "required_anchors":         ("served",),   # 1.140(a): 20 days after service of process
         "governing_rule":           "Fla. R. Civ. P. 1.140(a)",
         "severity":                 "fatal",
         "consequence": (
@@ -55,6 +64,7 @@ RULES: dict[str, DeadlineRule] = {
         "response_days":            5,
         "day_counting":             "business",   # statute says "5 business days"
         "explicitly_business_days": True,
+        "required_anchors":         ("served",),   # § 83.60(2): 5 business days after SERVICE, not issuance
         "governing_rule":           "Fla. Stat. § 83.60(2)",
         "severity":                 "fatal",
         "consequence": (
@@ -69,6 +79,7 @@ RULES: dict[str, DeadlineRule] = {
         "response_days":            20,
         "day_counting":             "calendar",
         "explicitly_business_days": False,
+        "required_anchors":         ("served",),
         "governing_rule":           "Fla. R. Civ. P. 1.140(a)",
         "severity":                 "fatal",
         "consequence": (
@@ -83,6 +94,7 @@ RULES: dict[str, DeadlineRule] = {
         "response_days":            20,
         "day_counting":             "calendar",
         "explicitly_business_days": False,
+        "required_anchors":         ("served",),
         "governing_rule":           "Fla. Fam. L. R. P. 12.140",
         "severity":                 "fatal",
         "consequence": (
@@ -97,6 +109,7 @@ RULES: dict[str, DeadlineRule] = {
         "response_days":            None,          # date is on the summons, set by clerk
         "day_counting":             None,
         "explicitly_business_days": False,
+        "required_anchors":         None,   # date is printed on the summons, never computed
         "governing_rule":           "Fla. Sm. Cl. R. 7.090",
         "severity":                 "high",
         "consequence": (
@@ -115,6 +128,7 @@ RULES: dict[str, DeadlineRule] = {
         "response_days":            30,
         "day_counting":             "calendar",
         "explicitly_business_days": False,
+        "required_anchors":         ("rendered",),   # 9.110(b): 30 days from rendition
         "governing_rule":           "Fla. R. App. P. 9.110(b)",
         "severity":                 "fatal",
         "consequence": (
@@ -132,6 +146,7 @@ RULES: dict[str, DeadlineRule] = {
         "response_days":            15,
         "day_counting":             "calendar",
         "explicitly_business_days": False,
+        "required_anchors":         ("rendered", "filed"),   # 1.530(b): 15 days after return of verdict / filing of judgment
         "governing_rule":           "Fla. R. Civ. P. 1.530(b)",
         "severity":                 "high",
         "consequence": (
@@ -146,6 +161,7 @@ RULES: dict[str, DeadlineRule] = {
         "response_days":            30,
         "day_counting":             "calendar",
         "explicitly_business_days": False,
+        "required_anchors":         ("served",),   # 1.340(a): 30 days after service of the request
         "governing_rule":           "Fla. R. Civ. P. 1.340(a)",
         "severity":                 "medium",
         "consequence": (
@@ -167,6 +183,7 @@ RULES: dict[str, DeadlineRule] = {
         "deadline_type":            "SOL",
         "day_counting":             "calendar",
         "explicitly_business_days": False,
+        "required_anchors":         ("date_of_loss",),
         "governing_rule":           "Fla. Stat. § 627.70132",
         "severity":                 "fatal",
         "consequence": (
@@ -184,6 +201,7 @@ RULES: dict[str, DeadlineRule] = {
         "deadline_type":            "SOL",
         "day_counting":             "calendar",
         "explicitly_business_days": False,
+        "required_anchors":         ("date_of_loss",),
         "governing_rule":           "Fla. Stat. § 627.70132",
         "severity":                 "fatal",
         "consequence": (
@@ -201,6 +219,7 @@ RULES: dict[str, DeadlineRule] = {
         "deadline_type":            "SOL",
         "day_counting":             "calendar",
         "explicitly_business_days": False,
+        "required_anchors":         ("date_of_loss",),
         "governing_rule":           "Fla. Stat. § 95.11(2)(e)",
         "severity":                 "fatal",
         "consequence": (
@@ -223,6 +242,7 @@ RULES: dict[str, DeadlineRule] = {
         "deadline_type":            "insurer_deadline",
         "day_counting":             "calendar",
         "explicitly_business_days": False,
+        "required_anchors":         ("claim_noticed",),   # 60 days after notice of the claim
         "governing_rule":           "Fla. Stat. § 627.70131(7)(a)",
         "severity":                 "high",
         "consequence": (
@@ -244,6 +264,7 @@ RULES: dict[str, DeadlineRule] = {
         "deadline_type":            "pre_suit_gate",
         "day_counting":             "business",
         "explicitly_business_days": True,
+        "required_anchors":         ("date_of_loss",),   # served within the § 95.11 limitations period, which runs from date of loss
         "governing_rule":           "Fla. Stat. § 627.70152",
         "severity":                 "fatal",
         "consequence": (
