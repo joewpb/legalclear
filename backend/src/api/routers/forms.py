@@ -525,7 +525,7 @@ async def suggest_forms(payload: SuggestRequest = Body(...)):
                 )
             }
             yield f"data: {json.dumps(payload_obj)}\n\n"
-            yield f"data: {json.dumps({'disclaimer': disclaimer})}\n\n"
+            yield f"event: disclaimer\ndata: {json.dumps({'disclaimer': disclaimer})}\n\n"
             yield "data: [DONE]\n\n"
 
         return StreamingResponse(_empty(), media_type="text/event-stream")
@@ -559,7 +559,7 @@ async def suggest_forms(payload: SuggestRequest = Body(...)):
             guarded = apply_upl_guardrails("".join(collected), "en")
             if guarded.strip() != "".join(collected).strip():
                 logger.warning("suggest_forms: UPL guardrails flagged output")
-            yield f"data: {json.dumps({'disclaimer': disclaimer})}\n\n"
+            yield f"event: disclaimer\ndata: {json.dumps({'disclaimer': disclaimer})}\n\n"
             yield "data: [DONE]\n\n"
 
         except Exception as e:
