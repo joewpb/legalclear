@@ -13,7 +13,7 @@
 import { useState, useRef, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
-import { readSSE } from "../lib/sse";
+import { parseDisclaimerPayload, readSSE } from "../lib/sse";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -288,12 +288,7 @@ export default function PropertyCasualtyExplainer() {
       let full = "";
       for await (const { event, data: c } of readSSE(reader)) {
         if (event === "disclaimer") {
-          try {
-            const parsed = JSON.parse(c);
-            setResp(p => ({ ...p, disclaimer: parsed.disclaimer ?? c }));
-          } catch {
-            setResp(p => ({ ...p, disclaimer: c }));
-          }
+          setResp(p => ({ ...p, disclaimer: parseDisclaimerPayload(c) }));
           continue;
         }
         if (event !== "message") {

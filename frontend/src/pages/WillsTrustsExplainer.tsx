@@ -11,7 +11,7 @@
 import { useState, useRef, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
-import { readSSE } from "../lib/sse";
+import { parseDisclaimerPayload, readSSE } from "../lib/sse";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -364,12 +364,7 @@ export default function WillsTrustsExplainer() {
       let full = "";
       for await (const { event, data: raw } of readSSE(reader)) {
         if (event === "disclaimer") {
-          try {
-            const parsed = JSON.parse(raw);
-            setResponse((p) => ({ ...p, disclaimer: parsed.disclaimer ?? raw }));
-          } catch {
-            setResponse((p) => ({ ...p, disclaimer: raw }));
-          }
+          setResponse((p) => ({ ...p, disclaimer: parseDisclaimerPayload(raw) }));
           continue;
         }
         if (event !== "message") {

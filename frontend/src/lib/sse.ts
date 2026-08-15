@@ -12,6 +12,19 @@ export interface SSEFrame {
   data: string;
 }
 
+// Best-effort extraction of disclaimer text from an SSE "disclaimer" frame.
+// The backend sends either structured JSON ({"disclaimer": "..."}) or plain
+// text; on JSON parse failure or a missing key, the raw frame text is used
+// verbatim. Never throws — a malformed frame must not crash the stream.
+export function parseDisclaimerPayload(raw: string): string {
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed.disclaimer ?? raw;
+  } catch {
+    return raw;
+  }
+}
+
 export async function* readSSE(
   reader: ReadableStreamDefaultReader<Uint8Array>,
 ): AsyncGenerator<SSEFrame, void, unknown> {

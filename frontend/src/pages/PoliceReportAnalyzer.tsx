@@ -15,7 +15,7 @@ import OpinionCard from "../components/policereport/OpinionCard";
 import { applySseEvent } from "../components/policereport/sseMerge";
 import type { CaseContext, RelevantOpinion } from "../components/policereport/types";
 import CaseContextBanner from "../components/policereport/CaseContextBanner";
-import { readSSE } from "../lib/sse";
+import { parseDisclaimerPayload, readSSE } from "../lib/sse";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -526,12 +526,7 @@ export default function PoliceReportAnalyzer() {
       let full = "";
       for await (const { event, data: chunk } of readSSE(reader)) {
         if (event === "disclaimer") {
-          try {
-            const parsed = JSON.parse(chunk);
-            setResponse((prev) => ({ ...prev, disclaimer: parsed.disclaimer ?? chunk }));
-          } catch {
-            setResponse((prev) => ({ ...prev, disclaimer: chunk }));
-          }
+          setResponse((prev) => ({ ...prev, disclaimer: parseDisclaimerPayload(chunk) }));
           continue;
         }
         if (event !== "message") {

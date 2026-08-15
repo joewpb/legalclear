@@ -14,7 +14,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
 import OpinionCard from "../components/policereport/OpinionCard";
 import type { RelevantOpinion } from "../components/policereport/types";
-import { readSSE } from "../lib/sse";
+import { parseDisclaimerPayload, readSSE } from "../lib/sse";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -381,12 +381,7 @@ export default function CriminalProcedureExplainer() {
         if (event === "disclaimer") {
           // Typed disclaimer event (backend-driven) — set directly, never
           // accumulate into the explanation JSON.
-          try {
-            const parsed = JSON.parse(chunk);
-            setResponse((p) => ({ ...p, disclaimer: parsed.disclaimer ?? chunk }));
-          } catch {
-            setResponse((p) => ({ ...p, disclaimer: chunk }));
-          }
+          setResponse((p) => ({ ...p, disclaimer: parseDisclaimerPayload(chunk) }));
           continue;
         }
         if (event !== "message") {

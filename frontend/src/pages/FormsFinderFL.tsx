@@ -14,7 +14,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api";
-import { readSSE } from "../lib/sse";
+import { parseDisclaimerPayload, readSSE } from "../lib/sse";
 
 const API_BASE =
   (import.meta as any).env?.VITE_API_URL || "http://localhost:8001";
@@ -432,12 +432,7 @@ export default function FormsFinderFL() {
       let full = "";
       for await (const { event, data: c } of readSSE(reader)) {
         if (event === "disclaimer") {
-          try {
-            const parsed = JSON.parse(c);
-            setAiDisclaimer(parsed.disclaimer ?? c);
-          } catch {
-            setAiDisclaimer(c);
-          }
+          setAiDisclaimer(parseDisclaimerPayload(c));
           continue;
         }
         if (event !== "message") {

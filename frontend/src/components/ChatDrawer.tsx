@@ -11,7 +11,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { readSSE } from "../lib/sse";
+import { parseDisclaimerPayload, readSSE } from "../lib/sse";
 
 // ---------------------------------------------------------------------------
 // Module label mapping — used for display text
@@ -445,21 +445,12 @@ export default function ChatDrawer({
 
       for await (const { event, data: raw } of readSSE(reader)) {
         if (event === "disclaimer") {
-          try {
-            const parsed = JSON.parse(raw);
-            const disclaimerText = parsed.disclaimer ?? raw;
-            setMessages((prev) =>
-              prev.map((m) =>
-                m.id === expertId ? { ...m, disclaimer: disclaimerText } : m,
-              ),
-            );
-          } catch {
-            setMessages((prev) =>
-              prev.map((m) =>
-                m.id === expertId ? { ...m, disclaimer: raw } : m,
-              ),
-            );
-          }
+          const disclaimerText = parseDisclaimerPayload(raw);
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === expertId ? { ...m, disclaimer: disclaimerText } : m,
+            ),
+          );
           continue;
         }
         if (event !== "message") {
