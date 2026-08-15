@@ -207,7 +207,10 @@ class DiscoveryMotionAnalyzer:
                 risk["type"] = "risk_analysis"
                 yield f"data: {json.dumps(risk)}\n\n"
             except (json.JSONDecodeError, KeyError):
-                pass
+                logger.error(
+                    "DiscoveryMotionAnalyzer risk-score parse failed:\n%s",
+                    traceback.format_exc(),
+                )
 
         except Exception:
             logger.error("DiscoveryMotionAnalyzer stream error:\n%s", traceback.format_exc())
