@@ -16,6 +16,7 @@ import pytest
 
 from src.core.disclaimer import get_disclaimer
 from src.core.upl import (
+    DISCLAIMER_VERSION,
     FATAL_CONFIDENCE_THRESHOLD,
     apply_disclaimer,
     audit_output_for_upl,
@@ -214,6 +215,32 @@ def test_unknown_lang_falls_back_to_english():
     d = get_disclaimer("zh", "standard")
     d_en = get_disclaimer("en", "standard")
     assert d == d_en
+
+
+# ── Decision 3: canonical disclaimer source (B4b-1) ───────────────────────────
+
+def test_no_external_links_in_disclaimer_text():
+    """apply_disclaimer/get_disclaimer text must not carry external links
+    (floridalawhelp.org, floridabar.org) — Decision 3, DECISIONS.md."""
+    for lang in ("en", "es"):
+        for level in ("standard", "short", "urgent", "criminal", "plea"):
+            text = apply_disclaimer({}, lang=lang, level=level)["disclaimer"]
+            assert "floridalawhelp" not in text
+            assert "floridabar" not in text
+
+
+def test_get_disclaimer_matches_apply_disclaimer():
+    """get_disclaimer is a thin delegator — same lang/level must return
+    identical text from both entry points."""
+    for lang in ("en", "es"):
+        for level in ("standard", "short", "urgent", "criminal", "plea"):
+            delegated = get_disclaimer(lang, level)
+            canonical = apply_disclaimer({}, lang=lang, level=level)["disclaimer"]
+            assert delegated == canonical
+
+
+def test_disclaimer_version_present():
+    assert isinstance(DISCLAIMER_VERSION, (str, int))
 
 
 # ── UPL audit ─────────────────────────────────────────────────────────────────

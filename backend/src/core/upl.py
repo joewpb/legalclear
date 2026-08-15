@@ -27,33 +27,46 @@ from typing import Any
 
 # ── Disclaimer texts ──────────────────────────────────────────────────────────
 # Pattern: acknowledge this is information → direct to attorney for action.
+#
+# DISCLAIMER_VERSION bumps on any text change below, so consumers can log
+# which disclaimer text they shipped with a given response.
+DISCLAIMER_VERSION = 2
 
 _DISCLAIMERS: dict[str, dict[str, str]] = {
     "standard": {
         "en": (
             "This is legal information from an automated tool, not a substitute "
             "for a licensed attorney. Before filing anything or acting on a "
-            "deadline, confirm with a Florida attorney. Free or low-cost help: "
-            "floridalawhelp.org | Florida Bar Lawyer Referral: floridabar.org/public/lrs "
-            "($25 for 30-minute consultation)."
+            "deadline, confirm with a Florida attorney. Free help: LegalClear "
+            "/find-legal-help."
         ),
         "es": (
             "Esta es información legal generada por una herramienta automatizada, "
             "no un sustituto de un abogado autorizado. Antes de presentar algo o "
             "actuar sobre un plazo, confirme con un abogado de Florida. Ayuda "
-            "gratuita o de bajo costo: floridalawhelp.org"
+            "gratuita: LegalClear /find-legal-help."
+        ),
+    },
+    "short": {
+        "en": (
+            "Confirm this with a licensed attorney before acting. Free help: "
+            "LegalClear /find-legal-help."
+        ),
+        "es": (
+            "Confirme esto con un abogado antes de actuar. Ayuda gratuita: "
+            "LegalClear /find-legal-help."
         ),
     },
     "urgent": {
         "en": (
             "A legal deadline is approaching. The consequences of missing it "
             "may be severe. Seek help from a licensed Florida attorney immediately. "
-            "Free help may be available at floridalawhelp.org."
+            "Free help: LegalClear /find-legal-help."
         ),
         "es": (
             "Se acerca un plazo legal. Las consecuencias de no cumplirlo pueden "
             "ser graves. Busque ayuda de un abogado autorizado de Florida de "
-            "inmediato. Puede haber ayuda gratuita en floridalawhelp.org."
+            "inmediato. Ayuda gratuita: LegalClear /find-legal-help."
         ),
     },
     "criminal": {
@@ -69,6 +82,22 @@ _DISCLAIMERS: dict[str, dict[str, str]] = {
             "comuníquese con la oficina del defensor público de su condado de "
             "inmediato. No confíe únicamente en información automatizada para "
             "casos penales."
+        ),
+    },
+    "plea": {
+        "en": (
+            "WARNING: This is a plea agreement. Signing this document waives "
+            "important legal rights that cannot be recovered. Do NOT sign without "
+            "first speaking to an attorney or public defender. This is the single "
+            "most important action you can take right now. Call the public defender "
+            "immediately at your county courthouse."
+        ),
+        "es": (
+            "ADVERTENCIA: Este es un acuerdo de culpabilidad. Firmar este "
+            "documento renuncia a derechos legales importantes que no se pueden "
+            "recuperar. NO firme sin antes hablar con un abogado o defensor "
+            "público. Llame al defensor público de inmediato en el tribunal de "
+            "su condado."
         ),
     },
 }
@@ -255,21 +284,21 @@ def _referral_text(reasons: list[str], urgency: str, lang: str) -> str:
     if lang == "es":
         if urgency == "immediate":
             return (
-                "Busque asesoramiento legal de inmediato. Puede haber ayuda "
-                "gratuita en floridalawhelp.org."
+                "Busque asesoramiento legal de inmediato. Ayuda gratuita: "
+                "LegalClear /find-legal-help."
             )
         return (
             "Confirme esta información con un abogado autorizado de Florida "
-            "antes de actuar. Ayuda gratuita: floridalawhelp.org."
+            "antes de actuar. Ayuda gratuita: LegalClear /find-legal-help."
         )
     if urgency == "immediate":
         return (
-            "Seek legal help immediately. Free help may be available at "
-            "floridalawhelp.org."
+            "Seek legal help immediately. Free help: LegalClear "
+            "/find-legal-help."
         )
     return (
         "Confirm this information with a licensed Florida attorney before "
-        "acting. Free help: floridalawhelp.org."
+        "acting. Free help: LegalClear /find-legal-help."
     )
 
 
