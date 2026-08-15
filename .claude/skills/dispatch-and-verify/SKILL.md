@@ -197,3 +197,12 @@ finding verbatim and its dependency, and let the human decide scope.
 - **The continuation pattern worked** — it finished the remaining conversions — but it
   had no budget left for build verification. Reserve build/test verification for the
   orchestrator rather than the final continuation.
+
+- **"On every X" = N-call-site dispatch in single-surface clothing.** B4d read as
+  "build a URL filter" — one utility — but "runs on every agent output path" meant
+  ten wiring sites plus ten integration tests. Before dispatching, count the X. If it
+  exceeds three, split: one dispatch for the shared utility, then batches of 2–3 call
+  sites.
+- **Continuation runs get 25 turns, not fewer.** Two continuations (b4a, b4d) died on
+  final housekeeping after finishing their substantive work. The orchestrator owns
+  build and suite verification, so the continuation does not have to spend turns on it.
