@@ -11,8 +11,8 @@ import SeverityBadge from '../components/SeverityBadge';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
 const API_KEY = import.meta.env.VITE_API_KEY;
 
-async function fetchDeadlines(documentId) {
-  const res = await fetch(`${API_URL}/api/deadline/${documentId}/deadlines`, {
+async function fetchDeadlines(documentId, sessionId) {
+  const res = await fetch(`${API_URL}/api/deadline/${documentId}/deadlines?session_id=${encodeURIComponent(sessionId)}`, {
     headers: { 'x-api-key': API_KEY },
   });
   if (!res.ok) throw new Error(`${res.status}`);
@@ -60,7 +60,8 @@ export default function ResultsPage() {
     setDlError(null);
     setDlState('loading');
     try {
-      let rows = await fetchDeadlines(document_id);
+      const session_id = docData?.session_id;
+      let rows = await fetchDeadlines(document_id, session_id);
       if (rows.length === 0 && !postAttemptedRef.current) {
         postAttemptedRef.current = true;
         setDlState('computing');
@@ -69,7 +70,7 @@ export default function ResultsPage() {
           headers: { 'x-api-key': API_KEY },
         });
         if (!res.ok) throw new Error(`${res.status}`);
-        rows = await fetchDeadlines(document_id);
+        rows = await fetchDeadlines(document_id, session_id);
       }
       rows = [...rows].sort((a, b) =>
         String(a.due_date).localeCompare(String(b.due_date)));

@@ -2,6 +2,8 @@
 
 import logging
 
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from src.api.dependencies import require_api_key
@@ -41,10 +43,13 @@ async def analyze_document(document_id: str):
 
 
 @router.get("/{document_id}/deadlines")
-async def get_deadlines(document_id: str):
+async def get_deadlines(document_id: str, session_id: Optional[str] = None):
     """Return all computed deadlines for a document, ordered by due_date."""
     if db.client is None:
         raise HTTPException(status_code=503, detail="Database unavailable")
+    doc = db.get_document(document_id)
+    if not doc or not session_id or doc.get("session_id") != session_id:
+        raise HTTPException(status_code=404, detail="Document not found")
     try:
         result = (db.client.table("deadlines")
                   .select("id,label,due_date,governing_rule,consequence_if_missed,"
@@ -60,10 +65,13 @@ async def get_deadlines(document_id: str):
 
 
 @router.get("/{document_id}/trigger-events")
-async def get_trigger_events(document_id: str):
+async def get_trigger_events(document_id: str, session_id: Optional[str] = None):
     """Return extracted trigger events for a document."""
     if db.client is None:
         raise HTTPException(status_code=503, detail="Database unavailable")
+    doc = db.get_document(document_id)
+    if not doc or not session_id or doc.get("session_id") != session_id:
+        raise HTTPException(status_code=404, detail="Document not found")
     try:
         result = (db.client.table("trigger_events")
                   .select("*")
