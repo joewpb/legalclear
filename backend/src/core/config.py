@@ -26,7 +26,7 @@ class Settings:
     # corpus-only (Supabase legal_opinions); CL is never called. Set only to
     # enable the optional v4 fallback when the corpus returns nothing.
     COURTLISTENER_TOKEN: str = os.getenv("COURTLISTENER_TOKEN", "")
-    API_KEY: str = os.getenv("API_KEY", "testkey123")
+    API_KEY: str = os.getenv("API_KEY", "")
     DEEPSEEK_API_KEY: str = os.getenv("DEEPSEEK_API_KEY", "")
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     # Master payment switch. False (default) = every paywalled feature runs
@@ -52,3 +52,9 @@ class Settings:
 
 
 settings = Settings()
+
+if not settings.API_KEY:
+    raise RuntimeError(
+        "API_KEY environment variable is not set. Refusing to start: "
+        "protected endpoints must never fall back to a default secret."
+    )

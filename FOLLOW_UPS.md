@@ -115,3 +115,4 @@ read returns 200 with empty rows (RLS filtering — rows not exposed); nothing i
 reads it over REST. Belt-and-suspenders if it ever holds a live key: revoke all on
 public.app_config from anon, authenticated (cron runs as postgres — unaffected), and
 create a migration for the table so it stops being invisible to the parity check.
+- This fix will crash Railway (`zesty-delight`) on next deploy if `API_KEY` is unset in Railway env — confirm it's set there before merging/deploying (see DECISIONS.md S1-1 verification-half note).
