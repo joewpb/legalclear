@@ -92,19 +92,15 @@ Rules you must follow:
 """
 
 
-def _date_appears_in_text(iso_date_str: str, text: str) -> bool:
-    """Return True if the ISO date appears in `text` in any common format.
+def _date_variant_families(iso_date_str: str) -> dict[str, set[str]]:
+    """Build the accepted textual representations of an ISO date, grouped by
+    the variant family that produced them (iso/numeric-us/textual/ordinal).
 
-    The LLM is instructed to extract only dates stated verbatim in the document.
-    If the date it returned cannot be located in the text — e.g. an invented
-    placeholder like 2025-01-01 — it is a hallucination and must be rejected.
+    Shared by `_date_appears_in_text` (matching) and the rejection logger in
+    `_sanitize_events` (diagnostics) so the two never drift out of sync.
     """
-    try:
-        d = date.fromisoformat(iso_date_str)
-    except (TypeError, ValueError):
-        return False
+    d = date.fromisoformat(iso_date_str)
 
-    haystack = text.lower()
     yr = str(d.year)
     mm, dd = f"{d.month:02d}", f"{d.day:02d}"
     m, day = str(d.month), str(d.day)
@@ -119,30 +115,81 @@ def _date_appears_in_text(iso_date_str: str, text: str) -> bool:
         suffix = {1: "st", 2: "nd", 3: "rd"}.get(d.day % 10, "th")
     day_ordinal = f"{day}{suffix}"
 
-    variants = {
-        iso_date_str,                        # 2025-01-01
-        iso_date_str.replace("-", "/"),      # 2025/01/01
+    iso = {
+        iso_date_str,                    # 2025-01-01
+        iso_date_str.replace("-", "/"),  # 2025/01/01
     }
+    numeric_us = set()
     # US numeric: 01/01/2025, 1/1/2025, 01-01-2025, 1-1-2025
     for sep in ("/", "-"):
-        variants.add(f"{mm}{sep}{dd}{sep}{yr}")
-        variants.add(f"{m}{sep}{day}{sep}{yr}")
+        numeric_us.add(f"{mm}{sep}{dd}{sep}{yr}")
+        numeric_us.add(f"{m}{sep}{day}{sep}{yr}")
+    textual = set()
+    ordinal = set()
     # Textual: January 1, 2025 / Jan 1, 2025 (with/without comma)
     for name in (m_full, m_abbr):
-        variants.add(f"{name} {day}, {yr}")
-        variants.add(f"{name} {dd}, {yr}")
-        variants.add(f"{name} {day} {yr}")
-        variants.add(f"{name} {dd} {yr}")
+        textual.add(f"{name} {day}, {yr}")
+        textual.add(f"{name} {dd}, {yr}")
+        textual.add(f"{name} {day} {yr}")
+        textual.add(f"{name} {dd} {yr}")
         # Ordinal legal-filing convention: "this 14th day of August, 2026"
-        variants.add(f"{day_ordinal} day of {name}, {yr}")
-        variants.add(f"{day_ordinal} day of {name} {yr}")
-        variants.add(f"{name} {day_ordinal}, {yr}")
-        variants.add(f"{name} {day_ordinal} {yr}")
+        ordinal.add(f"{day_ordinal} day of {name}, {yr}")
+        ordinal.add(f"{day_ordinal} day of {name} {yr}")
+        ordinal.add(f"{name} {day_ordinal}, {yr}")
+        ordinal.add(f"{name} {day_ordinal} {yr}")
 
-    return any(v.lower() in haystack for v in variants)
+    return {"iso": iso, "numeric-us": numeric_us, "textual": textual, "ordinal": ordinal}
 
 
-def _sanitize_events(data: dict[str, Any], document_text: str) -> dict[str, Any]:
+def _date_appears_in_text(iso_date_str: str, text: str) -> bool:
+    """Return True if the ISO date appears in `text` in any common format.
+
+    The LLM is instructed to extract only dates stated verbatim in the document.
+    If the date it returned cannot be located in the text — e.g. an invented
+    placeholder like 2025-01-01 — it is a hallucination and must be rejected.
+    """
+    try:
+        families = _date_variant_families(iso_date_str)
+    except (TypeError, ValueError):
+        return False
+
+    haystack = text.lower()
+    return any(
+        v.lower() in haystack
+        for variants in families.values()
+        for v in variants
+    )
+
+
+def _nearest_numeric_span(text: str, iso_date_str: str, radius: int = 80) -> str:
+    """Best-effort ±radius-char span around the nearest plausible miss location.
+
+    Looks for the date's year, then day, as a standalone number in `text`; if
+    neither is found, falls back to a truncated head of the text so the log
+    line always carries *some* context to diagnose the miss against.
+    """
+    try:
+        d = date.fromisoformat(iso_date_str)
+    except (TypeError, ValueError):
+        d = None
+
+    if d is not None:
+        for needle in (str(d.year), str(d.day)):
+            match = re.search(rf"\b{re.escape(needle)}\b", text)
+            if match:
+                start = max(0, match.start() - radius)
+                end = min(len(text), match.end() + radius)
+                return text[start:end].strip()
+
+    return text[: radius * 2].strip()
+
+
+_MAX_LOGGED_REJECTIONS = 10
+
+
+def _sanitize_events(
+    data: dict[str, Any], document_text: str, doc_id: str | None = None,
+) -> dict[str, Any]:
     """Nullify any extracted event_date that does not appear in the document text.
 
     The LLM is told to extract only verbatim dates, but it sometimes fabricates
@@ -152,7 +199,15 @@ def _sanitize_events(data: dict[str, Any], document_text: str) -> dict[str, Any]
     Principle: LLMs extract, deterministic code computes; "unknown" is a
     first-class output). This mirrors the Stage-2 escalation path that a
     genuinely missing date takes in pipeline.py.
+
+    Every rejection is logged through one surface — this function — with the
+    rejected value, a document identifier, a text span around the nearest
+    miss location, and the variant families that were checked and failed. The
+    legal date-phrasing space is unbounded (Spanish dates, unusual ordinals,
+    etc.); enumerating every form is a losing game, so misses must instead be
+    visible in logs/tally so each new phrasing failure is diagnosable.
     """
+    doc_label = doc_id or f"text-head:{document_text[:40]!r}"
     for ev in data.get("events", []):
         ev_type = ev.get("event_type")
         if ev_type not in ALLOWED_EVENT_TYPES:
@@ -164,10 +219,23 @@ def _sanitize_events(data: dict[str, Any], document_text: str) -> dict[str, Any]
         if not ev_date:
             continue
         if not _date_appears_in_text(ev_date, document_text):
+            span = _nearest_numeric_span(document_text, ev_date)
+            families_checked = ", ".join(sorted(_date_variant_families(ev_date))) \
+                if isinstance(ev_date, str) else "n/a (invalid iso string)"
             logger.warning(
-                "Rejected event_date %r not found in document text — likely "
-                "hallucination; nullifying and escalating.", ev_date,
+                "Rejected event_date %r not found in document text (doc=%s, "
+                "variant_families_checked=[%s], span=%r) — likely "
+                "hallucination; nullifying and escalating.",
+                ev_date, doc_label, families_checked, span,
             )
+            rejected = data.setdefault("rejected_dates", [])
+            if len(rejected) < _MAX_LOGGED_REJECTIONS:
+                rejected.append({
+                    "event_date": ev_date,
+                    "doc": doc_label,
+                    "span": span,
+                    "variant_families_checked": families_checked,
+                })
             ev["event_date"] = None
             ev["confidence"] = 0.0
             data["escalation_needed"] = True

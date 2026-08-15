@@ -149,6 +149,57 @@ def test_mixed_events_only_bad_one_nulled():
     assert out["escalation_needed"] is True
 
 
+def test_rejected_date_is_visible_in_tally_with_span():
+    data = {
+        "events": [{
+            "event_type": "issued",
+            "event_date": "2025-01-01",   # fabricated — not in the doc
+            "service_method": "unknown",
+            "document_type": "small_claims_summons",
+            "raw_text_excerpt": "Small Claims Summons",
+            "confidence": 0.8,
+        }],
+        "escalation_needed": False,
+        "escalation_reason": None,
+    }
+    doc = "IN THE COUNTY COURT — Small Claims Summons. Pretrial date TBD by clerk."
+
+    out = _sanitize_events(data, doc, doc_id="doc-123")
+
+    assert "rejected_dates" in out
+    assert len(out["rejected_dates"]) == 1
+    entry = out["rejected_dates"][0]
+    assert entry["event_date"] == "2025-01-01"
+    assert entry["doc"] == "doc-123"
+    assert isinstance(entry["span"], str) and entry["span"]
+    assert "iso" in entry["variant_families_checked"]
+
+
+def test_rejected_dates_tally_capped_at_ten():
+    events = [
+        {"event_date": f"2025-01-{i:02d}", "confidence": 0.5} for i in range(1, 13)
+    ]
+    data = {"events": events, "escalation_needed": False, "escalation_reason": None}
+    out = _sanitize_events(data, "no dates anywhere in this text")
+    assert len(out["rejected_dates"]) == 10
+
+
+def test_fabricated_date_still_rejected_regression_guard():
+    # The matcher itself must not be weakened by the logging changes.
+    assert not _date_appears_in_text(
+        "2025-01-01", "Small Claims Summons — pretrial to be scheduled."
+    )
+    data = {
+        "events": [{"event_date": "2025-01-01", "confidence": 0.9}],
+        "escalation_needed": False,
+        "escalation_reason": None,
+    }
+    out = _sanitize_events(data, "no dates anywhere in this document text")
+    assert out["events"][0]["event_date"] is None
+    assert out["events"][0]["confidence"] == 0.0
+    assert out["escalation_needed"] is True
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_"):
