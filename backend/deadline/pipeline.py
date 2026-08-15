@@ -94,6 +94,10 @@ async def run_deadline_pipeline(
     # for circuits we have no local closure data on, rather than assuming the
     # court was open (BUILD_PLAN Phase 4 failure mode #5).
     local_closure_circuits: set[int] = set()
+    # Distinguishes "the table legitimately has no rows for this circuit" from
+    # "we couldn't ask the table at all" — the latter must never be computed
+    # through silently (S3-4): every deadline below is flagged and escalated.
+    closure_fetch_failed = False
     if db.client is not None:
         try:
             rows = (db.client.table("court_closures")
@@ -110,6 +114,7 @@ async def run_deadline_pipeline(
             }
         except Exception as e:
             logger.error("Failed to fetch court closures: %s", e)
+            closure_fetch_failed = True
 
     # ── Stage 2: deterministic computation + DB writes ────────────────────────
     for event in events:
@@ -175,10 +180,23 @@ async def run_deadline_pipeline(
         for deadline in compute_result.deadlines:
             rule = RULES.get(rule_key, {})
 
+            # Court closure fetch failed → this deadline was computed with only
+            # statewide holidays, not the actual closure calendar. Flag it on
+            # the deadline itself and force escalation regardless of severity
+            # rather than let a wrong-but-plausible date slip through silently.
+            if closure_fetch_failed:
+                deadline.assumption_disclosures.append(
+                    "Court closure data could not be retrieved (system error); "
+                    "this deadline was computed using statewide holidays only "
+                    "and may not reflect local court closures. Verify before "
+                    "relying on this date."
+                )
+
             # Escalate fatal deadlines below confidence threshold
             should_escalate = (
                 deadline.escalation_recommended
                 or (rule.get("severity") == "fatal" and confidence < ESCALATION_CONFIDENCE_THRESHOLD)
+                or closure_fetch_failed
             )
             if should_escalate:
                 result["escalation_needed"] = True
