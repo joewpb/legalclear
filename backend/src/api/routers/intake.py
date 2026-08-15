@@ -9,7 +9,7 @@ import logging
 import traceback
 
 from anthropic import AsyncAnthropic
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, HTTPException
 from pydantic import BaseModel, Field
 
 from src.core.config import settings
@@ -143,6 +143,7 @@ async def intake(payload: IntakeRequest = Body(...)) -> IntakeResponse:
     entities: dict = {}
     confidence = 0.0
     clarifying_question: str | None = None
+    classified = False
 
     for attempt in range(2):
         try:
@@ -191,15 +192,21 @@ async def intake(payload: IntakeRequest = Body(...)) -> IntakeResponse:
             if module == "property_casualty" and sub_type is None:
                 sub_type = "unknown"
 
+            classified = True
             break  # success — don't retry
 
         except Exception:
             logger.error(
-                "Intake classification attempt %d failed: %s\n%s",
+                "Intake classification attempt %d failed: %s",
                 attempt + 1,
                 traceback.format_exc(),
-                traceback.format_exc(),
             )
+
+    if not classified:
+        raise HTTPException(
+            status_code=503,
+            detail="Intake classification is temporarily unavailable. Please try again.",
+        )
 
     disclaimer = get_disclaimer(payload.language)
 
