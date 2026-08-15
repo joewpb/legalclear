@@ -17,7 +17,7 @@ from src.agents.expungement import ExpungementAgent
 from src.agents.form_guide import FormGuideAgent
 from src.agents.risk_scanner import RiskScannerAgent
 from src.api.limiter import limiter
-from src.core.config import settings
+from src.core.config import settings, validate_startup_config
 from src.core.escalation import EscalationRouter
 from src.core.notifications import NotificationService
 from src.ingestion import ingest_document
@@ -40,6 +40,11 @@ app.add_middleware(
 # Rate limiting (P2.0-A) — limiter shared via src.api.limiter
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+@app.on_event("startup")
+async def _validate_config_on_startup() -> None:
+    validate_startup_config()
 
 
 @contextmanager

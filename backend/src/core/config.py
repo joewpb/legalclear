@@ -58,3 +58,20 @@ if not settings.API_KEY:
         "API_KEY environment variable is not set. Refusing to start: "
         "protected endpoints must never fall back to a default secret."
     )
+
+# Required outside local dev: without these the product silently degrades to
+# an empty/broken state (no DB access, no LLM calls) instead of failing
+# loudly. Called from FastAPI startup, not import time, so pytest collection
+# (no .env, no secrets) is unaffected.
+REQUIRED_SETTINGS = ("SUPABASE_URL", "SUPABASE_SERVICE_KEY", "ANTHROPIC_API_KEY")
+
+
+def validate_startup_config() -> None:
+    if settings.is_development:
+        return
+    missing = [name for name in REQUIRED_SETTINGS if not getattr(settings, name)]
+    if missing:
+        raise RuntimeError(
+            f"Missing required config in ENVIRONMENT={settings.ENVIRONMENT!r}: "
+            f"{', '.join(missing)}"
+        )
