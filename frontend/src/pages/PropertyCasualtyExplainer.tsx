@@ -13,6 +13,7 @@
 import { useState, useRef, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
+import { readSSE } from "../lib/sse";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -60,21 +61,6 @@ interface ExplainResponse {
   clarifying_questions: string[] | null;
   disclaimer: string;
   risk_analysis?: RiskAnalysis;
-}
-
-// ---------------------------------------------------------------------------
-// SSE reader
-// ---------------------------------------------------------------------------
-
-async function* readSSE(r: ReadableStreamDefaultReader<Uint8Array>) {
-  const d = new TextDecoder(); let b = "";
-  while (true) {
-    const { done, value } = await r.read();
-    if (done) break;
-    b += d.decode(value, { stream: true });
-    const ls = b.split("\n"); b = ls.pop() ?? "";
-    for (const l of ls) if (l.startsWith("data: ")) yield l.slice(6);
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -300,7 +286,20 @@ export default function PropertyCasualtyExplainer() {
       const reader = res.body?.getReader();
       if (!reader) throw new Error("No response body");
       let full = "";
-      for await (const c of readSSE(reader)) {
+      for await (const { event, data: c } of readSSE(reader)) {
+        if (event === "disclaimer") {
+          try {
+            const parsed = JSON.parse(c);
+            setResp(p => ({ ...p, disclaimer: parsed.disclaimer ?? c }));
+          } catch {
+            setResp(p => ({ ...p, disclaimer: c }));
+          }
+          continue;
+        }
+        if (event !== "message") {
+          console.debug(`[SSE] ignoring unknown event type: ${event}`);
+          continue;
+        }
         try { const solo = JSON.parse(c);
           if (solo.type === "risk_analysis") { setResp(p => ({ ...p, risk_analysis: solo })); continue; }
         } catch {}
@@ -308,10 +307,10 @@ export default function PropertyCasualtyExplainer() {
         try { setResp(JSON.parse(full)); } catch {}
       }
       try {
-        // Preserve risk_analysis from streaming updates
+        // Preserve risk_analysis and disclaimer from streaming updates
         setResp(p => {
           const parsed = JSON.parse(full);
-          return { ...parsed, risk_analysis: p.risk_analysis };
+          return { ...parsed, risk_analysis: p.risk_analysis, disclaimer: p.disclaimer ?? parsed.disclaimer };
         });
       } catch { if (!full.trim()) setError("Could not parse explanation."); }
     } catch (e: any) { setError(e.message); }

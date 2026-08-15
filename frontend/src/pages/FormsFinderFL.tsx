@@ -14,6 +14,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api";
+import { readSSE } from "../lib/sse";
 
 const API_BASE =
   (import.meta as any).env?.VITE_API_URL || "http://localhost:8001";
@@ -41,20 +42,6 @@ type Facet = { value: string; count: number };
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-/** Decode an SSE byte stream into the string payload of each `data:` line. */
-async function* readSSE(r: ReadableStreamDefaultReader<Uint8Array>) {
-  const d = new TextDecoder();
-  let b = "";
-  while (true) {
-    const { done, value } = await r.read();
-    if (done) break;
-    b += d.decode(value, { stream: true });
-    const ls = b.split("\n");
-    b = ls.pop() ?? "";
-    for (const l of ls) if (l.startsWith("data: ")) yield l.slice(6);
-  }
-}
 
 /**
  * Client-side safety net: the backend enforces third-person output, but never
@@ -443,7 +430,20 @@ export default function FormsFinderFL() {
       const reader = res.body?.getReader();
       if (!reader) throw new Error("No response body");
       let full = "";
-      for await (const c of readSSE(reader)) {
+      for await (const { event, data: c } of readSSE(reader)) {
+        if (event === "disclaimer") {
+          try {
+            const parsed = JSON.parse(c);
+            setAiDisclaimer(parsed.disclaimer ?? c);
+          } catch {
+            setAiDisclaimer(c);
+          }
+          continue;
+        }
+        if (event !== "message") {
+          console.debug(`[SSE] ignoring unknown event type: ${event}`);
+          continue;
+        }
         if (c === "[DONE]") break;
         try {
           const obj = JSON.parse(c);

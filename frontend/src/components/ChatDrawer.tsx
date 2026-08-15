@@ -11,6 +11,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { readSSE } from "../lib/sse";
 
 // ---------------------------------------------------------------------------
 // Module label mapping — used for display text
@@ -68,29 +69,6 @@ function saveMessages(module: string, messages: ChatMessage[]): void {
 
 function clearMessages(module: string): void {
   localStorage.removeItem(getSessionKey(module));
-}
-
-// ---------------------------------------------------------------------------
-// SSE reader
-// ---------------------------------------------------------------------------
-
-async function* readSSE(
-  reader: ReadableStreamDefaultReader<Uint8Array>,
-): AsyncGenerator<string, void, unknown> {
-  const decoder = new TextDecoder();
-  let buffer = "";
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() ?? "";
-    for (const line of lines) {
-      if (line.startsWith("data: ")) {
-        yield line.slice(6);
-      }
-    }
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -465,7 +443,29 @@ export default function ChatDrawer({
 
       let fullContent = "";
 
-      for await (const raw of readSSE(reader)) {
+      for await (const { event, data: raw } of readSSE(reader)) {
+        if (event === "disclaimer") {
+          try {
+            const parsed = JSON.parse(raw);
+            const disclaimerText = parsed.disclaimer ?? raw;
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === expertId ? { ...m, disclaimer: disclaimerText } : m,
+              ),
+            );
+          } catch {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === expertId ? { ...m, disclaimer: raw } : m,
+              ),
+            );
+          }
+          continue;
+        }
+        if (event !== "message") {
+          console.debug(`[SSE] ignoring unknown event type: ${event}`);
+          continue;
+        }
         try {
           const data = JSON.parse(raw);
 

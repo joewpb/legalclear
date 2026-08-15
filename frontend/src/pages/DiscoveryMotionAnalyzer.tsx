@@ -11,6 +11,7 @@
 import { useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
+import { readSSE } from "../lib/sse";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -60,27 +61,6 @@ interface AnalysisResponse {
   likely_resistance: ResistanceItem[];
   disclaimer: string;
   risk_analysis?: RiskAnalysis;
-}
-
-// ---------------------------------------------------------------------------
-// SSE reader
-// ---------------------------------------------------------------------------
-
-async function* readSSE(
-  reader: ReadableStreamDefaultReader<Uint8Array>,
-): AsyncGenerator<string, void, unknown> {
-  const decoder = new TextDecoder();
-  let buffer = "";
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() ?? "";
-    for (const line of lines) {
-      if (line.startsWith("data: ")) yield line.slice(6);
-    }
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -170,11 +150,24 @@ export default function DiscoveryMotionAnalyzer() {
       const reader = res.body?.getReader();
       if (!reader) throw new Error("No response body");
       let full = "";
-      for await (const c of readSSE(reader)) {
+      for await (const { event, data: c } of readSSE(reader)) {
+        if (event === "disclaimer") {
+          try {
+            const parsed = JSON.parse(c);
+            setResp(p => ({ ...p, disclaimer: parsed.disclaimer ?? c }));
+          } catch {
+            setResp(p => ({ ...p, disclaimer: c }));
+          }
+          continue;
+        }
+        if (event !== "message") {
+          console.debug(`[SSE] ignoring unknown event type: ${event}`);
+          continue;
+        }
         try { const solo = JSON.parse(c); if (solo.type === "risk_analysis") { setResp(p => ({ ...p, risk_analysis: solo })); continue; } } catch {}
         full += c; setRaw(full); try { setResp(JSON.parse(full)); } catch {}
       }
-      try { setResp(p => ({ ...JSON.parse(full), risk_analysis: p.risk_analysis })); } catch { if (!full.trim()) setError("Could not parse analysis."); }
+      try { const parsed = JSON.parse(full); setResp(p => ({ ...parsed, risk_analysis: p.risk_analysis, disclaimer: p.disclaimer ?? parsed.disclaimer })); } catch { if (!full.trim()) setError("Could not parse analysis."); }
     } catch (e: any) { setError(e.message); }
     finally { setStreaming(false); }
   }, [file]);

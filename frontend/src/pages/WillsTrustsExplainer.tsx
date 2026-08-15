@@ -11,6 +11,7 @@
 import { useState, useRef, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
+import { readSSE } from "../lib/sse";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -39,21 +40,6 @@ interface DraftInputs {
   executor: string;
   guardian: string;
   specialBequests: string;
-}
-
-// ---------------------------------------------------------------------------
-// SSE reader
-// ---------------------------------------------------------------------------
-
-async function* readSSE(r: ReadableStreamDefaultReader<Uint8Array>) {
-  const d = new TextDecoder(); let b = "";
-  while (true) {
-    const { done, value } = await r.read();
-    if (done) break;
-    b += d.decode(value, { stream: true });
-    const ls = b.split("\n"); b = ls.pop() ?? "";
-    for (const l of ls) if (l.startsWith("data: ")) yield l.slice(6);
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -376,7 +362,20 @@ export default function WillsTrustsExplainer() {
       if (!reader) throw new Error("No response stream");
 
       let full = "";
-      for await (const raw of readSSE(reader)) {
+      for await (const { event, data: raw } of readSSE(reader)) {
+        if (event === "disclaimer") {
+          try {
+            const parsed = JSON.parse(raw);
+            setResponse((p) => ({ ...p, disclaimer: parsed.disclaimer ?? raw }));
+          } catch {
+            setResponse((p) => ({ ...p, disclaimer: raw }));
+          }
+          continue;
+        }
+        if (event !== "message") {
+          console.debug(`[SSE] ignoring unknown event type: ${event}`);
+          continue;
+        }
         try {
           const data = JSON.parse(raw);
           if (data.chunk) {
@@ -398,7 +397,7 @@ export default function WillsTrustsExplainer() {
       // Final parse
       try {
         const parsed = JSON.parse(full);
-        setResponse(parsed);
+        setResponse((p) => ({ ...parsed, disclaimer: p.disclaimer ?? parsed.disclaimer }));
         if (parsed.draft_content) {
           setGeneratedDraft(parsed.draft_content);
         }

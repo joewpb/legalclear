@@ -14,6 +14,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
 import OpinionCard from "../components/policereport/OpinionCard";
 import type { RelevantOpinion } from "../components/policereport/types";
+import { readSSE } from "../lib/sse";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -51,25 +52,6 @@ const STAGES = [
 // ---------------------------------------------------------------------------
 // SSE reader
 // ---------------------------------------------------------------------------
-
-async function* readSSE(
-  reader: ReadableStreamDefaultReader<Uint8Array>,
-): AsyncGenerator<string, void, unknown> {
-  const decoder = new TextDecoder();
-  let buffer = "";
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() ?? "";
-    for (const line of lines) {
-      if (line.startsWith("data: ")) {
-        yield line.slice(6);
-      }
-    }
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Inline styles
@@ -395,7 +377,25 @@ export default function CriminalProcedureExplainer() {
       if (!reader) throw new Error("No response body");
 
       let full = "";
-      for await (const chunk of readSSE(reader)) {
+      for await (const { event, data: chunk } of readSSE(reader)) {
+        if (event === "disclaimer") {
+          // Typed disclaimer event (backend-driven) — set directly, never
+          // accumulate into the explanation JSON.
+          try {
+            const parsed = JSON.parse(chunk);
+            setResponse((p) => ({ ...p, disclaimer: parsed.disclaimer ?? chunk }));
+          } catch {
+            setResponse((p) => ({ ...p, disclaimer: chunk }));
+          }
+          continue;
+        }
+        if (event !== "message") {
+          // Unknown/future event type — ignore gracefully, never crash or
+          // fold it into the accumulated explanation JSON.
+          console.debug(`[SSE] ignoring unknown event type: ${event}`);
+          continue;
+        }
+
         // Try parsing the individual chunk first — ``relevant_opinions``
         // events arrive as a complete single-line JSON after the
         // streaming explanation JSON finishes.

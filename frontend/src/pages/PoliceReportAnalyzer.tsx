@@ -15,6 +15,7 @@ import OpinionCard from "../components/policereport/OpinionCard";
 import { applySseEvent } from "../components/policereport/sseMerge";
 import type { CaseContext, RelevantOpinion } from "../components/policereport/types";
 import CaseContextBanner from "../components/policereport/CaseContextBanner";
+import { readSSE } from "../lib/sse";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -76,25 +77,6 @@ interface AnalysisResponse {
 // ---------------------------------------------------------------------------
 // SSE reader
 // ---------------------------------------------------------------------------
-
-async function* readSSE(
-  reader: ReadableStreamDefaultReader<Uint8Array>,
-): AsyncGenerator<string, void, unknown> {
-  const decoder = new TextDecoder();
-  let buffer = "";
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() ?? "";
-    for (const line of lines) {
-      if (line.startsWith("data: ")) {
-        yield line.slice(6);
-      }
-    }
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Severity badge (inline component)
@@ -542,7 +524,21 @@ export default function PoliceReportAnalyzer() {
       if (!reader) throw new Error("No response body");
 
       let full = "";
-      for await (const chunk of readSSE(reader)) {
+      for await (const { event, data: chunk } of readSSE(reader)) {
+        if (event === "disclaimer") {
+          try {
+            const parsed = JSON.parse(chunk);
+            setResponse((prev) => ({ ...prev, disclaimer: parsed.disclaimer ?? chunk }));
+          } catch {
+            setResponse((prev) => ({ ...prev, disclaimer: chunk }));
+          }
+          continue;
+        }
+        if (event !== "message") {
+          console.debug(`[SSE] ignoring unknown event type: ${event}`);
+          continue;
+        }
+
         // Try parsing the individual chunk first — risk_analysis
         // events arrive as complete single-line JSON after the
         // streaming analysis JSON finishes.
