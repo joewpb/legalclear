@@ -87,7 +87,25 @@ G1 is the one that matters. A wrong eviction deadline is a default judgment.
 
 ---
 
-## PHASE B — Correctness blockers (G1) · ⬅ NEXT
+## PHASE B — Correctness blockers (G1) · ✅ B1–B4 COMPLETE 2026-08-15
+**Final B-phase SHA:** 3a1607e (+ docs e6e0bb9) · Suite 275/1 from a 249/1 baseline.
+
+- B1 (S2-7 anchors) — merged 2826fbd: rules declare required_anchors; extractor labels
+  date kinds; wrong-kind date skips + escalates, never substitutes.
+- B2 (S3-5d) — merged bd6e0e7: insert failures escalate, counters honest.
+- B3 (S3-5e) — merged e6df4b8: every rejected date logged with value + span.
+- B4 (UPL consolidation) — merged 3a1607e: apply_disclaimer canonical v2 (Decision 3),
+  links stripped, get_disclaimer delegates; typed `event: disclaimer` on success AND
+  error paths across forms/criminal/discovery/wills_trusts/small_claims;
+  attorney_referral wrapped (was bare); intake migrated; frontend SSE tolerance
+  (b4a, d5816ef) shipped first. fix/pc-upl-stale-tests SUPERSEDED (rewritten as b4c,
+  not merged — its version no longer imports).
+- B4d (URL output filter, Decision 4) — ADDED SCOPE, dispatched 2026-08-15.
+- B4e (streaming error-path disclaimers conditional on content, Decision 5) — ADDED
+  SCOPE, dispatched 2026-08-15.
+
+**G1 REMAINS CLOSED** — B5 (service-date capture per Decision 2) has not shipped.
+
 **Goal:** the pipeline becomes safe to point at a real tenant. **This is the critical path.**
 
 ### B1 — S2-7, date anchors. Diagnose first. fable, 50 turns, $6.
