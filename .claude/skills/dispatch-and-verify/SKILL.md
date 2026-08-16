@@ -215,3 +215,12 @@ finding verbatim and its dependency, and let the human decide scope.
 - **Continuations are for GREEN branches with housekeeping left.** A branch left
   red mid-implementation gets re-dispatched, not continued — a continuation inherits
   a design it did not make and spends its budget debugging rather than building.
+
+- **The orchestrator NEVER changes checkout while a dispatch is running.** A run's
+  edits land in whatever working tree is checked out — switching to main mid-run puts
+  fix content on main (happened 2026-08-15: B5-c1 endpoint committed to local main;
+  recovered via cherry-pick + authorized reset). This is the one class of mistake that
+  could actually lose work. Serialize ALL orchestrator git operations against running
+  dispatches: housekeeping edits (plan updates, FOLLOW_UPS entries, skill edits) wait
+  for the dispatch to return, or happen in a separate worktree. Never share a checkout
+  with a run.
