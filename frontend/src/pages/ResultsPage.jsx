@@ -7,6 +7,7 @@ import {
   BookOpen, MapPin, ExternalLink
 } from 'lucide-react';
 import SeverityBadge from '../components/SeverityBadge';
+import api from '../api';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
 const API_KEY = import.meta.env.VITE_API_KEY;
@@ -191,7 +192,16 @@ export default function ResultsPage() {
               <div className="bg-zinc-900/50 backdrop-blur-sm border border-white/5 hover:border-blue-500/50 transition-colors duration-500 min-h-[500px] rounded-2xl p-6 md:p-8 shadow-2xl">
                 {activeTab === 'summary' && <SummaryView explanation={explanation} escalation={escalation} />}
                 {activeTab === 'risk' && <RiskView riskScan={riskScan} />}
-                {activeTab === 'deadlines' && <DeadlinesView deadlines={deadlines} state={dlState} error={dlError} onRetry={loadDeadlines} />}
+                {activeTab === 'deadlines' && (
+                  <DeadlinesView
+                    deadlines={deadlines}
+                    state={dlState}
+                    error={dlError}
+                    onRetry={loadDeadlines}
+                    documentId={document_id}
+                    sessionId={docData?.session_id}
+                  />
+                )}
                 {activeTab === 'form' && <FormGuideView formGuide={formGuide} />}
                 {activeTab === 'expungement' && <ExpungementView expungement={expungement} />}
                 {activeTab === 'florida' && <FloridaFilingView classification={classification} />}
@@ -293,7 +303,7 @@ function SummaryView({ explanation, escalation }) {
   );
 }
 
-function DeadlinesView({ deadlines, state, error, onRetry }) {
+function DeadlinesView({ deadlines, state, error, onRetry, documentId, sessionId }) {
   if (state === 'loading' || state === 'computing') {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-4 text-gray-400 animate-slide-up">
@@ -311,16 +321,112 @@ function DeadlinesView({ deadlines, state, error, onRetry }) {
       </div>
     );
   }
-  if (!deadlines || deadlines.length === 0) {
-    return <div className="text-gray-400 text-center py-12">No deadlines detected in this document.</div>;
-  }
   return (
     <div className="space-y-6 animate-slide-up">
       <div>
         <h2 className="text-2xl font-bold mb-2 font-display">Deadlines</h2>
         <p className="text-gray-400 text-sm">Computed by the deterministic deadline engine under the Florida Rules. Always verify against the cited rule.</p>
       </div>
-      {deadlines.map((d) => <DeadlineCard key={d.id} d={d} />)}
+      <ServiceDateForm documentId={documentId} sessionId={sessionId} />
+      {(!deadlines || deadlines.length === 0)
+        ? <div className="text-gray-400 text-center py-12">No deadlines detected in this document.</div>
+        : deadlines.map((d) => <DeadlineCard key={d.id} d={d} />)}
+    </div>
+  );
+}
+
+const SERVICE_METHODS = [
+  { value: 'unknown', label: 'I\'m not sure' },
+  { value: 'personal', label: 'Personal service (handed to me)' },
+  { value: 'substitute', label: 'Substitute service (given to someone else)' },
+  { value: 'posted', label: 'Posted (left at the property)' },
+];
+
+function ServiceDateForm({ documentId, sessionId }) {
+  const [serviceDate, setServiceDate] = useState('');
+  const [serviceMethod, setServiceMethod] = useState('unknown');
+  const [clerkMailingDate, setClerkMailingDate] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [result, setResult] = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitError(null);
+    setSubmitting(true);
+    try {
+      const body = { service_method: serviceMethod, service_date: serviceDate };
+      if (serviceMethod === 'posted') body.clerk_mailing_date = clerkMailingDate;
+      const res = await api.put(
+        `/api/deadline/${documentId}/service-date`,
+        body,
+        { params: { session_id: sessionId } }
+      );
+      setResult(res.data);
+    } catch (err) {
+      const detail = err.response?.data?.detail;
+      setSubmitError(typeof detail === 'string' ? detail : err.message);
+      setResult(null);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="bg-zinc-800/30 border border-white/5 rounded-xl p-6 space-y-4">
+      <h3 className="text-lg font-bold text-white">When and how were you served?</h3>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="text-gray-400 text-xs uppercase tracking-wider mb-1 block">Date served</label>
+            <input
+              type="date"
+              value={serviceDate}
+              onChange={(e) => setServiceDate(e.target.value)}
+              required
+              className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-2 text-white text-sm outline-none focus:border-blue-500/50 transition-colors"
+            />
+          </div>
+          <div>
+            <label className="text-gray-400 text-xs uppercase tracking-wider mb-1 block">How were you served?</label>
+            <select
+              value={serviceMethod}
+              onChange={(e) => setServiceMethod(e.target.value)}
+              className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-2 text-white text-sm outline-none focus:border-blue-500/50 transition-colors"
+            >
+              {SERVICE_METHODS.map((m) => (
+                <option key={m.value} value={m.value}>{m.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        {serviceMethod === 'posted' && (
+          <div>
+            <label className="text-gray-400 text-xs uppercase tracking-wider mb-1 block">Date the clerk mailed the papers</label>
+            <input
+              type="date"
+              value={clerkMailingDate}
+              onChange={(e) => setClerkMailingDate(e.target.value)}
+              required
+              className="w-full sm:w-1/2 bg-zinc-900 border border-white/10 rounded-lg px-4 py-2 text-white text-sm outline-none focus:border-blue-500/50 transition-colors"
+            />
+          </div>
+        )}
+        {submitError && <p className="text-red-400 text-sm">{submitError}</p>}
+        <button type="submit" disabled={submitting} className="btn-primary py-2 px-6 disabled:opacity-50">
+          {submitting ? 'Saving…' : 'Save service date'}
+        </button>
+      </form>
+      {result && result.recompute === 'complete' && result.deadlines?.length > 0 && (
+        <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-200 text-sm">
+          If you were served on <strong>{serviceDate}</strong>, your response is due <strong>{result.deadlines[0].due_date}</strong>.
+        </div>
+      )}
+      {result && result.recompute === 'escalated' && (
+        <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-200 text-sm">
+          {result.guidance || 'This situation needs attorney review before a deadline can be shown.'}
+        </div>
+      )}
     </div>
   );
 }
