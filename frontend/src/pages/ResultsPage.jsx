@@ -7,7 +7,6 @@ import {
   BookOpen, MapPin, ExternalLink
 } from 'lucide-react';
 import SeverityBadge from '../components/SeverityBadge';
-import api from '../api';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
 const API_KEY = import.meta.env.VITE_API_KEY;
@@ -19,6 +18,40 @@ async function fetchDeadlines(documentId, sessionId) {
   if (!res.ok) throw new Error(`${res.status}`);
   const data = await res.json();
   return data.deadlines || [];
+}
+
+// Service-date form: HOW question includes an explicit "I don't know" (method
+// = unknown), which the backend escalates rather than computing (Decision 2).
+// Submitting always calls PUT .../service-date; the response's `recompute`
+// field drives what the Deadlines tab shows next — this is the sole path for
+// both initial supply and edit-then-resubmit (the backend upserts either way).
+const SERVICE_METHOD_OPTIONS = [
+  { value: 'personal', label: 'Personal (hand-delivered by a process server)' },
+  { value: 'substitute', label: 'Substitute (left with another adult)' },
+  { value: 'posted', label: 'Posted (attached to the door)' },
+  { value: 'mail', label: 'Mail' },
+  { value: 'eservice', label: 'E-service (email/portal)' },
+  { value: 'unknown', label: "I don't know" },
+];
+
+async function submitServiceDate(documentId, sessionId, { service_date, service_method, clerk_mailing_date }) {
+  const res = await fetch(
+    `${API_URL}/api/deadline/${documentId}/service-date?session_id=${encodeURIComponent(sessionId)}`,
+    {
+      method: 'PUT',
+      headers: { 'x-api-key': API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        service_date,
+        service_method,
+        ...(clerk_mailing_date ? { clerk_mailing_date } : {}),
+      }),
+    }
+  );
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || `Request failed (${res.status})`);
+  }
+  return data;
 }
 
 export default function ResultsPage() {
@@ -37,6 +70,8 @@ export default function ResultsPage() {
   const [deadlines, setDeadlines] = useState(null);
   const [dlState, setDlState] = useState('idle'); // idle | loading | computing | ready | error
   const [dlError, setDlError] = useState(null);
+  const [dlEscalation, setDlEscalation] = useState(null); // {guidance, escalation_reasons} | null
+  const [servedSummary, setServedSummary] = useState(null); // {submittedDate, dueDate} | null
   const postAttemptedRef = useRef(false);
 
   useEffect(() => {
@@ -59,6 +94,7 @@ export default function ResultsPage() {
   // then GET again. The deterministic backend owns every date — the UI only renders.
   const loadDeadlines = async () => {
     setDlError(null);
+    setDlEscalation(null);
     setDlState('loading');
     try {
       const session_id = docData?.session_id;
@@ -87,6 +123,27 @@ export default function ResultsPage() {
     if (activeTab === 'deadlines' && dlState === 'idle') loadDeadlines();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
+
+  // Applies a service-date submit response (initial supply or edit-resubmit alike).
+  // Always replaces deadlines/escalation wholesale — no merge with prior state —
+  // so a re-submit never leaves stale rows next to the refreshed ones.
+  const applyServiceDateResponse = (data, submittedDate) => {
+    if (data.recompute === 'escalated') {
+      setDeadlines([]);
+      setDlEscalation({ guidance: data.guidance, escalation_reasons: data.escalation_reasons || [] });
+      setServedSummary(null);
+    } else {
+      const rows = [...(data.deadlines || [])].sort((a, b) =>
+        String(a.due_date).localeCompare(String(b.due_date)));
+      setDeadlines(rows);
+      setDlEscalation(null);
+      setServedSummary(submittedDate && rows.length > 0
+        ? { submittedDate, dueDate: rows[0].due_date }
+        : null);
+    }
+    setDlError(null);
+    setDlState('ready');
+  };
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
@@ -198,8 +255,11 @@ export default function ResultsPage() {
                     state={dlState}
                     error={dlError}
                     onRetry={loadDeadlines}
+                    escalation={dlEscalation}
                     documentId={document_id}
                     sessionId={docData?.session_id}
+                    onServiceDateResult={applyServiceDateResponse}
+                    servedSummary={servedSummary}
                   />
                 )}
                 {activeTab === 'form' && <FormGuideView formGuide={formGuide} />}
@@ -303,7 +363,7 @@ function SummaryView({ explanation, escalation }) {
   );
 }
 
-function DeadlinesView({ deadlines, state, error, onRetry, documentId, sessionId }) {
+function DeadlinesView({ deadlines, state, error, onRetry, escalation, documentId, sessionId, onServiceDateResult, servedSummary }) {
   if (state === 'loading' || state === 'computing') {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-4 text-gray-400 animate-slide-up">
@@ -327,107 +387,111 @@ function DeadlinesView({ deadlines, state, error, onRetry, documentId, sessionId
         <h2 className="text-2xl font-bold mb-2 font-display">Deadlines</h2>
         <p className="text-gray-400 text-sm">Computed by the deterministic deadline engine under the Florida Rules. Always verify against the cited rule.</p>
       </div>
-      <ServiceDateForm documentId={documentId} sessionId={sessionId} />
-      {(!deadlines || deadlines.length === 0)
-        ? <div className="text-gray-400 text-center py-12">No deadlines detected in this document.</div>
-        : deadlines.map((d) => <DeadlineCard key={d.id} d={d} />)}
+      <ServiceDateForm documentId={documentId} sessionId={sessionId} onResult={onServiceDateResult} />
+      {servedSummary && (
+        <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-200 text-sm animate-slide-up">
+          If you were served on <strong>{servedSummary.submittedDate}</strong>, your response is due <strong>{servedSummary.dueDate}</strong>.
+        </div>
+      )}
+      {escalation ? (
+        <div className="p-6 rounded-xl border border-yellow-500/30 bg-yellow-500/5 text-yellow-200 animate-slide-up">
+          <div className="flex items-center gap-2 font-bold text-yellow-400 mb-2">
+            <AlertTriangle className="w-5 h-5" /> Escalated — no deadline computed
+          </div>
+          <p className="text-sm leading-relaxed">{escalation.guidance}</p>
+        </div>
+      ) : (!deadlines || deadlines.length === 0) ? (
+        <div className="text-gray-400 text-center py-12">No deadlines detected in this document.</div>
+      ) : (
+        deadlines.map((d) => <DeadlineCard key={d.id} d={d} />)
+      )}
     </div>
   );
 }
 
-const SERVICE_METHODS = [
-  { value: 'unknown', label: 'I\'m not sure' },
-  { value: 'personal', label: 'Personal service (handed to me)' },
-  { value: 'substitute', label: 'Substitute service (given to someone else)' },
-  { value: 'posted', label: 'Posted (left at the property)' },
-];
-
-function ServiceDateForm({ documentId, sessionId }) {
+function ServiceDateForm({ documentId, sessionId, onResult }) {
   const [serviceDate, setServiceDate] = useState('');
   const [serviceMethod, setServiceMethod] = useState('unknown');
   const [clerkMailingDate, setClerkMailingDate] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState(null);
-  const [result, setResult] = useState(null);
+  const [formError, setFormError] = useState(null);
+
+  const isUnknown = serviceMethod === 'unknown';
+  const isPosted = serviceMethod === 'posted';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitError(null);
+    if (!serviceDate || !serviceMethod || submitting) return;
     setSubmitting(true);
+    setFormError(null);
     try {
-      const body = { service_method: serviceMethod, service_date: serviceDate };
-      if (serviceMethod === 'posted') body.clerk_mailing_date = clerkMailingDate;
-      const res = await api.put(
-        `/api/deadline/${documentId}/service-date`,
-        body,
-        { params: { session_id: sessionId } }
-      );
-      setResult(res.data);
+      const data = await submitServiceDate(documentId, sessionId, {
+        service_date: serviceDate,
+        service_method: serviceMethod,
+        clerk_mailing_date: isPosted ? clerkMailingDate : undefined,
+      });
+      onResult(data, serviceDate);
     } catch (err) {
-      const detail = err.response?.data?.detail;
-      setSubmitError(typeof detail === 'string' ? detail : err.message);
-      setResult(null);
+      setFormError(err.message);
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="bg-zinc-800/30 border border-white/5 rounded-xl p-6 space-y-4">
+    <form onSubmit={handleSubmit} className="bg-zinc-800/30 border border-white/5 rounded-xl p-6 space-y-4">
       <h3 className="text-lg font-bold text-white">When and how were you served?</h3>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="text-gray-400 text-xs uppercase tracking-wider mb-1 block">Date served</label>
-            <input
-              type="date"
-              value={serviceDate}
-              onChange={(e) => setServiceDate(e.target.value)}
-              required
-              className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-2 text-white text-sm outline-none focus:border-blue-500/50 transition-colors"
-            />
-          </div>
-          <div>
-            <label className="text-gray-400 text-xs uppercase tracking-wider mb-1 block">How were you served?</label>
-            <select
-              value={serviceMethod}
-              onChange={(e) => setServiceMethod(e.target.value)}
-              className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-2 text-white text-sm outline-none focus:border-blue-500/50 transition-colors"
-            >
-              {SERVICE_METHODS.map((m) => (
-                <option key={m.value} value={m.value}>{m.label}</option>
-              ))}
-            </select>
-          </div>
+      <p className="text-gray-400 text-sm">Supplying (or correcting) this recomputes your deadlines from the Florida Rules.</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="text-gray-400 text-xs uppercase tracking-wider mb-1 block">Date served</label>
+          <input
+            type="date"
+            value={serviceDate}
+            onChange={(e) => setServiceDate(e.target.value)}
+            className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-2 text-white text-sm outline-none focus:border-blue-500/50 transition-colors"
+            required
+          />
         </div>
-        {serviceMethod === 'posted' && (
-          <div>
-            <label className="text-gray-400 text-xs uppercase tracking-wider mb-1 block">Date the clerk mailed the papers</label>
-            <input
-              type="date"
-              value={clerkMailingDate}
-              onChange={(e) => setClerkMailingDate(e.target.value)}
-              required
-              className="w-full sm:w-1/2 bg-zinc-900 border border-white/10 rounded-lg px-4 py-2 text-white text-sm outline-none focus:border-blue-500/50 transition-colors"
-            />
-          </div>
-        )}
-        {submitError && <p className="text-red-400 text-sm">{submitError}</p>}
-        <button type="submit" disabled={submitting} className="btn-primary py-2 px-6 disabled:opacity-50">
-          {submitting ? 'Saving…' : 'Save service date'}
-        </button>
-      </form>
-      {result && result.recompute === 'complete' && result.deadlines?.length > 0 && (
-        <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-200 text-sm">
-          If you were served on <strong>{serviceDate}</strong>, your response is due <strong>{result.deadlines[0].due_date}</strong>.
+        <div>
+          <label className="text-gray-400 text-xs uppercase tracking-wider mb-1 block">How were you served?</label>
+          <select
+            value={serviceMethod}
+            onChange={(e) => setServiceMethod(e.target.value)}
+            className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-2 text-white text-sm outline-none focus:border-blue-500/50 transition-colors"
+            required
+          >
+            <option value="" disabled>Select a method…</option>
+            {SERVICE_METHOD_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      {isUnknown && (
+        <p className="text-yellow-400 text-sm">
+          If you don't know, we can't compute a deadline. Check the case docket or the clerk's file for
+          the return of service — it shows the exact date and method service was made.
+        </p>
+      )}
+      {isPosted && (
+        <div>
+          <label className="text-gray-400 text-xs uppercase tracking-wider mb-1 block">Clerk's mailing date</label>
+          <input
+            type="date"
+            value={clerkMailingDate}
+            onChange={(e) => setClerkMailingDate(e.target.value)}
+            className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-2 text-white text-sm outline-none focus:border-blue-500/50 transition-colors"
+            required
+          />
+          <p className="text-gray-500 text-xs mt-1">Shown on the return of service, filed with the clerk of court.</p>
         </div>
       )}
-      {result && result.recompute === 'escalated' && (
-        <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-200 text-sm">
-          {result.guidance || 'This situation needs attorney review before a deadline can be shown.'}
-        </div>
-      )}
-    </div>
+      {formError && <p className="text-red-400 text-sm">{formError}</p>}
+      <button type="submit" disabled={submitting} className="btn-primary py-2 px-6 disabled:opacity-50">
+        {submitting ? 'Submitting…' : 'Submit'}
+      </button>
+    </form>
   );
 }
 
