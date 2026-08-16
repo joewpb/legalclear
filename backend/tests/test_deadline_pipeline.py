@@ -71,6 +71,11 @@ class _FakeDb:
     def __init__(self, fail_tables):
         self.client = _FakeClient(fail_tables)
 
+    def get_user_supplied_service_date(self, document_id, event_type):
+        # No user-supplied date in these pipeline tests: the extracted event
+        # date stays the anchor, preserving pre-B5 expectations.
+        return None
+
 
 def _run_pipeline(fail_tables, monkeypatch):
     async def _fake_extract(document_text):
