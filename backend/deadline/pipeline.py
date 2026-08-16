@@ -170,6 +170,15 @@ async def run_deadline_pipeline(
             closure_fetch_failed = True
 
     # ── Stage 2: deterministic computation + DB writes ────────────────────────
+    # A document has ONE instance of a given legal obligation regardless of
+    # how many trigger events extraction returns or where the anchor for each
+    # one came from (B5-f4) — dedup deadline writes on governing_rule across
+    # the whole run, unconditionally (not just when the anchor is
+    # user-supplied). Two events computing the SAME due date for the same
+    # rule collapse to one row; two events computing DIFFERENT due dates for
+    # the same rule is a conflict to escalate, not a second row to write.
+    written_due_date_by_rule: dict[str, date] = {}
+
     for event in events:
         rule_key = event.get("document_type", "unknown")
         event_date_str = event.get("event_date")
@@ -298,6 +307,23 @@ async def run_deadline_pipeline(
         # Write deadline rows
         for deadline in compute_result.deadlines:
             rule = RULES.get(rule_key, {})
+
+            # B5-f4: this rule already produced a deadline row earlier in this
+            # run (from a different trigger event). Never write a second row
+            # for the same governing_rule — collapse identical due dates
+            # silently, escalate genuine conflicts instead of persisting both.
+            if deadline.governing_rule in written_due_date_by_rule:
+                prior_due_date = written_due_date_by_rule[deadline.governing_rule]
+                if prior_due_date != deadline.due_date:
+                    result["escalation_needed"] = True
+                    result["escalation_reasons"].append(
+                        f"Conflicting due dates computed for {deadline.governing_rule!r}: "
+                        f"{prior_due_date.isoformat()} and {deadline.due_date.isoformat()} "
+                        "from different trigger events. Manual review required to "
+                        "determine which trigger date governs."
+                    )
+                continue
+            written_due_date_by_rule[deadline.governing_rule] = deadline.due_date
 
             # Court closure fetch failed → this deadline was computed with only
             # statewide holidays, not the actual closure calendar. Flag it on

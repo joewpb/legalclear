@@ -185,3 +185,14 @@ src/memory/db.py — the old get_user_supplied_service_date/set_user_supplied_se
 methods are kept, unused, marked DEPRECATED). The columns themselves were left in
 place intentionally — dropping them is Phase G's job, and should happen alongside
 confirming nothing else (dashboards, ad-hoc queries) still reads them.
+## B5-f4 follow-up — extraction returned the hearing event duplicated (2026-08-16)
+Document 56703e4b-a3b0-4ea6-aeb8-3334b7431274: Stage 1 extraction returned the SAME
+hearing trigger event effectively twice (an "issued" event on 2026-08-14 and a
+"hearing"/served-anchored event on 2026-08-28 that duplicated the answer-deadline
+anchor), which is why the eviction answer deadline was computed and written twice
+before this fix. B5-f4 dedups the write path structurally (one row per governing_rule
+per document, regardless of how many trigger events produce it) so this no longer
+double-writes, but the underlying extraction defect — why extract_trigger_events
+returned a duplicated/redundant event for this document — is untouched and out of
+scope for this fix. Needs its own investigation of extract.py's prompt/parsing for
+this input.

@@ -116,9 +116,13 @@ def _run_pipeline(fail_tables, monkeypatch, event=None, user_supplied=None):
     return result
 
 
-def _run_pipeline_with_db(fail_tables, monkeypatch, event=None, user_supplied=None, db=None):
+def _run_pipeline_with_db(fail_tables, monkeypatch, event=None, user_supplied=None, db=None, events=None):
     async def _fake_extract(document_text):
-        return {"events": [dict(event or EVENT)], "escalation_needed": False, "escalation_reason": None}
+        return {
+            "events": events if events is not None else [dict(event or EVENT)],
+            "escalation_needed": False,
+            "escalation_reason": None,
+        }
 
     monkeypatch.setattr(pipeline_mod, "extract_trigger_events", _fake_extract)
     if db is None:
@@ -405,3 +409,76 @@ def test_recompute_never_writes_document_service_facts(monkeypatch):
 
     assert result["deadlines_written"] == 1
     assert db.get_document_service_fact("doc-1") == before
+
+
+# ── B5-f4: one deadline row per governing rule, UNCONDITIONAL dedup ─────────
+# Live defect (doc 56703e4b-a3b0-4ea6-aeb8-3334b7431274): extraction returned
+# multiple trigger events (an "issued" event and a duplicated "hearing"/
+# served event) for the same document, and the user-supplied anchor applies
+# to every rule requiring "served" — so the same "Answer to Residential
+# Eviction Complaint" deadline got computed and written twice, once per
+# event. A document has ONE instance of a given legal obligation regardless
+# of how many trigger events extraction returns or where the anchor came
+# from — dedup on governing_rule must not be conditioned on provenance.
+
+def test_multi_event_with_user_supplied_writes_one_row_per_rule(monkeypatch):
+    """Two trigger events (issued + served) for the same rule, WITH a
+    user-supplied service record: both resolve to the same user-supplied
+    anchor date, so exactly one deadline row must be written — not two.
+    """
+    events = [
+        dict(EVICTION_EVENT_ISSUED, event_type="issued", event_date="2026-08-14"),
+        dict(EVICTION_EVENT_ISSUED, event_type="served", event_date="2026-08-28"),
+    ]
+    user_supplied = {
+        "service_date": "2026-08-10",
+        "service_method": "personal",
+        "clerk_mailing_date": None,
+    }
+    result, db = _run_pipeline_with_db(
+        fail_tables=set(), monkeypatch=monkeypatch, events=events, user_supplied=user_supplied,
+    )
+
+    assert result["trigger_events_written"] == 2
+    assert result["deadlines_written"] == 1
+    assert len(db.client.inserted["deadlines"]) == 1
+
+
+def test_multi_event_extracted_anchor_only_writes_one_row_per_rule(monkeypatch):
+    """Two trigger events for the same rule, both "served"-anchored, no
+    user-supplied record — extraction alone (e.g. a duplicated hearing
+    event) must still collapse to one deadline row, not two.
+    """
+    events = [
+        dict(EVICTION_EVENT_ISSUED, event_type="served", event_date="2026-08-28"),
+        dict(EVICTION_EVENT_ISSUED, event_type="served", event_date="2026-08-28"),
+    ]
+    result, db = _run_pipeline_with_db(
+        fail_tables=set(), monkeypatch=monkeypatch, events=events,
+    )
+
+    assert result["trigger_events_written"] == 2
+    assert result["deadlines_written"] == 1
+    assert len(db.client.inserted["deadlines"]) == 1
+
+
+def test_conflicting_due_dates_for_same_rule_escalates_not_two_rows(monkeypatch):
+    """Two "served"-anchored events for the same rule with genuinely
+    DIFFERENT event dates compute different due dates. That is a conflict to
+    escalate — not two rows to write. Only the first is written.
+    """
+    events = [
+        dict(EVICTION_EVENT_ISSUED, event_type="served", event_date="2026-08-20"),
+        dict(EVICTION_EVENT_ISSUED, event_type="served", event_date="2026-08-28"),
+    ]
+    result, db = _run_pipeline_with_db(
+        fail_tables=set(), monkeypatch=monkeypatch, events=events,
+    )
+
+    assert result["trigger_events_written"] == 2
+    assert result["deadlines_written"] == 1
+    assert len(db.client.inserted["deadlines"]) == 1
+    assert result["escalation_needed"] is True
+    assert any(
+        "conflicting due dates" in r.lower() for r in result["escalation_reasons"]
+    ), result["escalation_reasons"]
