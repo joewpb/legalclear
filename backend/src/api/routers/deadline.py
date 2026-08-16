@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 from src.api.dependencies import require_api_key
 from src.core.upl import apply_disclaimer
 from src.memory.db import DatabaseManager
+from deadline.rules import SERVICE_POSTED
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/deadline", tags=["deadline"])
@@ -52,6 +53,100 @@ def _parse_and_check_range(value: str, field_name: str) -> str:
             detail=f"{field_name} must be between {_MIN_SERVICE_DATE.isoformat()} and {max_date.isoformat()}",
         )
     return value
+# Decision 2 — "I don't know" escalates rather than guessing a service method;
+# it also tells the user where to find the real answer instead of just saying no.
+GUIDANCE_UNKNOWN_SERVICE_METHOD = (
+    "Service method could not be determined, so no deadline was computed. "
+    "The return of service is filed with the clerk of court, and the case "
+    "docket shows the date service was made — check the docket or the "
+    "clerk's file for the exact service date and method, then supply it."
+)
+
+# Decision 6 — posted service runs from later-of(posting, mailing); without
+# the mailing date there is nothing to compute the later-of from.
+GUIDANCE_POSTED_WITHOUT_MAILING_DATE = (
+    "This document was served by posting. The deadline for posted service "
+    "runs from the later of the posting date or the mailing date shown on "
+    "the return of service, and that mailing date is not yet on file. The "
+    "return of service is filed with the clerk of court, and the case "
+    "docket shows the mailing date — check the docket or the clerk's file, "
+    "then supply the mailing date."
+)
+
+_DEADLINE_SELECT_COLUMNS = (
+    "id,label,due_date,governing_rule,consequence_if_missed,"
+    "severity,confidence,escalation_recommended,"
+    "computation_trace,reminder_state,created_at"
+)
+
+
+def _escalation_response(guidance: str) -> dict:
+    """Shape for the I-don't-know contract: no pipeline run, no deadline write."""
+    return {
+        "recompute": "escalated",
+        "escalation_needed": True,
+        "escalation_reasons": [guidance],
+        "guidance": guidance,
+        "deadlines": [],
+    }
+
+
+async def _recompute_deadlines(
+    document_id: str,
+    service_method: str | None,
+    clerk_mailing_date: str | None = None,
+) -> dict:
+    """Recompute deadlines for a document after a service-date supply/edit.
+
+    Seam for B5-c1: the PUT /api/deadline/{document_id}/service-date endpoint
+    persists user_service_date/user_service_method itself, then calls this
+    helper with the same service_method (and, once B5-b lands, the posted
+    document's clerk_mailing_date) to get the refreshed deadlines or the
+    escalation payload. Edit uses this same path as initial supply — there is
+    no separate branch, since the endpoint upserts the trigger_events columns
+    before either call.
+
+    Decision 2: an unknown service method escalates instead of computing.
+    Decision 6: posted service without a mailing date escalates instead of
+    computing. In both cases no deadline row is written or refreshed.
+    """
+    method = (service_method or "").strip().lower()
+
+    if not method or method == "unknown":
+        return _escalation_response(GUIDANCE_UNKNOWN_SERVICE_METHOD)
+
+    if method == SERVICE_POSTED and not clerk_mailing_date:
+        return _escalation_response(GUIDANCE_POSTED_WITHOUT_MAILING_DATE)
+
+    from deadline.pipeline import run_deadline_pipeline
+
+    if db.client is None:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+
+    doc = db.get_document(document_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    text = doc.get("document_text") or ""
+    pipeline_result = await run_deadline_pipeline(document_id, text, db)
+
+    deadlines: list = []
+    try:
+        rows = (db.client.table("deadlines")
+                .select(_DEADLINE_SELECT_COLUMNS)
+                .eq("document_id", document_id)
+                .order("due_date")
+                .execute())
+        deadlines = rows.data or []
+    except Exception as e:
+        logger.error("Failed to fetch recomputed deadlines: %s", e)
+
+    return {
+        "recompute": "complete",
+        "deadlines": deadlines,
+        "escalation_needed": pipeline_result.get("escalation_needed", False),
+        "escalation_reasons": pipeline_result.get("escalation_reasons", []),
+    }
 
 
 @router.post("/analyze/{document_id}", dependencies=[Depends(require_api_key)])
@@ -140,8 +235,10 @@ async def set_service_date(document_id: str, body: ServiceDateRequest, session_i
     (supabase/migrations/20260815000000_b5_service_date_capture.sql) has no
     column for it yet; persistence is a later slice's job.
 
-    Response contract: `recompute` is always "pending" — a placeholder
-    status. This endpoint does not itself re-run Stage 2 computation.
+    Response contract: after the upsert this endpoint calls
+    `_recompute_deadlines` (B5-c2 seam) — `recompute` is "complete" with
+    refreshed deadlines, or "escalated" per Decision 2/6 with zero deadline
+    writes.
     """
     if db.client is None:
         raise HTTPException(status_code=503, detail="Database unavailable")
@@ -186,11 +283,14 @@ async def set_service_date(document_id: str, body: ServiceDateRequest, session_i
         logger.error("set_service_date failed: %s", e)
         raise HTTPException(status_code=500, detail="Could not save service date") from e
 
+    recomputed = await _recompute_deadlines(
+        document_id, body.service_method, clerk_mailing_date
+    )
     response = {
         "document_id": document_id,
         "trigger_event_id": trigger_event_id,
         **update_payload,
-        "recompute": "pending",
+        **recomputed,
     }
     if clerk_mailing_date:
         response["clerk_mailing_date"] = clerk_mailing_date
