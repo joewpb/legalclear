@@ -20,7 +20,7 @@ from src.memory.db import DatabaseManager
 
 from .compute import compute_deadline_for_event
 from .extract import extract_trigger_events
-from .rules import RULES
+from .rules import RULES, SERVICE_POSTED
 
 logger = logging.getLogger(__name__)
 
@@ -179,6 +179,20 @@ async def run_deadline_pipeline(
             _record_trigger_event(db, document_id, event, result, is_escalated=True)
             continue
 
+        # Decision 2: a user-supplied service date, once recorded, is the
+        # anchor for ("served",)-anchored rules — the extracted event_date
+        # must never be substituted back in. For posted service (§ 48.183,
+        # Decision 6) the user-supplied date is instead the clerk's
+        # certificate-of-mailing date, used together with the posting date.
+        user_supplied = db.get_user_supplied_service_date(document_id, event_type)
+        clerk_mailing_date: date | None = None
+        if user_supplied and user_supplied.get("user_service_date"):
+            user_date = date.fromisoformat(user_supplied["user_service_date"])
+            if service_method == SERVICE_POSTED:
+                clerk_mailing_date = user_date
+            else:
+                event_date = user_date
+
         compute_result = compute_deadline_for_event(
             rule_key=rule_key,
             event_date=event_date,
@@ -190,10 +204,15 @@ async def run_deadline_pipeline(
             has_local_closure_data=(
                 circuit is not None and circuit in local_closure_circuits
             ),
+            clerk_mailing_date=clerk_mailing_date,
         )
 
-        # Write trigger_event row
-        trigger_id = _record_trigger_event(db, document_id, event, result)
+        # Write trigger_event row — carry the user-supplied fields forward so
+        # this run's row still reflects provenance='user_supplied' rather than
+        # resetting to the 'extracted' default (Decision 2).
+        trigger_id = _record_trigger_event(
+            db, document_id, event, result, user_supplied=user_supplied,
+        )
         if trigger_id is None:
             # Trigger event failed to persist: there is nothing to attach
             # deadline rows to (deadlines.trigger_event_id would be orphaned/
@@ -270,6 +289,7 @@ def _record_trigger_event(
     event: dict,
     result: dict,
     is_escalated: bool = False,
+    user_supplied: dict | None = None,
 ) -> str | None:
     """Write a trigger_event row and update `result` to reflect the outcome.
 
@@ -277,7 +297,9 @@ def _record_trigger_event(
     DB — incrementing it unconditionally let a failed insert be reported to
     the caller as a success (S3-5d).
     """
-    trigger_id = _write_trigger_event(db, document_id, event, is_escalated=is_escalated)
+    trigger_id = _write_trigger_event(
+        db, document_id, event, is_escalated=is_escalated, user_supplied=user_supplied,
+    )
     if trigger_id is not None:
         result["trigger_events_written"] += 1
     else:
@@ -295,8 +317,15 @@ def _write_trigger_event(
     document_id: str,
     event: dict,
     is_escalated: bool = False,
+    user_supplied: dict | None = None,
 ) -> str | None:
-    """Write a trigger_event row and return its id."""
+    """Write a trigger_event row and return its id.
+
+    `user_supplied`, when set, carries a prior user-supplied service date
+    forward onto the new row — Decision 2 requires that once the user has
+    supplied a service date, it is never lost or reset to 'extracted' by a
+    later extraction pass.
+    """
     if db.client is None:
         return None
     try:
@@ -313,6 +342,10 @@ def _write_trigger_event(
             "raw_text_excerpt": event.get("raw_text_excerpt", ""),
             "confidence": float(event.get("confidence", 0.0)),
         }
+        if user_supplied and user_supplied.get("user_service_date"):
+            row["user_service_date"] = user_supplied["user_service_date"]
+            row["user_service_method"] = user_supplied.get("user_service_method")
+            row["service_date_provenance"] = "user_supplied"
         result = db.client.table("trigger_events").insert(row).execute()
         return result.data[0]["id"] if result.data else None
     except Exception as e:

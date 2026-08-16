@@ -47,6 +47,7 @@ class _FakeClient:
 def _run(event):
     fake_client = _FakeClient()
     fake_db = MagicMock(client=fake_client)
+    fake_db.get_user_supplied_service_date = MagicMock(return_value=None)
     extraction = {
         "events": [event],
         "escalation_needed": False,

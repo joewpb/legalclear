@@ -289,6 +289,7 @@ SERVICE_PERSONAL    = "personal"
 SERVICE_MAIL        = "mail"
 SERVICE_ESERVICE    = "e_service"
 SERVICE_PUBLICATION = "publication"
+SERVICE_POSTED      = "posted"    # § 48.183 — posted (nail-and-mail) service
 SERVICE_UNKNOWN     = "unknown"
 
 MAIL_EXTENSION_DAYS = 5   # Fla. R. Gen. Prac. & Jud. Admin. 2.514(c)

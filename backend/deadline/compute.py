@@ -24,6 +24,7 @@ from .rules import (
     SERVICE_ESERVICE,
     SERVICE_MAIL,
     SERVICE_PERSONAL,
+    SERVICE_POSTED,
     SERVICE_PUBLICATION,
     SERVICE_UNKNOWN,
     Severity,
@@ -128,11 +129,18 @@ def compute_deadline_for_event(
     closure_dates: frozenset[date],   # statewide + per-circuit, fetched by caller
     has_local_closure_data: bool,     # False → escalate on fatal near unverified dates
     today: date | None = None,
+    clerk_mailing_date: date | None = None,   # posted service (§ 48.183) only
 ) -> DeadlineComputationResult:
     """Compute all deadlines for one trigger event.
 
     Returns a DeadlineComputationResult. For ambiguous service methods
     (unknown/publication) two variants are computed and the earlier date wins.
+
+    Posted service (§ 48.183) is handled separately (Decision 6): the
+    effective service date is the LATER of the posting date (`event_date`)
+    and the clerk's certificate-of-mailing date (`clerk_mailing_date`). If the
+    mailing date is unknown, this escalates rather than computing from the
+    posting date alone.
     """
     today = today or date.today()
     results: list[ComputedDeadline] = []
@@ -197,9 +205,36 @@ def compute_deadline_for_event(
             escalation_reasons=[],
         )
 
+    # Posted service (§ 48.183): effective date is the LATER of the posting
+    # date and the clerk's certificate-of-mailing date. Never compute from the
+    # posting date alone — a mailing date the clerk hasn't yet supplied could
+    # push the true deadline later than a posting-only computation would show.
+    if service_method == SERVICE_POSTED:
+        if clerk_mailing_date is None:
+            return DeadlineComputationResult(
+                deadlines=[],
+                escalation_needed=True,
+                escalation_reasons=[
+                    "Posted service under § 48.183 requires the clerk's "
+                    "certificate-of-mailing date to compute the deadline. "
+                    "That date has not been supplied — cannot compute from "
+                    "the posting date alone. Manual review required."
+                ],
+            )
+        effective_date = max(event_date, clerk_mailing_date)
+        chosen = _compute_single(
+            rule, effective_date, SERVICE_PERSONAL, circuit,
+            closure_dates, has_local_closure_data, today,
+            disclosure=(
+                f"Posted service under § 48.183: computed from the later of "
+                f"the posting date ({event_date}) and the clerk's "
+                f"certificate-of-mailing date ({clerk_mailing_date})."
+            ),
+        )
+        results.append(chosen)
     # For unknown/publication service, compute both personal and mail variants
     # and use the earlier (conservative) deadline.
-    if service_method in (SERVICE_UNKNOWN, SERVICE_PUBLICATION):
+    elif service_method in (SERVICE_UNKNOWN, SERVICE_PUBLICATION):
         personal_result = _compute_single(
             rule, event_date, SERVICE_PERSONAL, circuit,
             closure_dates, has_local_closure_data, today,

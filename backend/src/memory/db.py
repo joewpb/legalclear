@@ -376,3 +376,80 @@ class DatabaseManager:
         except Exception as e:
             self.logger.error(f"PII redaction failed for {document_id}: {e}")
             return {"redacted": False, "findings_count": 0, "error": str(e)}
+
+    # ── B5-b: user-supplied service date (Decision 2 / Decision 6) ──────────
+    # trigger_events.user_service_date / user_service_method are asked of the
+    # user and stored with service_date_provenance='user_supplied'. Once set,
+    # they are the anchor for ("served",)-anchored rules and are never
+    # overwritten by a later extraction pass — Decision 2.
+
+    def get_trigger_events_for_document(self, document_id: str) -> list[dict]:
+        """Return all trigger_events rows for a document, newest first.
+
+        Includes user_service_date / user_service_method /
+        service_date_provenance alongside the extracted event_date so callers
+        can tell a user-supplied anchor from an extracted one.
+        """
+        if self.client is None:
+            return []
+        try:
+            result = (self.client.table("trigger_events")
+                      .select("*")
+                      .eq("document_id", document_id)
+                      .order("created_at", desc=True)
+                      .execute())
+            return result.data or []
+        except Exception as e:
+            self.logger.error(f"get_trigger_events_for_document failed: {e}")
+            return []
+
+    def get_user_supplied_service_date(
+            self, document_id: str, event_type: str) -> dict | None:
+        """Return the most recent user-supplied service date for a document's
+        trigger event of the given `event_type`, or None if the user has not
+        supplied one.
+
+        Returns a dict with user_service_date, user_service_method,
+        service_date_provenance (always 'user_supplied' when returned).
+        """
+        if self.client is None:
+            return None
+        try:
+            result = (self.client.table("trigger_events")
+                      .select("id,user_service_date,user_service_method,"
+                              "service_date_provenance")
+                      .eq("document_id", document_id)
+                      .eq("event_type", event_type)
+                      .eq("service_date_provenance", "user_supplied")
+                      .order("created_at", desc=True)
+                      .limit(1)
+                      .execute())
+            if result.data and result.data[0].get("user_service_date"):
+                return result.data[0]
+            return None
+        except Exception as e:
+            self.logger.error(f"get_user_supplied_service_date failed: {e}")
+            return None
+
+    def set_user_supplied_service_date(
+            self, trigger_event_id: str, user_service_date: str,
+            user_service_method: str | None = None) -> bool:
+        """Record a user-supplied service date on an existing trigger_event
+        row. Sets service_date_provenance='user_supplied' — this date must
+        never be replaced by a subsequently extracted event_date.
+        """
+        if self.client is None:
+            return False
+        try:
+            update = {
+                "user_service_date": user_service_date,
+                "service_date_provenance": "user_supplied",
+            }
+            if user_service_method is not None:
+                update["user_service_method"] = user_service_method
+            self.client.table("trigger_events").update(update) \
+                .eq("id", trigger_event_id).execute()
+            return True
+        except Exception as e:
+            self.logger.error(f"set_user_supplied_service_date failed: {e}")
+            return False

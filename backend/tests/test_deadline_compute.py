@@ -6,7 +6,7 @@ The court_closures table is simulated by passing a frozenset of dates.
 Run: cd backend && uv run python -m pytest tests/test_deadline_compute.py -v
 """
 
-from datetime import date
+from datetime import date, timedelta
 
 import pytest
 
@@ -19,6 +19,7 @@ from deadline.rules import (
     SERVICE_ESERVICE,
     SERVICE_MAIL,
     SERVICE_PERSONAL,
+    SERVICE_POSTED,
     SERVICE_UNKNOWN,
 )
 
@@ -351,3 +352,57 @@ def test_statutory_sol_ignores_missing_closure_data():
     d = r.deadlines[0]
     assert d.escalation_recommended is False
     assert not any("closure" in disc.lower() for disc in d.assumption_disclosures)
+
+
+# ── Posted service — § 48.183 / Decision 6 ────────────────────────────────
+# Effective date is the LATER of the posting date and the clerk's
+# certificate-of-mailing date. Missing mailing date → escalate, never compute
+# from the posting date alone.
+
+def test_posted_service_computes_from_later_mailing_date_not_posting_date():
+    """Posting date X, clerk-mailing date Y (Y > X) → computes from Y."""
+    posting_date = ANCHOR                       # 2026-04-01
+    mailing_date = ANCHOR + timedelta(days=6)    # 2026-04-07, later than posting
+
+    r = compute_deadline_for_event(
+        "civil_summons", posting_date, SERVICE_POSTED,
+        circuit=None, closure_dates=NO_CLOSURES,
+        has_local_closure_data=True, today=TODAY,
+        clerk_mailing_date=mailing_date,
+    )
+    assert r.escalation_needed is False
+    assert len(r.deadlines) == 1
+
+    from_mailing = compute_deadline_for_event(
+        "civil_summons", mailing_date, SERVICE_PERSONAL,
+        circuit=None, closure_dates=NO_CLOSURES,
+        has_local_closure_data=True, today=TODAY,
+    ).deadlines[0].due_date
+    from_posting_only = compute_deadline_for_event(
+        "civil_summons", posting_date, SERVICE_PERSONAL,
+        circuit=None, closure_dates=NO_CLOSURES,
+        has_local_closure_data=True, today=TODAY,
+    ).deadlines[0].due_date
+
+    assert r.deadlines[0].due_date == from_mailing
+    assert r.deadlines[0].due_date != from_posting_only
+    assert any(
+        "later of" in disc.lower() for disc in r.deadlines[0].assumption_disclosures
+    )
+
+
+def test_posted_service_missing_mailing_date_escalates_with_zero_deadlines():
+    """No clerk-mailing date supplied → escalate; do NOT compute from posting
+    date alone, and do NOT fall through to the earlier-of personal/mail path
+    used for unknown/publication service."""
+    r = compute_deadline_for_event(
+        "civil_summons", ANCHOR, SERVICE_POSTED,
+        circuit=None, closure_dates=NO_CLOSURES,
+        has_local_closure_data=True, today=TODAY,
+        clerk_mailing_date=None,
+    )
+    assert r.escalation_needed is True
+    assert r.deadlines == []
+    assert any(
+        "certificate-of-mailing" in reason for reason in r.escalation_reasons
+    )
