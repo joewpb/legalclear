@@ -9,7 +9,7 @@ from typing import Any
 
 import httpx
 
-from src.core.config import settings
+from src.services.email_delivery import get_email_provider
 
 logger = logging.getLogger(__name__)
 
@@ -73,36 +73,15 @@ class NotificationService:
     ) -> bool:
         """Email fallback. Returns True ONLY when a provider actually delivers.
 
-        Until a provider is wired this returns False — it does NOT fake
+        Delegates to the provider-agnostic adapter (src.services.email_delivery).
+        Without RESEND_API_KEY + EMAIL_FROM configured, the adapter selects
+        LoggingEmailProvider, which logs and returns False — it does NOT fake
         success — so the reminder pipeline records the reminder as 'failed'
         instead of silently advancing reminder_state to 'sent'. Web users
         (no Expo push token) rely on this channel, so faking success here
         would mean a legal-deadline reminder that never reaches the user.
-
-        To enable delivery:
-          1. Set EMAIL_PROVIDER (e.g. "resend") + its API key in env.
-          2. Add the provider SDK to backend deps.
-          3. Implement the matching branch below to return True on confirmed
-             delivery. Until then a configured-but-unimplemented provider
-             also fails honestly (logged at ERROR).
         """
-        provider = (settings.EMAIL_PROVIDER or "").strip().lower()
-        if not provider:
-            logger.warning(
-                "send_email: EMAIL_PROVIDER not configured — reminder NOT "
-                "delivered (to=%r subject=%r). Set EMAIL_PROVIDER + key to "
-                "enable email delivery.",
-                email, subject,
-            )
-            return False
-        # TODO(email): dispatch on provider ("resend"/"sendgrid") and return
-        # True only on confirmed delivery. Fail honestly until implemented.
-        logger.error(
-            "send_email: EMAIL_PROVIDER=%r set but send path not implemented "
-            "— reminder NOT delivered to=%r",
-            provider, email,
-        )
-        return False
+        return await get_email_provider().send_email(email, subject, body)
 
     async def deliver(
         self,

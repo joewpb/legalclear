@@ -41,8 +41,9 @@ class Settings:
         "PAYMENTS_ENABLED", "false").lower() in ("true", "1", "yes", "on")
     # Email provider for the deadline-reminder fallback (web users have no
     # Expo push token). Empty = delivery disabled (reminders fail honestly).
-    EMAIL_PROVIDER: str = os.getenv("EMAIL_PROVIDER", "")  # "resend" | "sendgrid" | ""
+    EMAIL_PROVIDER: str = os.getenv("EMAIL_PROVIDER", "resend")  # "resend" | "sendgrid" | ""
     RESEND_API_KEY: str = os.getenv("RESEND_API_KEY", "")
+    EMAIL_FROM: str = os.getenv("EMAIL_FROM", "")
     SENDGRID_API_KEY: str = os.getenv("SENDGRID_API_KEY", "")
     MESSAGING_PLATFORM: str = os.getenv(
         "MESSAGING_PLATFORM", "log")
