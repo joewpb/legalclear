@@ -38,12 +38,17 @@ class _FakeQuery:
         self._fail_tables = fail_tables
         self._client = client
         self._row = None
+        self._is_delete = False
 
     def select(self, *a, **k):
         return self
 
     def insert(self, row):
         self._row = row
+        return self
+
+    def delete(self):
+        self._is_delete = True
         return self
 
     def eq(self, *a, **k):
@@ -55,11 +60,20 @@ class _FakeQuery:
     def execute(self):
         if self._table_name in self._fail_tables:
             raise RuntimeError("simulated closure fetch failure")
+        if self._is_delete:
+            # B5-f2 Contract 2: recompute must supersede prior deadline rows
+            # for the document, not accumulate — tests assert on what
+            # survives in `self._client.live_deadlines` after a delete.
+            if self._table_name == "deadlines":
+                self._client.live_deadlines = []
+            return _FakeResult([])
         if self._row is not None:
             # B5-f regression tests inspect what was actually inserted, to
             # assert which anchor date the pipeline fed into computation —
             # not just the summary counts.
             self._client.inserted.setdefault(self._table_name, []).append(self._row)
+            if self._table_name == "deadlines":
+                self._client.live_deadlines.append(self._row)
         if self._table_name == "trigger_events":
             return _FakeResult([{"id": "trigger-1"}])
         if self._table_name == "court_closures":
@@ -71,6 +85,11 @@ class _FakeClient:
     def __init__(self, fail_tables):
         self._fail_tables = fail_tables
         self.inserted = {}
+        # Rows that would still be live in the "deadlines" table after any
+        # delete-then-insert supersede calls so far — persists across
+        # multiple pipeline runs against the same _FakeDb/_FakeClient, so
+        # tests can simulate two sequential recomputes.
+        self.live_deadlines = []
 
     def table(self, name):
         return _FakeQuery(name, self._fail_tables, self)
@@ -94,12 +113,15 @@ def _run_pipeline(fail_tables, monkeypatch, event=None, user_supplied=None):
     return result
 
 
-def _run_pipeline_with_db(fail_tables, monkeypatch, event=None, user_supplied=None):
+def _run_pipeline_with_db(fail_tables, monkeypatch, event=None, user_supplied=None, db=None):
     async def _fake_extract(document_text):
         return {"events": [dict(event or EVENT)], "escalation_needed": False, "escalation_reason": None}
 
     monkeypatch.setattr(pipeline_mod, "extract_trigger_events", _fake_extract)
-    db = _FakeDb(fail_tables, user_supplied=user_supplied)
+    if db is None:
+        db = _FakeDb(fail_tables, user_supplied=user_supplied)
+    else:
+        db._user_supplied = user_supplied
     result = asyncio.run(pipeline_mod.run_deadline_pipeline("doc-1", "some text", db))
     return result, db
 
@@ -265,3 +287,93 @@ def test_deadline_insert_failure_does_not_claim_success(monkeypatch):
         "deadline" in r.lower() and "could not be saved" in r.lower()
         for r in result["escalation_reasons"]
     ), result["escalation_reasons"]
+
+
+# ── B5-f2: the user-supplied record wins AS A UNIT (method, not just date) ──
+# Live defect (doc 56703e4b): a PUT posted-service call persisted posting
+# 08-10 / mailing 08-12, but recompute fed the freshly EXTRACTED
+# service_method ("unknown") into computation instead of the persisted
+# user_service_method ("posted") — later-of (Decision 6) never fired and the
+# deadline was computed from the posting date via the conservative
+# unknown-method path. These tests exercise run_deadline_pipeline end-to-end.
+
+def test_user_supplied_method_wins_over_extracted_unknown_method(monkeypatch):
+    """Extraction reports service_method "unknown"; the user has persisted
+    "posted" service (posting 08-10, mailing 08-12). The unit record must
+    override the method too, not just the date — later-of fires and the
+    deadline is computed from the mailing date (08-12), never treated as
+    unknown-method.
+    """
+    event = dict(EVICTION_EVENT_ISSUED, service_method="unknown")
+    user_supplied = {
+        "user_service_date": "2026-08-10",
+        "user_service_method": "posted",
+        "clerk_mailing_date": "2026-08-12",
+    }
+    result, db = _run_pipeline_with_db(
+        fail_tables=set(), monkeypatch=monkeypatch, event=event, user_supplied=user_supplied,
+    )
+
+    assert result["deadlines_written"] == 1
+    expected_due = _expected_due_date(
+        date(2026, 8, 10), "posted", clerk_mailing_date=date(2026, 8, 12),
+    )
+    written = db.client.inserted["deadlines"][0]
+    assert written["due_date"] == expected_due.isoformat()
+    trace_dates = [step.get("date") for step in written["computation_trace"]]
+    assert "2026-08-12" in trace_dates
+    assert "2026-08-14" not in trace_dates
+
+
+def test_recompute_supersedes_prior_deadline_row(monkeypatch):
+    """Two recomputes of the same document with different user-supplied
+    dates must leave exactly ONE live deadline row — the second recompute
+    supersedes the first rather than accumulating alongside it (Contract 2).
+    """
+    event = dict(EVICTION_EVENT_ISSUED, service_method="personal")
+    first_supplied = {
+        "user_service_date": "2026-08-10",
+        "user_service_method": "personal",
+        "clerk_mailing_date": None,
+    }
+    second_supplied = {
+        "user_service_date": "2026-08-11",
+        "user_service_method": "personal",
+        "clerk_mailing_date": None,
+    }
+
+    _, db = _run_pipeline_with_db(
+        fail_tables=set(), monkeypatch=monkeypatch, event=event, user_supplied=first_supplied,
+    )
+    assert len(db.client.live_deadlines) == 1
+    first_due = db.client.live_deadlines[0]["due_date"]
+
+    result2, db = _run_pipeline_with_db(
+        fail_tables=set(), monkeypatch=monkeypatch, event=event, user_supplied=second_supplied, db=db,
+    )
+
+    assert result2["deadlines_written"] == 1
+    assert len(db.client.live_deadlines) == 1
+    assert db.client.live_deadlines[0]["due_date"] != first_due
+
+
+def test_user_supplied_provenance_excludes_extracted_date_and_method_from_trace(monkeypatch):
+    """provenance user_supplied → no extracted date or extracted method may
+    appear anywhere in the computation trace — the trace must reflect only
+    the user-supplied unit record.
+    """
+    event = dict(EVICTION_EVENT_ISSUED, service_method="unknown")
+    user_supplied = {
+        "user_service_date": "2026-08-10",
+        "user_service_method": "posted",
+        "clerk_mailing_date": "2026-08-12",
+    }
+    result, db = _run_pipeline_with_db(
+        fail_tables=set(), monkeypatch=monkeypatch, event=event, user_supplied=user_supplied,
+    )
+
+    assert result["deadlines_written"] == 1
+    written = db.client.inserted["deadlines"][0]
+    trace_str = str(written["computation_trace"])
+    assert "2026-08-14" not in trace_str  # extracted "issued" date
+    assert "unknown" not in trace_str.lower()  # extracted service_method

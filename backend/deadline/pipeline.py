@@ -13,18 +13,50 @@ from __future__ import annotations
 
 import logging
 import re
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from datetime import date
 
 from src.memory.db import DatabaseManager
 
 from .compute import compute_deadline_for_event
 from .extract import extract_trigger_events
-from .rules import RULES, SERVICE_POSTED
+from .rules import RULES
 
 logger = logging.getLogger(__name__)
 
 ESCALATION_CONFIDENCE_THRESHOLD = 0.90  # fatal + below this → escalate
+
+
+@dataclass
+class UserSuppliedServiceRecord:
+    """The user-supplied service record for one trigger event, consulted and
+    applied as a single unit (B5-f2, Contract 1) — service_date,
+    service_method, and (for posted service) clerk_mailing_date always travel
+    together. Once this record exists, every one of its fields overrides the
+    corresponding extracted value; none of the extracted values may reach
+    compute_deadline_for_event. A future user-suppliable field is added here
+    and in `_resolve_user_supplied` only — the call site that applies the
+    record never needs a new per-field branch.
+    """
+    service_date: date
+    service_method: str | None
+    clerk_mailing_date: date | None
+
+
+def _resolve_user_supplied(
+    user_supplied: dict | None,
+) -> UserSuppliedServiceRecord | None:
+    """Build the user-supplied unit record from the DB row, or None if the
+    user has not supplied a service date for this trigger event.
+    """
+    if not user_supplied or not user_supplied.get("user_service_date"):
+        return None
+    mailing = user_supplied.get("clerk_mailing_date")
+    return UserSuppliedServiceRecord(
+        service_date=date.fromisoformat(user_supplied["user_service_date"]),
+        service_method=user_supplied.get("user_service_method"),
+        clerk_mailing_date=date.fromisoformat(mailing) if mailing else None,
+    )
 
 
 def _safe_int(value) -> int | None:
@@ -79,6 +111,19 @@ async def run_deadline_pipeline(
     events = extraction.get("events", [])
     if not events:
         return result
+
+    # ── Supersede stale deadlines for this document (B5-f2, Contract 2) ────────
+    # run_deadline_pipeline is a full recompute for the document: every
+    # deadline written below replaces whatever a prior run wrote for it,
+    # rather than accumulating alongside it (a recompute after a corrected
+    # user-supplied date must not leave the old, wrong deadline row live next
+    # to the new one). Delete-then-insert needs no new "superseded" column or
+    # migration.
+    if db.client is not None:
+        try:
+            db.client.table("deadlines").delete().eq("document_id", document_id).execute()
+        except Exception as e:
+            logger.error("Failed to supersede prior deadlines for %s: %s", document_id, e)
 
     # ── Fetch court closure dates from DB (used by every deadline computation) ─
     # Always fetch statewide (circuit=0) + the specific circuit if known
@@ -162,8 +207,8 @@ async def run_deadline_pipeline(
         user_supplied = None
         if required_anchors and "served" in required_anchors:
             user_supplied = db.get_user_supplied_service_date(document_id, event_type)
-        user_service_date_str = (user_supplied or {}).get("user_service_date")
-        anchor_satisfied_by_user = bool(user_service_date_str)
+        user_record = _resolve_user_supplied(user_supplied)
+        anchor_satisfied_by_user = user_record is not None
 
         # Wrong date anchor → skip the rule and escalate (S2-7), unless a
         # user-supplied service date already satisfies the anchor. Each rule
@@ -201,22 +246,20 @@ async def run_deadline_pipeline(
             _record_trigger_event(db, document_id, event, result, is_escalated=True)
             continue
 
+        # B5-f2, Contract 1 — the single consultation point: when a
+        # user-supplied record exists for this trigger event, it overrides
+        # event_date, service_method, and clerk_mailing_date TOGETHER, as one
+        # unit. For posted service the user-supplied date is the POSTING
+        # date; compute needs it as event_date, paired with the record's
+        # clerk_mailing_date. If no mailing date was persisted,
+        # clerk_mailing_date stays None and compute_deadline_for_event
+        # escalates with zero deadlines (Decision 6) rather than computing
+        # from posting alone.
         clerk_mailing_date: date | None = None
-        if anchor_satisfied_by_user:
-            user_date = date.fromisoformat(user_service_date_str)
-            if service_method == SERVICE_POSTED:
-                # The user-supplied date is the POSTING date; compute needs
-                # it as event_date, paired with the separately persisted
-                # clerk's certificate-of-mailing date. If no mailing date has
-                # been persisted, clerk_mailing_date stays None and
-                # compute_deadline_for_event escalates with zero deadlines
-                # (Decision 6) rather than computing from posting alone.
-                event_date = user_date
-                persisted_mailing = user_supplied.get("clerk_mailing_date")
-                if persisted_mailing:
-                    clerk_mailing_date = date.fromisoformat(persisted_mailing)
-            else:
-                event_date = user_date
+        if user_record is not None:
+            event_date = user_record.service_date
+            service_method = user_record.service_method or service_method
+            clerk_mailing_date = user_record.clerk_mailing_date
 
         compute_result = compute_deadline_for_event(
             rule_key=rule_key,
