@@ -2,12 +2,11 @@ name: Migrations
 
 on:
   workflow_dispatch: {}
-  # LANE-C GATE: orchestrator uncomments the push trigger after the
-  # SUPABASE_ACCESS_TOKEN and SUPABASE_PROJECT_REF secrets are confirmed.
-  # push:
-  #   branches: [main]
-  #   paths:
-  #     - "supabase/migrations/**"
+  # LANE-C GATE: ENABLED 2026-08-16 after secret confirmation.
+  push:
+    branches: [main]
+    paths:
+      - "supabase/migrations/**"
 
 jobs:
   migrate:
