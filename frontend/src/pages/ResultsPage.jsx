@@ -54,6 +54,22 @@ async function submitServiceDate(documentId, sessionId, { service_date, service_
   return data;
 }
 
+
+// Legacy documents ingested before full text storage fail Stage 1 extraction
+// with this specific 422 detail (D2). Detected by substring match.
+const LEGACY_NO_TEXT_DETAIL_MARKER = 'no extractable text';
+
+async function isLegacyNoTextResponse(res) {
+  if (res.status !== 422) return false;
+  try {
+    const body = await res.clone().json();
+    return typeof body?.detail === 'string' &&
+      body.detail.toLowerCase().includes(LEGACY_NO_TEXT_DETAIL_MARKER);
+  } catch {
+    return false;
+  }
+}
+
 export default function ResultsPage() {
   const location = useLocation();
   const { documentId } = useParams();
@@ -106,7 +122,13 @@ export default function ResultsPage() {
           method: 'POST',
           headers: { 'x-api-key': API_KEY },
         });
-        if (!res.ok) throw new Error(`${res.status}`);
+        if (!res.ok) {
+          if (await isLegacyNoTextResponse(res)) {
+            setDlState('legacy-no-text');
+            return;
+          }
+          throw new Error(`${res.status}`);
+        }
         rows = await fetchDeadlines(document_id, session_id);
       }
       rows = [...rows].sort((a, b) =>
@@ -378,6 +400,18 @@ function DeadlinesView({ deadlines, state, error, onRetry, escalation, documentI
         <AlertOctagon className="w-10 h-10 text-red-400" />
         <p className="text-red-400">Couldn't load deadlines{error ? ` (status ${error})` : ''}.</p>
         <button onClick={onRetry} className="btn-secondary py-2 px-6">Retry</button>
+      </div>
+    );
+  }
+  if (state === 'legacy-no-text') {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-4 text-center animate-slide-up max-w-md mx-auto">
+        <FileText className="w-10 h-10 text-gray-400" />
+        <p className="text-white text-lg font-semibold">We can't find deadlines for this document</p>
+        <p className="text-gray-400 text-sm">
+          This document was uploaded before we stored the full text. Upload the document again to get deadlines.
+        </p>
+        <Link to="/upload" className="btn-primary py-2 px-6">Upload again</Link>
       </div>
     );
   }
