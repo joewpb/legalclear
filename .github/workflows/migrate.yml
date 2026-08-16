@@ -1,0 +1,73 @@
+name: Migrations
+
+on:
+  workflow_dispatch: {}
+  # LANE-C GATE: orchestrator uncomments the push trigger after the
+  # SUPABASE_ACCESS_TOKEN and SUPABASE_PROJECT_REF secrets are confirmed.
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - "supabase/migrations/**"
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply migrations via Supabase Management API
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          API="https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}/database/query"
+
+          # POST one query to the Management API; SQL arrives on stdin.
+          # Prints the HTTP status code; response body lands in $1.
+          run_query() {
+            local body_file="$1"
+            curl -sS -o "$body_file" -w "%{http_code}" -X POST "$API" \
+              -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+              -H "Content-Type: application/json" \
+              --data-binary @-
+          }
+
+          # Read the applied set once. The table does not exist on the very
+          # first run (it is created by the baseline migration itself).
+          APPLIED=""
+          if curl -sS -X POST "$API" \
+                -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+                -H "Content-Type: application/json" \
+                --data '{"query":"select filename from public.schema_migrations"}' \
+                -o /tmp/applied.json 2>/dev/null; then
+            APPLIED=$(grep -oE '[0-9]{14}_[A-Za-z0-9_]+\.sql' /tmp/applied.json | sort -u || true)
+          fi
+
+          FAILED=0
+          # Deterministic timestamp order; strictly sequential (no parallelism).
+          for f in $(ls supabase/migrations/*.sql | sort); do
+            name=$(basename "$f")
+            if echo "$APPLIED" | grep -qF "$name"; then
+              echo "SKIP $name"
+              continue
+            fi
+            echo "APPLY $name"
+            # Each migration is an independent HTTP call — no cross-call
+            # transaction. On any non-2xx: halt immediately, do not continue
+            # to later migrations, print the failing filename and the API
+            # error body. No blind retries.
+            code=$(jq -Rs '{query: .}' < "$f" | run_query /tmp/resp.json || echo 000)
+            if [ "$code" -ge 200 ] && [ "$code" -lt 300 ]; then
+              jq -Rn --arg n "$name" \
+                '{query: ("insert into public.schema_migrations(filename) values (" + ($n|tojson) + ") on conflict (filename) do nothing")}' \
+                | run_query /tmp/rec.json > /dev/null
+              echo "OK   $name"
+            else
+              echo "FAIL $name (HTTP $code)"
+              cat /tmp/resp.json
+              FAILED=1
+              break
+            fi
+          done
+          exit $FAILED

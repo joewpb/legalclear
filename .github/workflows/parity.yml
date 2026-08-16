@@ -1,0 +1,38 @@
+name: Schema Parity Check
+
+# Runs scripts/parity_check.py (read-only) to diff supabase/migrations/*.sql
+# against the live prod schema and fails the build on drift.
+#
+# LANE-C GATE: the `push` trigger below is intentionally commented out,
+# matching migrate.yml. Needs live SUPABASE_URL / SUPABASE_SERVICE_KEY
+# credentials, so it should not auto-fire until the Lane-C orchestrator
+# uncomments it at fan-in. Until then, it only runs via manual
+# workflow_dispatch.
+
+on:
+  workflow_dispatch: {}
+  # push:
+  #   branches: ["main"]
+  #   paths:
+  #     - "supabase/migrations/**"
+  #     - "scripts/parity_check.py"
+  #     - ".github/workflows/parity.yml"
+
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run schema parity check
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: python scripts/parity_check.py
