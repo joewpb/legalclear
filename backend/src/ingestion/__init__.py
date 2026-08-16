@@ -62,6 +62,7 @@ async def ingest_document(file_bytes: bytes,
         "raw_text": raw_text,
         "cleaned_text": cleaned,
         "page_count": page_count,
+        "token_estimate": int(len(cleaned.split()) * 1.3),
         "filename": filename,
         "ingestion_method": "pdf"
     }
