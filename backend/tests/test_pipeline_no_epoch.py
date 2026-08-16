@@ -45,6 +45,7 @@ def test_missing_date_is_skipped_not_written_as_epoch():
     written at all for that event; the pipeline escalates instead."""
     fake_client = _FakeClient()
     fake_db = MagicMock(client=fake_client)
+    fake_db.get_document_service_fact = MagicMock(return_value=None)
 
     no_date_extraction = {
         "events": [{

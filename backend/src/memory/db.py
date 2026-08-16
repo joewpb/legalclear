@@ -377,11 +377,68 @@ class DatabaseManager:
             self.logger.error(f"PII redaction failed for {document_id}: {e}")
             return {"redacted": False, "findings_count": 0, "error": str(e)}
 
-    # ── B5-b: user-supplied service date (Decision 2 / Decision 6) ──────────
-    # trigger_events.user_service_date / user_service_method are asked of the
-    # user and stored with service_date_provenance='user_supplied'. Once set,
-    # they are the anchor for ("served",)-anchored rules and are never
-    # overwritten by a later extraction pass — Decision 2.
+    # ── B5-f3: document_service_facts (one row per document) ────────────────
+    # User-supplied service facts live OFF the pipeline-owned trigger_events
+    # rows, which the pipeline rewrites on every recompute. The pipeline
+    # reads this table but never writes it.
+
+    def get_document_service_fact(self, document_id: str) -> dict | None:
+        """Return the document_service_facts row for a document, or None if
+        the user has not supplied service facts for it.
+        """
+        if self.client is None:
+            return None
+        try:
+            result = (self.client.table("document_service_facts")
+                      .select("service_date,service_method,clerk_mailing_date,provenance")
+                      .eq("document_id", document_id)
+                      .limit(1)
+                      .execute())
+            if result.data and result.data[0].get("service_date"):
+                return result.data[0]
+            return None
+        except Exception as e:
+            self.logger.error(f"get_document_service_fact failed: {e}")
+            return None
+
+    def upsert_document_service_fact(
+            self, document_id: str, service_date: str,
+            service_method: str | None = None,
+            clerk_mailing_date: str | None = None) -> bool:
+        """Upsert the single document_service_facts row for a document.
+
+        Always sets provenance='user_supplied' — this is the only writer of
+        this table, and every write here originates from a user-supplied
+        value.
+        """
+        if self.client is None:
+            return False
+        try:
+            row = {
+                "document_id": document_id,
+                "service_date": service_date,
+                "provenance": "user_supplied",
+            }
+            if service_method is not None:
+                row["service_method"] = service_method
+            if clerk_mailing_date is not None:
+                row["clerk_mailing_date"] = clerk_mailing_date
+            self.client.table("document_service_facts") \
+                .upsert(row, on_conflict="document_id").execute()
+            return True
+        except Exception as e:
+            self.logger.error(f"upsert_document_service_fact failed: {e}")
+            return False
+
+    # ── DEPRECATED (B5-f3) ───────────────────────────────────────────────────
+    # trigger_events.user_service_date / user_service_method /
+    # service_date_provenance were the original home for user-supplied
+    # service facts. The pipeline rewrote trigger_events on every recompute,
+    # which clobbered these columns — that design error is what
+    # document_service_facts (above) replaces. Nothing in the production path
+    # reads or writes these columns/methods any longer; they are kept only so
+    # a future migration (Phase G) can drop them without an intermediate
+    # code change. See FOLLOW_UPS.md.
 
     def get_trigger_events_for_document(self, document_id: str) -> list[dict]:
         """Return all trigger_events rows for a document, newest first.

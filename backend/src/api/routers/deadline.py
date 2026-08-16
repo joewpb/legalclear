@@ -230,10 +230,14 @@ async def set_service_date(document_id: str, body: ServiceDateRequest, session_i
     Decision 6: posted service requires both the posting date (service_date)
     and the date the clerk mailed the papers (clerk_mailing_date), so a
     missing mailing date is a 422 rather than a silent fallback.
-    clerk_mailing_date is persisted onto trigger_events.clerk_mailing_date
-    (supabase/migrations/20260815000001_b5f_clerk_mailing_date.sql, B5-f) so
-    the pipeline can feed it back into compute_deadline_for_event on any
-    later recompute/re-extraction pass, not just this request's.
+
+    B5-f3: this write goes to document_service_facts (one row per document),
+    never to trigger_events — trigger_events rows are pipeline-owned and get
+    rewritten on every recompute, which used to clobber user-supplied values
+    stored there. The pipeline reads document_service_facts back as a unit
+    on every recompute (deadline/pipeline.py) so clerk_mailing_date keeps
+    feeding compute_deadline_for_event on later recompute/re-extraction
+    passes, not just this request's.
 
     Response contract: after the upsert this endpoint calls
     `_recompute_deadlines` (B5-c2 seam) — `recompute` is "complete" with
@@ -278,7 +282,15 @@ async def set_service_date(document_id: str, body: ServiceDateRequest, session_i
         }
         if clerk_mailing_date:
             update_payload["clerk_mailing_date"] = clerk_mailing_date
-        db.client.table("trigger_events").update(update_payload).eq("id", trigger_event_id).execute()
+
+        ok = db.upsert_document_service_fact(
+            document_id,
+            service_date=service_date,
+            service_method=body.service_method,
+            clerk_mailing_date=clerk_mailing_date,
+        )
+        if not ok:
+            raise HTTPException(status_code=500, detail="Could not save service date")
     except HTTPException:
         raise
     except Exception as e:

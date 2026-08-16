@@ -28,24 +28,16 @@ HEADERS = {"x-api-key": settings.API_KEY}
 
 
 class _FakeQuery:
-    def __init__(self, rows, recorder=None):
+    def __init__(self, rows):
         self._rows = rows
-        self._recorder = recorder
-        self._filters = {}
 
     def select(self, *a, **k):
         return self
 
     def eq(self, field, value):
-        self._filters[field] = value
         return self
 
     def order(self, *a, **k):
-        return self
-
-    def update(self, payload):
-        if self._recorder is not None:
-            self._recorder.append(payload)
         return self
 
     def execute(self):
@@ -53,22 +45,40 @@ class _FakeQuery:
 
 
 class _FakeClient:
-    def __init__(self, rows, recorder=None):
+    def __init__(self, rows):
         self._rows = rows
-        self._recorder = recorder
 
     def table(self, name):
-        return _FakeQuery(self._rows, self._recorder)
+        return _FakeQuery(self._rows)
 
 
 class _FakeDB:
+    """B5-f3: the trigger_events table lookup still exists (to resolve
+    trigger_event_id for the response), but the service-date write itself
+    goes through upsert_document_service_fact — not a raw table call — so
+    tests assert on that call's arguments via `recorder`.
+    """
+
     def __init__(self, rows, recorder=None):
-        self.client = _FakeClient(rows, recorder)
+        self.client = _FakeClient(rows)
+        self._recorder = recorder
 
     def get_document(self, document_id):
         if document_id != DOCUMENT_ID:
             return None
         return {"id": DOCUMENT_ID, "session_id": OWNING_SESSION}
+
+    def upsert_document_service_fact(
+            self, document_id, service_date, service_method=None,
+            clerk_mailing_date=None):
+        if self._recorder is not None:
+            self._recorder.append({
+                "document_id": document_id,
+                "service_date": service_date,
+                "service_method": service_method,
+                "clerk_mailing_date": clerk_mailing_date,
+            })
+        return True
 
 
 def _put(body, session_id=OWNING_SESSION, headers=HEADERS):
@@ -164,8 +174,9 @@ def test_posted_with_mailing_date_accepted_and_persisted(monkeypatch):
     body = r.json()
     assert body["service_date_provenance"] == "user_supplied"
     # clerk_mailing_date is echoed in the response for confirmation AND
-    # persisted onto trigger_events.clerk_mailing_date (B5-f) so the pipeline
-    # can feed it into compute_deadline_for_event on any later recompute.
+    # persisted onto document_service_facts.clerk_mailing_date (B5-f3) so the
+    # pipeline can feed it into compute_deadline_for_event on any later
+    # recompute.
     assert body["clerk_mailing_date"] == "2026-08-05"
     assert recorder[0]["clerk_mailing_date"] == "2026-08-05"
 
@@ -185,9 +196,10 @@ def test_upsert_writes_user_supplied_provenance(monkeypatch):
     assert body["service_date_provenance"] == "user_supplied"
     assert len(recorder) == 1
     assert recorder[0] == {
-        "user_service_date": "2026-08-01",
-        "user_service_method": "personal",
-        "service_date_provenance": "user_supplied",
+        "document_id": DOCUMENT_ID,
+        "service_date": "2026-08-01",
+        "service_method": "personal",
+        "clerk_mailing_date": None,
     }
 
 
@@ -220,7 +232,7 @@ def test_unknown_method_still_writes_user_supplied_provenance(monkeypatch):
     assert r.status_code == 200
     body = r.json()
     assert body["service_date_provenance"] == "user_supplied"
-    assert recorder[0]["service_date_provenance"] == "user_supplied"
+    assert recorder[0]["service_method"] == "unknown"
 
 
 def test_no_trigger_event_found_returns_404(monkeypatch):

@@ -176,3 +176,12 @@ paths carry one. Pinned by test_deadline_disclaimer.py (error-path absence asser
 deliberately). If error-path disclaimers become required (B4 typed-event goal or UPL
 audit), this is the gap. Decision owed: is a bare-error response UPL-acceptable, or
 must errors carry the disclaimer too?
+## B5-f3 — trigger_events.user_* columns deprecated, not dropped (2026-08-16)
+document_service_facts (supabase/migrations/20260815000002_b5f3_document_service_facts.sql)
+now holds user-supplied service facts; trigger_events.user_service_date,
+user_service_method, and service_date_provenance are no longer read or written by
+any production code path (src/api/routers/deadline.py, deadline/pipeline.py,
+src/memory/db.py — the old get_user_supplied_service_date/set_user_supplied_service_date
+methods are kept, unused, marked DEPRECATED). The columns themselves were left in
+place intentionally — dropping them is Phase G's job, and should happen alongside
+confirming nothing else (dashboards, ad-hoc queries) still reads them.

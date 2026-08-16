@@ -98,12 +98,15 @@ class _FakeClient:
 class _FakeDb:
     def __init__(self, fail_tables, user_supplied=None):
         self.client = _FakeClient(fail_tables)
-        # B5-f: dict with user_service_date / clerk_mailing_date, or None —
-        # simulates the row a prior PUT .../service-date call would have left.
+        # B5-f3: dict with service_date / service_method / clerk_mailing_date,
+        # or None — simulates the document_service_facts row a prior PUT
+        # .../service-date call would have left. The pipeline only ever reads
+        # this via get_document_service_fact — no write method exists on this
+        # fake, so any pipeline attempt to write it fails the test loudly.
         self._user_supplied = user_supplied
 
-    def get_user_supplied_service_date(self, document_id, event_type):
-        # No user-supplied date by default: the extracted event date stays
+    def get_document_service_fact(self, document_id):
+        # No user-supplied fact by default: the extracted event date stays
         # the anchor, preserving pre-B5 expectations.
         return self._user_supplied
 
@@ -208,8 +211,8 @@ def test_user_supplied_personal_service_date_wins_over_extracted_issued_date(mon
     """
     event = dict(EVICTION_EVENT_ISSUED, service_method="personal")
     user_supplied = {
-        "user_service_date": "2026-08-10",
-        "user_service_method": "personal",
+        "service_date": "2026-08-10",
+        "service_method": "personal",
         "clerk_mailing_date": None,
     }
     result, db = _run_pipeline_with_db(
@@ -233,8 +236,8 @@ def test_user_supplied_posted_service_uses_later_of_posting_and_mailing(monkeypa
     """
     event = dict(EVICTION_EVENT_ISSUED, service_method="posted")
     user_supplied = {
-        "user_service_date": "2026-08-10",
-        "user_service_method": "posted",
+        "service_date": "2026-08-10",
+        "service_method": "posted",
         "clerk_mailing_date": "2026-08-12",
     }
     result, db = _run_pipeline_with_db(
@@ -258,8 +261,8 @@ def test_user_supplied_posted_service_without_clerk_mailing_date_escalates(monke
     posting date alone."""
     event = dict(EVICTION_EVENT_ISSUED, service_method="posted")
     user_supplied = {
-        "user_service_date": "2026-08-10",
-        "user_service_method": "posted",
+        "service_date": "2026-08-10",
+        "service_method": "posted",
         "clerk_mailing_date": None,
     }
     result = _run_pipeline(
@@ -306,8 +309,8 @@ def test_user_supplied_method_wins_over_extracted_unknown_method(monkeypatch):
     """
     event = dict(EVICTION_EVENT_ISSUED, service_method="unknown")
     user_supplied = {
-        "user_service_date": "2026-08-10",
-        "user_service_method": "posted",
+        "service_date": "2026-08-10",
+        "service_method": "posted",
         "clerk_mailing_date": "2026-08-12",
     }
     result, db = _run_pipeline_with_db(
@@ -332,13 +335,13 @@ def test_recompute_supersedes_prior_deadline_row(monkeypatch):
     """
     event = dict(EVICTION_EVENT_ISSUED, service_method="personal")
     first_supplied = {
-        "user_service_date": "2026-08-10",
-        "user_service_method": "personal",
+        "service_date": "2026-08-10",
+        "service_method": "personal",
         "clerk_mailing_date": None,
     }
     second_supplied = {
-        "user_service_date": "2026-08-11",
-        "user_service_method": "personal",
+        "service_date": "2026-08-11",
+        "service_method": "personal",
         "clerk_mailing_date": None,
     }
 
@@ -364,8 +367,8 @@ def test_user_supplied_provenance_excludes_extracted_date_and_method_from_trace(
     """
     event = dict(EVICTION_EVENT_ISSUED, service_method="unknown")
     user_supplied = {
-        "user_service_date": "2026-08-10",
-        "user_service_method": "posted",
+        "service_date": "2026-08-10",
+        "service_method": "posted",
         "clerk_mailing_date": "2026-08-12",
     }
     result, db = _run_pipeline_with_db(
@@ -377,3 +380,28 @@ def test_user_supplied_provenance_excludes_extracted_date_and_method_from_trace(
     trace_str = str(written["computation_trace"])
     assert "2026-08-14" not in trace_str  # extracted "issued" date
     assert "unknown" not in trace_str.lower()  # extracted service_method
+
+
+def test_recompute_never_writes_document_service_facts(monkeypatch):
+    """B5-f3's core regression: a full recompute cycle must leave the
+    document_service_facts row byte-for-byte unchanged — the pipeline only
+    ever reads it (via get_document_service_fact). _FakeDb defines no write
+    method for this table, so if the pipeline ever attempted to write it,
+    this test would fail with an AttributeError rather than silently pass.
+    This is the assertion that would have caught all four prior variants of
+    the trigger_events-clobbering bug.
+    """
+    event = dict(EVICTION_EVENT_ISSUED, service_method="unknown")
+    user_supplied = {
+        "service_date": "2026-08-10",
+        "service_method": "posted",
+        "clerk_mailing_date": "2026-08-12",
+    }
+    before = dict(user_supplied)
+
+    result, db = _run_pipeline_with_db(
+        fail_tables=set(), monkeypatch=monkeypatch, event=event, user_supplied=user_supplied,
+    )
+
+    assert result["deadlines_written"] == 1
+    assert db.get_document_service_fact("doc-1") == before

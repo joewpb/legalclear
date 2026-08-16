@@ -44,17 +44,18 @@ class UserSuppliedServiceRecord:
 
 
 def _resolve_user_supplied(
-    user_supplied: dict | None,
+    document_service_fact: dict | None,
 ) -> UserSuppliedServiceRecord | None:
-    """Build the user-supplied unit record from the DB row, or None if the
-    user has not supplied a service date for this trigger event.
+    """Build the user-supplied unit record from the document_service_facts
+    row (B5-f3), or None if the user has not supplied service facts for this
+    document.
     """
-    if not user_supplied or not user_supplied.get("user_service_date"):
+    if not document_service_fact or not document_service_fact.get("service_date"):
         return None
-    mailing = user_supplied.get("clerk_mailing_date")
+    mailing = document_service_fact.get("clerk_mailing_date")
     return UserSuppliedServiceRecord(
-        service_date=date.fromisoformat(user_supplied["user_service_date"]),
-        service_method=user_supplied.get("user_service_method"),
+        service_date=date.fromisoformat(document_service_fact["service_date"]),
+        service_method=document_service_fact.get("service_method"),
         clerk_mailing_date=date.fromisoformat(mailing) if mailing else None,
     )
 
@@ -111,6 +112,13 @@ async def run_deadline_pipeline(
     events = extraction.get("events", [])
     if not events:
         return result
+
+    # ── B5-f3: consult document_service_facts ONCE, as a unit, before any ──────
+    # write for this recompute. One row per document (not per trigger event) —
+    # the pipeline only ever reads this table; it is written exclusively by
+    # PUT /api/deadline/{document_id}/service-date.
+    document_service_fact = db.get_document_service_fact(document_id)
+    doc_user_record = _resolve_user_supplied(document_service_fact)
 
     # ── Supersede stale deadlines for this document (B5-f2, Contract 2) ────────
     # run_deadline_pipeline is a full recompute for the document: every
@@ -204,10 +212,11 @@ async def run_deadline_pipeline(
         required_anchors = rule.get("required_anchors")
         event_type = event.get("event_type", "unknown")
 
-        user_supplied = None
-        if required_anchors and "served" in required_anchors:
-            user_supplied = db.get_user_supplied_service_date(document_id, event_type)
-        user_record = _resolve_user_supplied(user_supplied)
+        user_record = (
+            doc_user_record
+            if required_anchors and "served" in required_anchors
+            else None
+        )
         anchor_satisfied_by_user = user_record is not None
 
         # Wrong date anchor → skip the rule and escalate (S2-7), unless a
@@ -275,12 +284,10 @@ async def run_deadline_pipeline(
             clerk_mailing_date=clerk_mailing_date,
         )
 
-        # Write trigger_event row — carry the user-supplied fields forward so
-        # this run's row still reflects provenance='user_supplied' rather than
-        # resetting to the 'extracted' default (Decision 2).
-        trigger_id = _record_trigger_event(
-            db, document_id, event, result, user_supplied=user_supplied,
-        )
+        # Write trigger_event row. B5-f3: user-supplied provenance now lives
+        # entirely in document_service_facts, which this write never touches —
+        # trigger_events rows carry only what THIS extraction pass produced.
+        trigger_id = _record_trigger_event(db, document_id, event, result)
         if trigger_id is None:
             # Trigger event failed to persist: there is nothing to attach
             # deadline rows to (deadlines.trigger_event_id would be orphaned/
@@ -357,7 +364,6 @@ def _record_trigger_event(
     event: dict,
     result: dict,
     is_escalated: bool = False,
-    user_supplied: dict | None = None,
 ) -> str | None:
     """Write a trigger_event row and update `result` to reflect the outcome.
 
@@ -365,9 +371,7 @@ def _record_trigger_event(
     DB — incrementing it unconditionally let a failed insert be reported to
     the caller as a success (S3-5d).
     """
-    trigger_id = _write_trigger_event(
-        db, document_id, event, is_escalated=is_escalated, user_supplied=user_supplied,
-    )
+    trigger_id = _write_trigger_event(db, document_id, event, is_escalated=is_escalated)
     if trigger_id is not None:
         result["trigger_events_written"] += 1
     else:
@@ -385,14 +389,11 @@ def _write_trigger_event(
     document_id: str,
     event: dict,
     is_escalated: bool = False,
-    user_supplied: dict | None = None,
 ) -> str | None:
     """Write a trigger_event row and return its id.
 
-    `user_supplied`, when set, carries a prior user-supplied service date
-    forward onto the new row — Decision 2 requires that once the user has
-    supplied a service date, it is never lost or reset to 'extracted' by a
-    later extraction pass.
+    B5-f3: user-supplied service facts live in document_service_facts, not on
+    this row — this write carries only what THIS extraction pass produced.
     """
     if db.client is None:
         return None
@@ -410,10 +411,6 @@ def _write_trigger_event(
             "raw_text_excerpt": event.get("raw_text_excerpt", ""),
             "confidence": float(event.get("confidence", 0.0)),
         }
-        if user_supplied and user_supplied.get("user_service_date"):
-            row["user_service_date"] = user_supplied["user_service_date"]
-            row["user_service_method"] = user_supplied.get("user_service_method")
-            row["service_date_provenance"] = "user_supplied"
         result = db.client.table("trigger_events").insert(row).execute()
         return result.data[0]["id"] if result.data else None
     except Exception as e:
