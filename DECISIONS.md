@@ -183,3 +183,15 @@ certificate of the fact and date of mailing.
   date AND direct the user to the case docket for the mailing certificate. If the
   mailing date is unavailable, ESCALATE — do not compute from the posting date alone.
 - PENDING CONFIRMATION by a Florida attorney before shipping.
+## Decision 7 — DeepSeek retirement (closes S1-5) (2026-08-15)
+Repoint all three DeepSeek call sites — opinion_retrieval.py, orin_opinions.py,
+attorney-referral fallback — to Claude Haiku. After that deploys and verifies,
+Joe unsets DEEPSEEK_API_KEY in Railway. One disclosed provider, gap closed.
+
+## Decision 8 — Email delivery (C2) (2026-08-15)
+Provider-agnostic delivery adapter; the concrete provider is configuration
+(recommendation: Resend). If no API key is available tonight, the adapter ships
+DARK and reminders keep terminating failed until the key lands. Acceptable.
+
+## Decision 9 — C4 mobile (2026-08-15)
+DEFERRED. push_tokens logged for Phase G. No work tonight.
