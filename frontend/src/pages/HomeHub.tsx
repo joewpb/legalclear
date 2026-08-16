@@ -41,6 +41,7 @@ const MODULE_TILES = [
   { title: "Traffic / Tickets", subtitle: "Pay, contest, or traffic school", to: "/traffic", icon: "🚗" },
   { title: "Landlord / Tenant", subtitle: "Deposits, repairs, eviction", to: "/landlord", icon: "🏘️" },
   { title: "Find Legal Help", subtitle: "Free legal aid by county", to: "/find-legal-help", icon: "🤝" },
+  { title: "Attorney Referral", subtitle: "Connect with a Florida attorney", to: "/attorney-referral", icon: "👩‍⚖️" },
 ];
 
 // ---------------------------------------------------------------------------
