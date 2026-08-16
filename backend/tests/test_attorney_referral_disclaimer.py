@@ -72,7 +72,11 @@ def test_intake_chat_success_carries_disclaimer(monkeypatch):
 
     monkeypatch.setattr(attorney_referral, "_call_ai", _fake_call_ai)
 
-    resp = client.post("/api/attorney-referral/intake", json={"conversation": []})
+    resp = client.post(
+        "/api/attorney-referral/intake",
+        json={"conversation": []},
+        headers=_AUTH_HEADERS,
+    )
 
     assert resp.status_code == 200
     body = resp.json()
@@ -93,7 +97,11 @@ def test_intake_chat_ai_outage_fallback_carries_disclaimer(monkeypatch):
 
     monkeypatch.setattr(attorney_referral, "_call_ai", _fake_call_ai)
 
-    resp = client.post("/api/attorney-referral/intake", json={"conversation": []})
+    resp = client.post(
+        "/api/attorney-referral/intake",
+        json={"conversation": []},
+        headers=_AUTH_HEADERS,
+    )
 
     assert resp.status_code == 200
     body = resp.json()
@@ -107,6 +115,7 @@ def test_submit_carries_disclaimer(monkeypatch):
     resp = client.post(
         "/api/attorney-referral/submit",
         json={"user_id": "u1", "conversation": [], "intake_summary": "summary"},
+        headers=_AUTH_HEADERS,
     )
 
     assert resp.status_code == 200

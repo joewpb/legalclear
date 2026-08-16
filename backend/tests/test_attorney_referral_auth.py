@@ -52,3 +52,39 @@ def test_get_user_accepts_valid_key():
     )
     # Auth passes; downstream 503 (db.client is None) is fine — 401 is not.
     assert r.status_code != 401
+
+
+def test_intake_requires_api_key():
+    r = client.post("/api/attorney-referral/intake", json={"conversation": []})
+    assert r.status_code == 401
+
+
+def test_intake_accepts_valid_key(monkeypatch):
+    async def _fake_call_ai(messages):
+        return "Thanks.", "case_type"
+
+    monkeypatch.setattr(attorney_referral, "_call_ai", _fake_call_ai)
+
+    r = client.post(
+        "/api/attorney-referral/intake",
+        json={"conversation": []},
+        headers={"x-api-key": settings.API_KEY},
+    )
+    assert r.status_code == 200
+
+
+def test_submit_requires_api_key():
+    r = client.post(
+        "/api/attorney-referral/submit",
+        json={"user_id": "u1", "conversation": [], "intake_summary": "summary"},
+    )
+    assert r.status_code == 401
+
+
+def test_submit_wrong_key_rejected():
+    r = client.post(
+        "/api/attorney-referral/submit",
+        json={"user_id": "u1", "conversation": [], "intake_summary": "summary"},
+        headers={"x-api-key": "wrong"},
+    )
+    assert r.status_code == 401

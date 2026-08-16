@@ -142,7 +142,7 @@ def get_user(user_id: str) -> dict[str, Any]:
     return apply_disclaimer(r.data[0], lang="en")
 
 
-@router.post("/intake")
+@router.post("/intake", dependencies=[Depends(require_api_key)])
 async def intake_chat(req: IntakeRequest) -> IntakeResponse:
     """Advance the AI intake conversation by one turn."""
     # Build messages: system + conversation so far
@@ -166,7 +166,7 @@ async def intake_chat(req: IntakeRequest) -> IntakeResponse:
     return IntakeResponse(**wrapped)
 
 
-@router.post("/submit")
+@router.post("/submit", dependencies=[Depends(require_api_key)])
 def submit_inquiry(req: SubmitRequest) -> dict[str, Any]:
     """Finalize intake and save for attorney review."""
     if not db.client:
