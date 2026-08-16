@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import api from "../api";
 
 interface Message {
   role: "user" | "assistant" | "system";
@@ -30,13 +31,10 @@ export default function AttorneyReferralPage() {
     setMessages(updated);
 
     try {
-      const resp = await fetch("/api/attorney-referral/intake", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversation: updated, user_id: userId }),
+      const { data } = await api.post("/api/attorney-referral/intake", {
+        conversation: updated,
+        user_id: userId,
       });
-      if (!resp.ok) throw new Error("Intake failed");
-      const data = await resp.json();
       setMessages([...updated, { role: "assistant", content: data.content }]);
       setStage(data.stage);
       if (data.user_id) setUserId(data.user_id);
@@ -53,19 +51,13 @@ export default function AttorneyReferralPage() {
     if (!userId) return;
     setLoading(true);
     try {
-      const resp = await fetch("/api/attorney-referral/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_id: userId,
-          conversation: messages,
-          intake_summary: `Intake completed at stage: ${stage}`,
-        }),
+      await api.post("/api/attorney-referral/submit", {
+        user_id: userId,
+        conversation: messages,
+        intake_summary: `Intake completed at stage: ${stage}`,
       });
-      if (resp.ok) {
-        setSubmitted(true);
-        setStage("done");
-      }
+      setSubmitted(true);
+      setStage("done");
     } catch {
       // ignore
     }
