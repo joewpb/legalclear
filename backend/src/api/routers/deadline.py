@@ -1,10 +1,13 @@
 """Phase 4 — Deadline Engine HTTP endpoints."""
 
 import logging
+import re
 
+from datetime import date, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 
 from src.api.dependencies import require_api_key
 from src.core.upl import apply_disclaimer
@@ -13,6 +16,42 @@ from src.memory.db import DatabaseManager
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/deadline", tags=["deadline"])
 db = DatabaseManager()
+
+_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+_SERVICE_METHODS = ("personal", "substitute", "posted", "mail", "eservice", "unknown")
+
+
+class ServiceDateRequest(BaseModel):
+    """B5-c1 — user-supplied service date, validation only (no recompute)."""
+
+    service_method: str = Field(pattern="^(" + "|".join(_SERVICE_METHODS) + ")$")
+    service_date: str
+    clerk_mailing_date: Optional[str] = None
+    trigger_event_id: Optional[str] = None
+
+
+_MIN_SERVICE_DATE = date(2000, 1, 1)
+
+
+def _parse_iso_date(value: str, field_name: str) -> str:
+    if not _DATE_RE.match(value):
+        raise HTTPException(status_code=422, detail=f"{field_name} must be in YYYY-MM-DD format")
+    try:
+        parsed = date.fromisoformat(value)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=f"{field_name} is not a valid calendar date") from e
+    return value, parsed
+
+
+def _parse_and_check_range(value: str, field_name: str) -> str:
+    value, parsed = _parse_iso_date(value, field_name)
+    max_date = date.today() + timedelta(days=7)
+    if parsed < _MIN_SERVICE_DATE or parsed > max_date:
+        raise HTTPException(
+            status_code=422,
+            detail=f"{field_name} must be between {_MIN_SERVICE_DATE.isoformat()} and {max_date.isoformat()}",
+        )
+    return value
 
 
 @router.post("/analyze/{document_id}", dependencies=[Depends(require_api_key)])
@@ -82,3 +121,77 @@ async def get_trigger_events(document_id: str, session_id: Optional[str] = None)
     except Exception as e:
         logger.error("get_trigger_events failed: %s", e)
         raise HTTPException(status_code=500, detail="Could not retrieve trigger events") from e
+
+
+@router.put("/{document_id}/service-date", dependencies=[Depends(require_api_key)])
+async def set_service_date(document_id: str, body: ServiceDateRequest, session_id: Optional[str] = None):
+    """Record a user-supplied service date for a document's trigger event.
+
+    B5-c1 scope: endpoint + validation only. No recompute, no deadline
+    writes, no escalation contract (that is B5-c2's job). Every write from
+    this endpoint sets service_date_provenance='user_supplied' — there is
+    no code path here that writes 'extracted'.
+
+    Decision 6: posted service requires both the posting date (service_date)
+    and the date the clerk mailed the papers (clerk_mailing_date), so a
+    missing mailing date is a 422 rather than a silent fallback. NOTE:
+    clerk_mailing_date is validated for presence and format only — it is
+    NOT persisted by this endpoint. The trigger_events table
+    (supabase/migrations/20260815000000_b5_service_date_capture.sql) has no
+    column for it yet; persistence is a later slice's job.
+
+    Response contract: `recompute` is always "pending" — a placeholder
+    status. This endpoint does not itself re-run Stage 2 computation.
+    """
+    if db.client is None:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+    doc = db.get_document(document_id)
+    if not doc or not session_id or doc.get("session_id") != session_id:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    service_date = _parse_and_check_range(body.service_date, "service_date")
+
+    clerk_mailing_date = None
+    if body.service_method == "posted":
+        if not body.clerk_mailing_date:
+            raise HTTPException(
+                status_code=422,
+                detail="clerk_mailing_date is required when service_method is 'posted' "
+                       "(Decision 6): a mailing date unavailable must escalate, never "
+                       "compute from the posting date alone.",
+            )
+        clerk_mailing_date, _ = _parse_iso_date(body.clerk_mailing_date, "clerk_mailing_date")
+    elif body.clerk_mailing_date:
+        clerk_mailing_date, _ = _parse_iso_date(body.clerk_mailing_date, "clerk_mailing_date")
+
+    try:
+        te_query = db.client.table("trigger_events").select("id").eq("document_id", document_id)
+        if body.trigger_event_id:
+            te_query = te_query.eq("id", body.trigger_event_id)
+        te_result = te_query.order("created_at").execute()
+        rows = te_result.data or []
+        if not rows:
+            raise HTTPException(status_code=404, detail="No trigger event found for this document")
+        trigger_event_id = rows[0]["id"]
+
+        update_payload = {
+            "user_service_date": service_date,
+            "user_service_method": body.service_method,
+            "service_date_provenance": "user_supplied",
+        }
+        db.client.table("trigger_events").update(update_payload).eq("id", trigger_event_id).execute()
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("set_service_date failed: %s", e)
+        raise HTTPException(status_code=500, detail="Could not save service date") from e
+
+    response = {
+        "document_id": document_id,
+        "trigger_event_id": trigger_event_id,
+        **update_payload,
+        "recompute": "pending",
+    }
+    if clerk_mailing_date:
+        response["clerk_mailing_date"] = clerk_mailing_date
+    return apply_disclaimer(response, lang="en")
