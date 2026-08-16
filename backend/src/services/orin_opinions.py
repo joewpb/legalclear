@@ -11,8 +11,8 @@ Architecture:
     there over the Unix socket (peer auth). A localhost:5433 tunnel is
     NOT required and is not referenced by any code path.
   - psql invoked via subprocess (avoids asyncpg auth issues)
-  - DeepSeek batch extraction for metadata (cheap, one API call per
-    search); requires DEEPSEEK_API_KEY in the environment. Regex
+  - Claude Haiku batch extraction for metadata (cheap, one API call per
+    search); requires ANTHROPIC_API_KEY in the environment. Regex
     fallback (~60% accuracy) when the key is absent or the call fails.
 """
 
@@ -153,8 +153,8 @@ def _extract_metadata_regex(text: str) -> dict[str, str | None]:
 
 
 def _batch_extract_metadata(opinions: list[dict]) -> list[dict]:
-    """Extract metadata from multiple opinions in ONE DeepSeek call."""
-    key = settings.DEEPSEEK_API_KEY
+    """Extract metadata from multiple opinions in ONE Claude Haiku call."""
+    key = settings.ANTHROPIC_API_KEY
     if not key:
         for op in opinions:
             meta = _extract_metadata_regex(op["plain_text"])
@@ -169,13 +169,14 @@ def _batch_extract_metadata(opinions: list[dict]) -> list[dict]:
     try:
         import requests as _requests
         resp = _requests.post(
-            "https://api.deepseek.com/v1/chat/completions",
+            "https://api.anthropic.com/v1/messages",
             headers={
-                "Authorization": f"Bearer {key}",
+                "x-api-key": key,
+                "anthropic-version": "2023-06-01",
                 "Content-Type": "application/json",
             },
             json={
-                "model": "deepseek-chat",
+                "model": "claude-haiku-4-5-20251001",
                 "messages": [{
                     "role": "user",
                     "content": (
@@ -193,7 +194,7 @@ def _batch_extract_metadata(opinions: list[dict]) -> list[dict]:
             timeout=15,
         )
         if resp.status_code == 200:
-            raw = resp.json()["choices"][0]["message"]["content"].strip()
+            raw = resp.json()["content"][0]["text"].strip()
             raw = raw.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
             data = json.loads(raw) if isinstance(raw, str) else raw
             if isinstance(data, list):
@@ -207,7 +208,7 @@ def _batch_extract_metadata(opinions: list[dict]) -> list[dict]:
                         })
                 return opinions
     except Exception:
-        logger.warning("DeepSeek batch metadata extraction failed, falling back to regex", exc_info=True)
+        logger.warning("Claude Haiku batch metadata extraction failed, falling back to regex", exc_info=True)
 
     # Fallback: regex
     for op in opinions:
@@ -310,7 +311,7 @@ def search_orin_opinions(
                 "summary_legal": summary[:200],
             })
 
-        # One DeepSeek call to extract metadata for all opinions
+        # One Claude Haiku call to extract metadata for all opinions
         enriched = _batch_extract_metadata(raw_opinions)
 
         results = []

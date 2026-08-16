@@ -218,7 +218,7 @@ def generate_attorney_questions(
 ) -> list[dict]:
     """Generate specific questions the user should ask their attorney about each opinion.
 
-    Uses DeepSeek to connect each opinion's holding to the user's specific
+    Uses Claude Haiku to connect each opinion's holding to the user's specific
     situation (from the police report analysis). Returns the opinions list
     with enriched attorney_prompt fields.
 
@@ -226,7 +226,7 @@ def generate_attorney_questions(
     """
     import json as _json
 
-    key = settings.DEEPSEEK_API_KEY
+    key = settings.ANTHROPIC_API_KEY
     if not key or not opinions:
         return opinions
 
@@ -253,13 +253,14 @@ def generate_attorney_questions(
     try:
         import requests as _requests
         resp = _requests.post(
-            "https://api.deepseek.com/v1/chat/completions",
+            "https://api.anthropic.com/v1/messages",
             headers={
-                "Authorization": f"Bearer {key}",
+                "x-api-key": key,
+                "anthropic-version": "2023-06-01",
                 "Content-Type": "application/json",
             },
             json={
-                "model": "deepseek-chat",
+                "model": "claude-haiku-4-5-20251001",
                 "messages": [{
                     "role": "user",
                     "content": (
@@ -290,7 +291,7 @@ def generate_attorney_questions(
             timeout=15,
         )
         if resp.status_code == 200:
-            raw = resp.json()["choices"][0]["message"]["content"].strip()
+            raw = resp.json()["content"][0]["text"].strip()
             raw = raw.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
             questions = _json.loads(raw) if isinstance(raw, str) else raw
             if isinstance(questions, list):
@@ -303,7 +304,7 @@ def generate_attorney_questions(
                         opinions[i]["attorney_explanation"] = ""
                         opinions[i]["attorney_prompt"] = str(item)
     except Exception:
-        logger.warning("DeepSeek attorney question generation failed, returning opinions unchanged", exc_info=True)
+        logger.warning("Claude Haiku attorney question generation failed, returning opinions unchanged", exc_info=True)
 
     return opinions
 

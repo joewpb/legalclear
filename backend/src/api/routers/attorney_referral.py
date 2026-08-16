@@ -32,7 +32,6 @@ db = DatabaseManager()
 
 # Keys from settings (central config — not raw os.environ)
 _ANTHROPIC_KEY = settings.ANTHROPIC_API_KEY
-_DEEPSEEK_KEY = settings.DEEPSEEK_API_KEY
 
 
 # ── Models ─────────────────────────────────────────────────────────────────────
@@ -152,7 +151,7 @@ async def intake_chat(req: IntakeRequest) -> IntakeResponse:
         *req.conversation,
     ]
 
-    # Prefer Anthropic (Claude) for quality, fall back to DeepSeek
+    # Claude Haiku intake response, retried once on failure.
     ai_content, stage = await _call_ai(messages)
 
     wrapped = apply_disclaimer(
@@ -199,56 +198,32 @@ def submit_inquiry(req: SubmitRequest) -> dict[str, Any]:
 
 async def _call_ai(messages: list[dict]) -> tuple[str, str]:
     """Call AI for intake response. Returns (content, stage)."""
-    # Try Anthropic first
+    # Try Anthropic; retry once on failure before the hard fallback.
     if _ANTHROPIC_KEY:
-        try:
-            async with httpx.AsyncClient(timeout=30) as client:
-                resp = await client.post(
-                    "https://api.anthropic.com/v1/messages",
-                    headers={
-                        "x-api-key": _ANTHROPIC_KEY,
-                        "anthropic-version": "2023-06-01",
-                        "content-type": "application/json",
-                    },
-                    json={
-                        "model": "claude-haiku-4-5",
-                        "max_tokens": 300,
-                        "system": messages[0]["content"] if messages[0]["role"] == "system" else "",
-                        "messages": [m for m in messages if m["role"] != "system"],
-                    },
-                )
-                if resp.status_code == 200:
-                    data = resp.json()
-                    text = data["content"][0]["text"]
-                    stage = _parse_stage(text)
-                    return text, stage
-        except Exception as e:
-            logger.warning("Anthropic intake call failed: %s", e)
-
-    # Fallback: deepseek
-    if _DEEPSEEK_KEY:
-        try:
-            async with httpx.AsyncClient(timeout=30) as client:
-                resp = await client.post(
-                    "https://api.deepseek.com/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {_DEEPSEEK_KEY}",
-                        "Content-Type": "application/json",
-                    },
-                    json={
-                        "model": "deepseek-chat",
-                        "messages": messages,
-                        "max_tokens": 300,
-                        "temperature": 0.7,
-                    },
-                )
-                if resp.status_code == 200:
-                    data = resp.json()
-                    text = data["choices"][0]["message"]["content"]
-                    stage = _parse_stage(text)
-                    return text, stage
-        except Exception as e:
-            logger.warning("DeepSeek intake call failed: %s", e)
+        for attempt in range(2):
+            try:
+                async with httpx.AsyncClient(timeout=30) as client:
+                    resp = await client.post(
+                        "https://api.anthropic.com/v1/messages",
+                        headers={
+                            "x-api-key": _ANTHROPIC_KEY,
+                            "anthropic-version": "2023-06-01",
+                            "content-type": "application/json",
+                        },
+                        json={
+                            "model": "claude-haiku-4-5-20251001",
+                            "max_tokens": 300,
+                            "system": messages[0]["content"] if messages[0]["role"] == "system" else "",
+                            "messages": [m for m in messages if m["role"] != "system"],
+                        },
+                    )
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        text = data["content"][0]["text"]
+                        stage = _parse_stage(text)
+                        return text, stage
+            except Exception as e:
+                logger.warning("Anthropic intake call failed (attempt %d): %s", attempt, e)
 
     # Hard fallback — no AI available
     return (

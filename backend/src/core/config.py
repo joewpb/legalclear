@@ -27,6 +27,9 @@ class Settings:
     # enable the optional v4 fallback when the corpus returns nothing.
     COURTLISTENER_TOKEN: str = os.getenv("COURTLISTENER_TOKEN", "")
     API_KEY: str = os.getenv("API_KEY", "")
+    # Retired (Decision 7, 2026-08): all call sites repointed to Claude
+    # Haiku. Unused in production paths; kept only so the env var doesn't
+    # dangle undefined until Joe unsets it in Railway.
     DEEPSEEK_API_KEY: str = os.getenv("DEEPSEEK_API_KEY", "")
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     # Master payment switch. False (default) = every paywalled feature runs
