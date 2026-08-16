@@ -84,6 +84,9 @@ class _FakeDb:
     def get_document(self, document_id):
         return {"id": document_id, "document_text": self._document_text}
 
+    def get_user_supplied_service_date(self, document_id, event_type):
+        return None
+
 
 EVENT = {
     "document_type": "civil_summons",

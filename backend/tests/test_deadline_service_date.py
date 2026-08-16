@@ -190,11 +190,22 @@ def test_upsert_writes_user_supplied_provenance(monkeypatch):
     }
 
 
-def test_recompute_contract_is_pending(monkeypatch):
+def test_recompute_contract_is_wired(monkeypatch):
+    """B5-c2 seam: the endpoint calls _recompute_deadlines after the upsert —
+    recompute is complete (not pending) with the refreshed deadline list."""
+    async def _fake_pipeline(document_id, text, db):
+        return {"deadlines_written": 0, "escalation_needed": False,
+                "escalation_reasons": []}
+
+    import deadline.pipeline as pipeline_mod
+    monkeypatch.setattr(pipeline_mod, "run_deadline_pipeline", _fake_pipeline)
     monkeypatch.setattr(deadline_router, "db", _FakeDB(rows=[{"id": "te-1"}]))
     r = _put({"service_method": "personal", "service_date": "2026-08-01"})
     assert r.status_code == 200
-    assert r.json()["recompute"] == "pending"
+    body = r.json()
+    assert body["recompute"] == "complete"
+    assert isinstance(body["deadlines"], list)
+    assert body["service_date_provenance"] == "user_supplied"
 
 
 def test_unknown_method_still_writes_user_supplied_provenance(monkeypatch):
