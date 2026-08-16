@@ -229,11 +229,11 @@ async def set_service_date(document_id: str, body: ServiceDateRequest, session_i
 
     Decision 6: posted service requires both the posting date (service_date)
     and the date the clerk mailed the papers (clerk_mailing_date), so a
-    missing mailing date is a 422 rather than a silent fallback. NOTE:
-    clerk_mailing_date is validated for presence and format only — it is
-    NOT persisted by this endpoint. The trigger_events table
-    (supabase/migrations/20260815000000_b5_service_date_capture.sql) has no
-    column for it yet; persistence is a later slice's job.
+    missing mailing date is a 422 rather than a silent fallback.
+    clerk_mailing_date is persisted onto trigger_events.clerk_mailing_date
+    (supabase/migrations/20260815000001_b5f_clerk_mailing_date.sql, B5-f) so
+    the pipeline can feed it back into compute_deadline_for_event on any
+    later recompute/re-extraction pass, not just this request's.
 
     Response contract: after the upsert this endpoint calls
     `_recompute_deadlines` (B5-c2 seam) — `recompute` is "complete" with
@@ -276,6 +276,8 @@ async def set_service_date(document_id: str, body: ServiceDateRequest, session_i
             "user_service_method": body.service_method,
             "service_date_provenance": "user_supplied",
         }
+        if clerk_mailing_date:
+            update_payload["clerk_mailing_date"] = clerk_mailing_date
         db.client.table("trigger_events").update(update_payload).eq("id", trigger_event_id).execute()
     except HTTPException:
         raise

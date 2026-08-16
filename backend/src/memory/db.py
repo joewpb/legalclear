@@ -410,14 +410,16 @@ class DatabaseManager:
         supplied one.
 
         Returns a dict with user_service_date, user_service_method,
-        service_date_provenance (always 'user_supplied' when returned).
+        service_date_provenance (always 'user_supplied' when returned), and
+        clerk_mailing_date (B5-f — posted service, Decision 6; None if not
+        supplied).
         """
         if self.client is None:
             return None
         try:
             result = (self.client.table("trigger_events")
                       .select("id,user_service_date,user_service_method,"
-                              "service_date_provenance")
+                              "service_date_provenance,clerk_mailing_date")
                       .eq("document_id", document_id)
                       .eq("event_type", event_type)
                       .eq("service_date_provenance", "user_supplied")

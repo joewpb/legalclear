@@ -150,7 +150,7 @@ def test_posted_with_bad_mailing_date_rejected(monkeypatch):
     assert r.status_code == 422
 
 
-def test_posted_with_mailing_date_accepted_but_not_persisted(monkeypatch):
+def test_posted_with_mailing_date_accepted_and_persisted(monkeypatch):
     recorder = []
     monkeypatch.setattr(
         deadline_router, "db", _FakeDB(rows=[{"id": "te-1"}], recorder=recorder)
@@ -163,10 +163,11 @@ def test_posted_with_mailing_date_accepted_but_not_persisted(monkeypatch):
     assert r.status_code == 200
     body = r.json()
     assert body["service_date_provenance"] == "user_supplied"
-    # clerk_mailing_date is echoed in the response for confirmation, but this
-    # slice does not persist it — the DB write payload must not include it.
+    # clerk_mailing_date is echoed in the response for confirmation AND
+    # persisted onto trigger_events.clerk_mailing_date (B5-f) so the pipeline
+    # can feed it into compute_deadline_for_event on any later recompute.
     assert body["clerk_mailing_date"] == "2026-08-05"
-    assert "clerk_mailing_date" not in recorder[0]
+    assert recorder[0]["clerk_mailing_date"] == "2026-08-05"
 
 
 def test_upsert_writes_user_supplied_provenance(monkeypatch):

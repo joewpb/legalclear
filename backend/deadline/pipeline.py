@@ -145,15 +145,37 @@ async def run_deadline_pipeline(
             _record_trigger_event(db, document_id, event, result, is_escalated=True)
             continue
 
-        # Wrong date anchor → skip the rule and escalate (S2-7). Each rule
+        # Decision 2: a user-supplied service date, once recorded, is the
+        # anchor for ("served",)-anchored rules regardless of what event_type
+        # THIS extraction pass produced (e.g. "issued" on the summons) — the
+        # extracted event_date must never be substituted back in. This lookup
+        # must happen BEFORE the anchor-mismatch gate below: a document whose
+        # only extracted date is "issued" would otherwise always escalate on
+        # the anchor mismatch and the user-supplied date would never be
+        # consulted (B5-f). For posted service (§ 48.183, Decision 6) the
+        # user-supplied date is the posting date, used together with the
+        # separately persisted clerk's certificate-of-mailing date.
+        rule = RULES[rule_key]
+        required_anchors = rule.get("required_anchors")
+        event_type = event.get("event_type", "unknown")
+
+        user_supplied = None
+        if required_anchors and "served" in required_anchors:
+            user_supplied = db.get_user_supplied_service_date(document_id, event_type)
+        user_service_date_str = (user_supplied or {}).get("user_service_date")
+        anchor_satisfied_by_user = bool(user_service_date_str)
+
+        # Wrong date anchor → skip the rule and escalate (S2-7), unless a
+        # user-supplied service date already satisfies the anchor. Each rule
         # declares which event kinds its period runs from; a date of any other
         # kind must never stand in for it — § 83.60(2) runs from SERVICE of
         # process, and computing from the issuance date on the summons can
         # produce a default judgment.
-        rule = RULES[rule_key]
-        required_anchors = rule.get("required_anchors")
-        event_type = event.get("event_type", "unknown")
-        if required_anchors is not None and event_type not in required_anchors:
+        if (
+            required_anchors is not None
+            and event_type not in required_anchors
+            and not anchor_satisfied_by_user
+        ):
             result["escalation_needed"] = True
             result["escalation_reasons"].append(
                 f"The deadline for {rule_key!r} ({rule['governing_rule']}) runs "
@@ -179,17 +201,20 @@ async def run_deadline_pipeline(
             _record_trigger_event(db, document_id, event, result, is_escalated=True)
             continue
 
-        # Decision 2: a user-supplied service date, once recorded, is the
-        # anchor for ("served",)-anchored rules — the extracted event_date
-        # must never be substituted back in. For posted service (§ 48.183,
-        # Decision 6) the user-supplied date is instead the clerk's
-        # certificate-of-mailing date, used together with the posting date.
-        user_supplied = db.get_user_supplied_service_date(document_id, event_type)
         clerk_mailing_date: date | None = None
-        if user_supplied and user_supplied.get("user_service_date"):
-            user_date = date.fromisoformat(user_supplied["user_service_date"])
+        if anchor_satisfied_by_user:
+            user_date = date.fromisoformat(user_service_date_str)
             if service_method == SERVICE_POSTED:
-                clerk_mailing_date = user_date
+                # The user-supplied date is the POSTING date; compute needs
+                # it as event_date, paired with the separately persisted
+                # clerk's certificate-of-mailing date. If no mailing date has
+                # been persisted, clerk_mailing_date stays None and
+                # compute_deadline_for_event escalates with zero deadlines
+                # (Decision 6) rather than computing from posting alone.
+                event_date = user_date
+                persisted_mailing = user_supplied.get("clerk_mailing_date")
+                if persisted_mailing:
+                    clerk_mailing_date = date.fromisoformat(persisted_mailing)
             else:
                 event_date = user_date
 
