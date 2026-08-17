@@ -212,6 +212,16 @@ no-external-links rule).
 - F4 — Backfill migrations for the four hand-drifted tables (`legal_opinions`,
   `court_forms`, `usage_stats`, `users`) so the schema is declared, not folklore
 
+**CORRECTION 2026-08-17 — F2 claim-vs-reality gap (recorded, not silently fixed).**
+Phase F was marked COMPLETE while F2 was unwired: parity.yml existed but its push
+trigger was commented out, it had zero CI runs, and the repo held no
+SUPABASE_URL / SUPABASE_SERVICE_KEY secrets — a dispatch would have failed. The
+parity evidence behind G3's closure was manual shell runs only. F2 is now wired
+for real: push trigger + nightly 06:00 UTC schedule + a green CI run. This
+mismatch — a checklist marked done while the mechanism did not exist — is
+exactly the failure class this plan targets; it is flagged here rather than
+quietly amended.
+
 ---
 
 ## PHASE G — Cleanup. Only on Joe's explicit word.
