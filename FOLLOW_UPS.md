@@ -196,3 +196,18 @@ double-writes, but the underlying extraction defect — why extract_trigger_even
 returned a duplicated/redundant event for this document — is untouched and out of
 scope for this fix. Needs its own investigation of extract.py's prompt/parsing for
 this input.
+## OSCA form-hosting authorization — follow-up due (2026-08-17, compliance)
+The Aug 8 request to OSCA (officially asking about authorization for hosting FL
+court forms) has had no response, and a follow-up is due. This is a COMPLIANCE
+question about hosting court forms — not an admin chore. The request record
+lives in docs/OSCA_CONTACT.md. (Related thread: Susan Emmanuel, OSCA Director
+of Communications, separately confirmed on 2026-08-11 that court forms are
+public documents — see memory notes; the follow-up here covers the unanswered
+Aug 8 email as documented.)
+## _require_document guard — low-priority refactor idea (2026-08-17)
+VPS branch refactor/2026-08-15 (commit 6e4f3f7) extracted a duplicated 503/404
+doc+session guard from two deadline.py endpoints into _require_document, with
+ruff fixes (I001, UP045, F401). The branch is being deleted in the night-run
+closeout; this commit was NOT merged. deadline.py has since been heavily
+rewritten (B5 series), so this should be a fresh pass if ever picked up — not a
+cherry-pick. Low priority, pure refactor, no behavior change.
