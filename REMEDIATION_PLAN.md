@@ -1,7 +1,8 @@
 # REMEDIATION_PLAN.md
 ### LegalClear — post-audit remediation, phased.
 **Written:** 2026-08-14 · **Owner:** Joe · **Executor:** Hermes
-**Current state:** Phase A COMPLETE · origin/main = d042e06 · Phase B not started
+**Current state:** Phases A–F COMPLETE (2026-08-17 night run) · origin/main = 4c911ea ·
+G1, G2, G3, G4, G5 CLOSED · Phase G not started (Joe's word required) · Phase H open
 
 ---
 
@@ -56,7 +57,7 @@ Everything else waits for the phase report.
 |---|---|---|
 | **G1 — Real users** | S2-7 resolved AND UPL wall consolidated | Pointing the deadline pipeline at anyone but a supervised tester |
 | **G2 — Payments** | `filings` verified working AND S1-3 email verification built | Flipping `PAYMENTS_ENABLED` on |
-| **G3 — Manual DDL** | Phase F complete | Any further hand-applied migration |
+| **G3 — Manual DDL** | ✅ CLOSED 2026-08-17 (CI migrations live: Management-API PAT workflow, schema_migrations tracking, parity OK) | Any further hand-applied migration |
 | **G4 — Referral path** | S1-5 decided AND referral RLS written | Applying the 20260813 migration; scheduling S1-3b |
 
 G1 is the one that matters. A wrong eviction deadline is a default judgment.
@@ -200,7 +201,7 @@ no-external-links rule).
 
 ---
 
-## PHASE F — Close the migration hole (G3)
+## PHASE F — Close the migration hole (G3) · ✅ COMPLETE 2026-08-17
 **The oldest open question. Nothing applies migrations; prod was hand-edited at least four times.**
 
 - F1 — Build a CI migration step: apply `supabase/migrations/` on merge to main, in order,
