@@ -45,14 +45,12 @@ jobs:
             if curl -sS -X POST "$API" \
                   -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
                   -H "Content-Type: application/json" \
-                  --data "$(jq -Rn --arg n "$name" '{query: ("select exists(select 1 from public.schema_migrations where filename = " + ($n|tojson) + ") as applied")}' /dev/null)" \
+                  --data "$(jq -Rn --arg n "$name" '{query: ("select exists(select 1 from public.schema_migrations where filename = " + ($n|@sh) + ") as applied")}' /dev/null)" \
                   -o /tmp/chk.json 2>/dev/null && \
                jq -e '.. | select(. == true)' /tmp/chk.json >/dev/null 2>&1; then
-              echo "CHECK-FOUND $name"
               echo "SKIP $name"
               continue
             fi
-            echo "CHECK-MISS $name body=$(head -c 200 /tmp/chk.json 2>/dev/null)"
             echo "APPLY $name"
             # Each migration is an independent HTTP call — no cross-call
             # transaction. On any non-2xx: halt immediately, do not continue
@@ -61,7 +59,7 @@ jobs:
             code=$(jq -Rs '{query: .}' < "$f" | run_query /tmp/resp.json || echo 000)
             if [ "$code" -ge 200 ] && [ "$code" -lt 300 ]; then
               jq -Rn --arg n "$name" \
-                '{query: ("insert into public.schema_migrations(filename) values (" + ($n|tojson) + ") on conflict (filename) do nothing")}' \
+                '{query: ("insert into public.schema_migrations(filename) values (" + ($n|@sh) + ") on conflict (filename) do nothing")}' \
                 | run_query /tmp/rec.json > /dev/null
               echo "OK   $name"
             else
