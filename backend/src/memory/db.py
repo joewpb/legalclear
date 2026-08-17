@@ -80,23 +80,6 @@ class DatabaseManager:
         except Exception as e:
             self.logger.error(f"mark_free_doc_used failed for {user_id}: {e}")
 
-    def save_push_token(
-            self, user_id: str,
-            expo_token: str,
-            platform: str) -> dict:
-        if self.client is None:
-            return {}
-        try:
-            result = (self.client.table("push_tokens")
-                      .upsert({"user_id": user_id,
-                               "expo_token": expo_token,
-                               "platform": platform})
-                      .execute())
-            return result.data[0] if result.data else {}
-        except Exception as e:
-            self.logger.error(f"save_push_token failed for {user_id}: {e}")
-            return {}
-
     def create_session(
             self, user_id: str, filename: str,
             token_count: int, price_tier: str,

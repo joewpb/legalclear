@@ -247,10 +247,6 @@ async def create_user(email: str, lang: str = "en"):
 async def get_user_endpoint(user_id: str):
     return db.get_user(user_id)
 
-@app.post("/user/{user_id}/push-token", dependencies=[Depends(verify_api_key)])
-async def add_push_token(user_id: str, expo_token: str, platform: str):
-    return db.save_push_token(user_id, expo_token, platform)
-
 @app.post("/subscribe/{user_id}", dependencies=[Depends(verify_api_key)])
 async def subscribe(user_id: str, email: str, success_url: str, cancel_url: str):
     if not settings.PAYMENTS_ENABLED:

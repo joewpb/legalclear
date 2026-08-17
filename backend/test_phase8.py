@@ -6,7 +6,7 @@ from src.memory.db import DatabaseManager
 
 methods = [
     "get_or_create_user", "update_user_subscription",
-    "get_user", "mark_free_doc_used", "save_push_token",
+    "get_user", "mark_free_doc_used",
     "create_session", "update_payment_status",
     "get_session", "create_document", "save_results",
     "update_document_status", "get_document",
