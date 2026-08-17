@@ -222,3 +222,12 @@ exist in the repo Variables store — delete them once rotation is confirmed.
 Related: GitHub-secret pastes routinely carry trailing newlines (SUPABASE_URL
 did — parity CI failed with http.client.InvalidURL until parity_check.py and
 migrate.yml were hardened to strip whitespace).
+CONFIRMED 2026-08-17 — rotation complete: old service_role key revoked at the
+Supabase side; new key live in Railway (zesty-delight SUPABASE_SERVICE_KEY) and
+in the GitHub Repository secrets — parity CI green on the new key (run
+32075188027). Four stale Variables deleted; SUPABASE_URL newline stripped.
+Verification sweep: VPS and pop-os backend/.env keys both test valid against
+prod post-revocation; Orin manager-surface/.env declares the vars but holds no
+values; no hardcoded JWT-shaped key literals anywhere in the repo trees. Note:
+backend API_KEY and frontend VITE_API_KEY are a SEPARATE credential from the
+Supabase service_role key — never exposed, not rotated.
