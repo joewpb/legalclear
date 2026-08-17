@@ -32,22 +32,18 @@ jobs:
               --data-binary @-
           }
 
-          # Read the applied set once. The table does not exist on the very
-          # first run (it is created by the baseline migration itself).
-          APPLIED=""
-          if curl -sS -X POST "$API" \
-                -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
-                -H "Content-Type: application/json" \
-                --data '{"query":"select filename from public.schema_migrations"}' \
-                -o /tmp/applied.json 2>/dev/null; then
-            APPLIED=$(grep -oE '[0-9]{14}_[A-Za-z0-9_]+\.sql' /tmp/applied.json | sort -u || true)
-          fi
-
           FAILED=0
           # Deterministic timestamp order; strictly sequential (no parallelism).
           for f in $(ls supabase/migrations/*.sql | sort); do
             name=$(basename "$f")
-            if echo "$APPLIED" | grep -qF "$name"; then
+            # Per-file DB check: the baseline migration seeds 26 already-
+            # applied files, which a once-off read can never see. Ask the
+            # database every time — DB-truth, no in-memory state.
+            if curl -sS -X POST "$API" \
+                  -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+                  -H "Content-Type: application/json" \
+                  --data "$(jq -Rn --arg n "$name" '{query: ("select filename from public.schema_migrations where filename = " + ($n|tojson))}' /dev/null)" \
+                  -o /tmp/chk.json 2>/dev/null && grep -qF "$name" /tmp/chk.json; then
               echo "SKIP $name"
               continue
             fi
