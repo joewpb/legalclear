@@ -211,3 +211,14 @@ ruff fixes (I001, UP045, F401). The branch is being deleted in the night-run
 closeout; this commit was NOT merged. deadline.py has since been heavily
 rewritten (B5 series), so this should be a fresh pass if ever picked up — not a
 cherry-pick. Low priority, pure refactor, no behavior change.
+## service_role key exposure + rotation (2026-08-17, security)
+The Supabase service_role key (plus Supabase URL and Management-API tokens) was
+found stored in plaintext under GitHub Actions REPOSITORY VARIABLES — visible
+unredacted via the UI and `gh variable list` — under names that did not match
+what the workflows referenced. The old key is treated as compromised; rotation
+is in progress. Completion pending Joe's confirmation that the new key is live
+in Railway and in the GitHub Repository secrets. The stale Variables still
+exist in the repo Variables store — delete them once rotation is confirmed.
+Related: GitHub-secret pastes routinely carry trailing newlines (SUPABASE_URL
+did — parity CI failed with http.client.InvalidURL until parity_check.py and
+migrate.yml were hardened to strip whitespace).
