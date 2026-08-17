@@ -48,9 +48,11 @@ jobs:
                   --data "$(jq -Rn --arg n "$name" '{query: ("select exists(select 1 from public.schema_migrations where filename = " + ($n|tojson) + ") as applied")}' /dev/null)" \
                   -o /tmp/chk.json 2>/dev/null && \
                jq -e '.. | select(. == true)' /tmp/chk.json >/dev/null 2>&1; then
+              echo "CHECK-FOUND $name"
               echo "SKIP $name"
               continue
             fi
+            echo "CHECK-MISS $name body=$(head -c 200 /tmp/chk.json 2>/dev/null)"
             echo "APPLY $name"
             # Each migration is an independent HTTP call — no cross-call
             # transaction. On any non-2xx: halt immediately, do not continue
