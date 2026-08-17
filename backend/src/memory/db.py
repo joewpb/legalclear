@@ -413,16 +413,6 @@ class DatabaseManager:
             self.logger.error(f"upsert_document_service_fact failed: {e}")
             return False
 
-    # ── DEPRECATED (B5-f3) ───────────────────────────────────────────────────
-    # trigger_events.user_service_date / user_service_method /
-    # service_date_provenance were the original home for user-supplied
-    # service facts. The pipeline rewrote trigger_events on every recompute,
-    # which clobbered these columns — that design error is what
-    # document_service_facts (above) replaces. Nothing in the production path
-    # reads or writes these columns/methods any longer; they are kept only so
-    # a future migration (Phase G) can drop them without an intermediate
-    # code change. See FOLLOW_UPS.md.
-
     def get_trigger_events_for_document(self, document_id: str) -> list[dict]:
         """Return all trigger_events rows for a document, newest first.
 
@@ -443,55 +433,3 @@ class DatabaseManager:
             self.logger.error(f"get_trigger_events_for_document failed: {e}")
             return []
 
-    def get_user_supplied_service_date(
-            self, document_id: str, event_type: str) -> dict | None:
-        """Return the most recent user-supplied service date for a document's
-        trigger event of the given `event_type`, or None if the user has not
-        supplied one.
-
-        Returns a dict with user_service_date, user_service_method,
-        service_date_provenance (always 'user_supplied' when returned), and
-        clerk_mailing_date (B5-f — posted service, Decision 6; None if not
-        supplied).
-        """
-        if self.client is None:
-            return None
-        try:
-            result = (self.client.table("trigger_events")
-                      .select("id,user_service_date,user_service_method,"
-                              "service_date_provenance,clerk_mailing_date")
-                      .eq("document_id", document_id)
-                      .eq("event_type", event_type)
-                      .eq("service_date_provenance", "user_supplied")
-                      .order("created_at", desc=True)
-                      .limit(1)
-                      .execute())
-            if result.data and result.data[0].get("user_service_date"):
-                return result.data[0]
-            return None
-        except Exception as e:
-            self.logger.error(f"get_user_supplied_service_date failed: {e}")
-            return None
-
-    def set_user_supplied_service_date(
-            self, trigger_event_id: str, user_service_date: str,
-            user_service_method: str | None = None) -> bool:
-        """Record a user-supplied service date on an existing trigger_event
-        row. Sets service_date_provenance='user_supplied' — this date must
-        never be replaced by a subsequently extracted event_date.
-        """
-        if self.client is None:
-            return False
-        try:
-            update = {
-                "user_service_date": user_service_date,
-                "service_date_provenance": "user_supplied",
-            }
-            if user_service_method is not None:
-                update["user_service_method"] = user_service_method
-            self.client.table("trigger_events").update(update) \
-                .eq("id", trigger_event_id).execute()
-            return True
-        except Exception as e:
-            self.logger.error(f"set_user_supplied_service_date failed: {e}")
-            return False
