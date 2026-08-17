@@ -36,6 +36,8 @@ CREATE TABLE IF NOT EXISTS public.users (
     subscription_id TEXT,
     free_doc_used BOOLEAN DEFAULT FALSE,
     preferred_language TEXT DEFAULT 'en',
+    expo_push_token TEXT,
+    stripe_customer_id TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
@@ -43,6 +45,8 @@ ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 -- 2. Usage Stats
 CREATE TABLE IF NOT EXISTS public.usage_stats (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID,
+    user_id UUID,
     document_category TEXT,
     jurisdiction TEXT,
     language TEXT,
@@ -84,7 +88,12 @@ CREATE INDEX IF NOT EXISTS idx_court_forms_form_text_fts
 
 -- 4. Legal Opinions
 CREATE TABLE IF NOT EXISTS public.legal_opinions (
-    cluster_id      TEXT PRIMARY KEY,
+    cluster_id      TEXT,
+    id              UUID DEFAULT gen_random_uuid(),
+    opinion_id      TEXT,
+    court_id        TEXT,
+    source          TEXT,
+    source_url      TEXT,
     case_name       TEXT NOT NULL DEFAULT '',
     court           TEXT NOT NULL DEFAULT '',
     date_filed      DATE,
@@ -100,6 +109,11 @@ CREATE TABLE IF NOT EXISTS public.legal_opinions (
     summary_legal   TEXT,
     summary_plain   TEXT,
     attorney_prompt TEXT,
+    pass1_parsed    JSONB,
+    pass2_parsed    JSONB,
+    plain_text_raw  TEXT,
+    processed_at    TIMESTAMPTZ,
+    created_at      TIMESTAMPTZ DEFAULT now(),
     quality_flagged BOOLEAN NOT NULL DEFAULT FALSE,
     quality_notes   TEXT NOT NULL DEFAULT ''
 );
@@ -108,5 +122,39 @@ CREATE INDEX IF NOT EXISTS idx_legal_opinions_situation_tags
 CREATE INDEX IF NOT EXISTS idx_legal_opinions_quality_flagged
   ON public.legal_opinions (quality_flagged);
 ALTER TABLE public.legal_opinions ENABLE ROW LEVEL SECURITY;
+
+
+-- 5. Trigger Events (declared completely incl. B5 user-supplied columns)
+CREATE TABLE IF NOT EXISTS public.trigger_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID REFERENCES public.documents(id) ON DELETE CASCADE,
+    event_type TEXT NOT NULL,
+    event_date DATE NOT NULL,
+    service_method TEXT NOT NULL,
+    document_type TEXT NOT NULL,
+    jurisdiction TEXT NOT NULL DEFAULT 'FL',
+    circuit INT,
+    county TEXT,
+    case_number TEXT,
+    raw_text_excerpt TEXT NOT NULL,
+    confidence NUMERIC NOT NULL,
+    user_service_date DATE,
+    user_service_method TEXT,
+    clerk_mailing_date DATE,
+    service_date_provenance TEXT NOT NULL DEFAULT 'extracted',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+ALTER TABLE public.trigger_events ENABLE ROW LEVEL SECURITY;
+
+-- 6. Document Service Facts (user-supplied service record, B5-f3)
+CREATE TABLE IF NOT EXISTS public.document_service_facts (
+    document_id UUID PRIMARY KEY REFERENCES public.documents(id) ON DELETE CASCADE,
+    service_date DATE,
+    service_method TEXT,
+    clerk_mailing_date DATE,
+    provenance TEXT NOT NULL DEFAULT 'extracted',
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+ALTER TABLE public.document_service_facts ENABLE ROW LEVEL SECURITY;
 
 NOTIFY pgrst, 'reload schema';

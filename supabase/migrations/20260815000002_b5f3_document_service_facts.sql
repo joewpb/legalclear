@@ -4,12 +4,12 @@
 -- Idempotent. Manual paste until Phase F closes G3.
 
 create table if not exists public.document_service_facts (
-  id                  uuid primary key default gen_random_uuid(),
-  document_id         uuid unique not null references public.documents(id) on delete cascade,
+  document_id         uuid primary key references public.documents(id) on delete cascade,
   service_date        date,
   service_method      text,
   clerk_mailing_date  date,
-  provenance          text not null default 'user_supplied'
+  provenance          text not null default 'user_supplied',
+  updated_at          timestamptz not null default now()
 );
 
 alter table public.document_service_facts enable row level security;
