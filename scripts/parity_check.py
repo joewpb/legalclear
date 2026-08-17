@@ -374,8 +374,11 @@ def _load_env() -> tuple[str, str]:
         load_dotenv(REPO_ROOT / "backend" / ".env")
     except ImportError:
         pass
-    url = os.environ.get("SUPABASE_URL", "")
-    key = os.environ.get("SUPABASE_SERVICE_KEY", "")
+    # GitHub-secret pastes routinely carry a trailing newline; urllib rejects
+    # hostnames with control characters (InvalidURL). Strip whitespace from
+    # both values on load.
+    url = os.environ.get("SUPABASE_URL", "").strip()
+    key = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
     return url, key
 
 

@@ -20,6 +20,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Secrets pasted via the GitHub UI often carry a trailing newline;
+          # strip CR/LF so URL construction and Bearer auth can't break on
+          # control characters (parity CI hit exactly this: InvalidURL).
+          SUPABASE_ACCESS_TOKEN="$(printf '%s' "$SUPABASE_ACCESS_TOKEN" | tr -d '\r\n')"
+          SUPABASE_PROJECT_REF="$(printf '%s' "$SUPABASE_PROJECT_REF" | tr -d '\r\n')"
           API="https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}/database/query"
 
           # POST one query to the Management API; SQL arrives on stdin.
