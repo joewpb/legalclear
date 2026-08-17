@@ -148,12 +148,6 @@ def verify_api_key(x_api_key: str = Header(default="")):
     if x_api_key != settings.API_KEY:
         raise HTTPException(status_code=401, detail="Invalid API Key")
 
-class EligibilityRequest(BaseModel):
-    jurisdiction: str
-    offense_description: str
-    years_since_offense: int
-    lang: str = "en"
-
 class ProcessRequest(BaseModel):
     lang: str = "en"
 
@@ -164,13 +158,6 @@ class ChatRequest(BaseModel):
 @app.get("/health")
 async def health():
     return {"status": "ok", "version": "1.0", "product": "LegalClear"}
-
-@app.post("/eligibility")
-async def check_eligibility(req: EligibilityRequest):
-    with _endpoint_guard("Eligibility check"):
-        return await expungement.check_eligibility(
-            req.jurisdiction, req.offense_description, req.years_since_offense, req.lang
-        )
 
 @app.post("/webhook")
 async def stripe_webhook(request: Request):
