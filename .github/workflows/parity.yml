@@ -3,20 +3,22 @@ name: Schema Parity Check
 # Runs scripts/parity_check.py (read-only) to diff supabase/migrations/*.sql
 # against the live prod schema and fails the build on drift.
 #
-# LANE-C GATE: the `push` trigger below is intentionally commented out,
-# matching migrate.yml. Needs live SUPABASE_URL / SUPABASE_SERVICE_KEY
-# credentials, so it should not auto-fire until the Lane-C orchestrator
-# uncomments it at fan-in. Until then, it only runs via manual
-# workflow_dispatch.
+# LANE-C GATE RESOLVED 2026-08-17: push trigger enabled (supabase/migrations/,
+# parity_check.py, this file) + nightly 06:00 UTC schedule. A push-only check
+# cannot catch the failure mode this exists for — prod drifted four times via
+# manual SQL-editor edits, which never trigger a push — so the nightly cron is
+# the primary safety net.
 
 on:
   workflow_dispatch: {}
-  # push:
-  #   branches: ["main"]
-  #   paths:
-  #     - "supabase/migrations/**"
-  #     - "scripts/parity_check.py"
-  #     - ".github/workflows/parity.yml"
+  schedule:
+    - cron: "0 6 * * *"
+  push:
+    branches: ["main"]
+    paths:
+      - "supabase/migrations/**"
+      - "scripts/parity_check.py"
+      - ".github/workflows/parity.yml"
 
 jobs:
   parity:
