@@ -25,6 +25,7 @@ from .rules import (
     SERVICE_MAIL,
     SERVICE_PERSONAL,
     SERVICE_POSTED,
+    SERVICE_SUBSTITUTE,
     SERVICE_PUBLICATION,
     SERVICE_UNKNOWN,
     Severity,
@@ -232,6 +233,22 @@ def compute_deadline_for_event(
             ),
         )
         results.append(chosen)
+    # Substitute service (§ 48.183(2)): delivery to a qualified co-resident
+    # runs the same clock as personal service — trigger day excluded, then the
+    # rule's business-day period. Declared explicitly rather than riding the
+    # generic fallthrough: an eviction deadline must not depend on undeclared
+    # method behavior.
+    elif service_method == SERVICE_SUBSTITUTE:
+        results.append(_compute_single(
+            rule, event_date, SERVICE_PERSONAL, circuit,
+            closure_dates, has_local_closure_data, today,
+            disclosure=(
+                "Substitute service under § 48.183(2) — the document was "
+                "delivered to a qualified co-resident, so the deadline is "
+                "computed from the delivery date with the same day-after + "
+                "business-day treatment as personal service."
+            ),
+        ))
     # For unknown/publication service, compute both personal and mail variants
     # and use the earlier (conservative) deadline.
     elif service_method in (SERVICE_UNKNOWN, SERVICE_PUBLICATION):

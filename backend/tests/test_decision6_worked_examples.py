@@ -41,6 +41,27 @@ def test_substitute_delivered_monday_aug_10_due_aug_17():
     assert _due("substitute", date(2026, 8, 10)) == date(2026, 8, 17)
 
 
+def test_substitute_is_an_explicit_branch_not_fallthrough():
+    """The substitute method must be declared: the computed deadline carries
+    a § 48.183(2) disclosure naming substitute service, proving it went
+    through its own branch rather than the generic else."""
+    res = compute_deadline_for_event(
+        rule_key="eviction_complaint",
+        event_date=date(2026, 8, 10),
+        service_method="substitute",
+        circuit=None,
+        closure_dates=frozenset(),
+        has_local_closure_data=True,
+        today=date(2026, 8, 10),
+        clerk_mailing_date=None,
+    )
+    assert res.deadlines, "no deadline computed"
+    d = res.deadlines[0]
+    joined = " ".join(d.assumption_disclosures)
+    assert "§ 48.183(2)" in joined
+    assert "substitute" in joined.lower()
+
+
 def test_posted_aug_10_mailed_aug_12_due_aug_19():
     """Posted service: effective date is the LATER of posting (08-10) and
     clerk's certificate of mailing (08-12) → 5 business days from 08-12 →

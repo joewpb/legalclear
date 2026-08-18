@@ -216,3 +216,18 @@ ride the user-accounts work required by the G2 payments gate rather than being
 built standalone. Mitigations 1 (Anthropic spend caps/alerts — Joe configuring)
 and 2 (per-IP rate limiting, XFF fix first) proceed now. S1-8 remains open until
 #3 lands; the spend cap bounds worst-case cost meanwhile.
+
+## Decision 11 — No attorney review; educational framing instead (2026-08-18)
+LegalClear is an educational platform. There will be no attorney sign-off on
+the deadline rules at this stage; attorney referral is a later, separate
+offering. Decision 6's "attorney confirmation" requirement is REPLACED —
+deliberately traded, not satisfied — by presentation requirements for the
+deadline UI (G1 reframed):
+  1. Show the governing statute and citation for every computed deadline.
+  2. Show the anchor date used, and where it came from (user-supplied vs extracted).
+  3. Show the day-by-day counting trace, not just the result.
+  4. End with an explicit instruction to verify against the court docket.
+  5. Never present a date as a verdict — "here is how the statute computes."
+The engine already produces the trace; this is a presentation change, not a
+computation change. The § 48.183(2) answer received 2026-08-18 stands as
+research input, not as an attorney review.
