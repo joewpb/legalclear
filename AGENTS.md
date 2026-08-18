@@ -26,6 +26,15 @@ and `phases/LEDGER.md` for v1 state.
    translates, surfaces options, explains consequences. It never selects a
    course of action for the user.
 2. **LLMs extract. Deterministic code computes.** No model does date arithmetic.
+2b. **Educational framing is the standing output standard.** LegalClear is an
+   educational platform — every user-facing output shows its reasoning and
+   sources; nothing is presented as a verdict, instruction, or recommendation.
+   Every computed or generated output must show: (1) the governing statute or
+   rule with citation; (2) the inputs used and where each came from
+   (user-supplied vs extracted from a document); (3) the reasoning trace — the
+   counting, the matching, the steps — not just the result; (4) an instruction
+   to verify against the court docket or an official source; (5) framing as
+   "here is how the rule computes" rather than "here is your answer".
 3. Every deadline carries a full `computation_trace` with rule citations.
 4. No "done" claim without fresh test/verification evidence.
 5. **"Unknown" is a valid, first-class output.** A confident wrong answer is a
