@@ -33,18 +33,31 @@ from __future__ import annotations
 import logging
 import re
 
-from src.agents.eviction_citations import EVICTION_CURATED_CITATIONS
-from src.agents.small_claims_citations import SMALL_CLAIMS_CURATED_CITATIONS
 from src.core.citation_resolver import normalize_citation
 
 logger = logging.getLogger("legalclear.citation_filter")
 
-# Union of every module's curated base-citation set (normalized keys already
-# built by citation_resolver.normalize_citation in each module). Never a
-# superset of what those modules curate — this filter only ever narrows.
-_CURATED_BASE_KEYS: frozenset[str] = frozenset(
-    set(SMALL_CLAIMS_CURATED_CITATIONS) | set(EVICTION_CURATED_CITATIONS)
-)
+_CURATED_BASE_KEYS: frozenset[str] | None = None
+
+
+def _curated_keys() -> frozenset[str]:
+    """Lazy union of every module's curated base-citation set.
+
+    Lazy on purpose: agents/__init__ imports explainer, and explainer imports
+    this module — an eager import of the agents package here creates a cycle
+    (citation_filter -> agents -> explainer -> citation_filter). The curated
+    sets are agent-module constants, so they load at first filter use, by
+    which time the package graph is fully initialized.
+    """
+    global _CURATED_BASE_KEYS
+    if _CURATED_BASE_KEYS is None:
+        from src.agents.eviction_citations import EVICTION_CURATED_CITATIONS
+        from src.agents.small_claims_citations import SMALL_CLAIMS_CURATED_CITATIONS
+
+        _CURATED_BASE_KEYS = frozenset(
+            set(SMALL_CLAIMS_CURATED_CITATIONS) | set(EVICTION_CURATED_CITATIONS)
+        )
+    return _CURATED_BASE_KEYS
 
 # Citation-shaped token patterns. Conservative by design: every alternative
 # requires an explicit citation marker ("Fla. Stat.", "Florida Statutes",
@@ -80,7 +93,7 @@ def _base_citation(matched_value: str) -> str:
 
 def _resolves(matched_value: str) -> bool:
     base = _base_citation(matched_value)
-    return normalize_citation(base) in _CURATED_BASE_KEYS
+    return normalize_citation(base) in _curated_keys()
 
 
 def filter_citations_text(text: str, agent_name: str) -> str:
