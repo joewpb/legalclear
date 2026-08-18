@@ -60,6 +60,9 @@ class _FakeDB:
             return None
         return {"id": DOCUMENT_ID, "session_id": OWNING_SESSION}
 
+    def get_document_service_fact(self, document_id):
+        return None
+
 
 def test_get_deadlines_rejects_wrong_session(monkeypatch):
     monkeypatch.setattr(
@@ -83,7 +86,11 @@ def test_get_deadlines_allows_owning_session(monkeypatch):
         headers={"x-api-key": "testkey123"},
     )
     assert r.status_code == 200
-    assert r.json()["deadlines"] == [{"id": "dl-1", "label": "Answer"}]
+    assert r.json()["deadlines"] == [
+        {"id": "dl-1", "label": "Answer",
+         "anchor_date": None, "anchor_provenance": "extracted",
+         "anchor_note": None}
+    ]
 
 
 def test_get_trigger_events_rejects_wrong_session(monkeypatch):

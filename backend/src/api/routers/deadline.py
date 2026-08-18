@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 from src.api.dependencies import require_api_key
 from src.core.upl import apply_disclaimer
 from src.memory.db import DatabaseManager
-from deadline.rules import SERVICE_POSTED
+from deadline.rules import RULES, SERVICE_POSTED
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/deadline", tags=["deadline"])
@@ -78,6 +78,53 @@ _DEADLINE_SELECT_COLUMNS = (
     "severity,confidence,escalation_recommended,"
     "computation_trace,reminder_state,created_at"
 )
+
+# G1-1 — governing_rule -> required_anchors, so a deadline row can be checked
+# against document_service_facts without needing the rule_key (deadlines rows
+# only carry governing_rule, not the RULES dict key that produced them).
+_REQUIRED_ANCHORS_BY_GOVERNING_RULE = {
+    rule["governing_rule"]: rule.get("required_anchors")
+    for rule in RULES.values()
+}
+
+
+def _anchor_for_deadline(
+    governing_rule: str,
+    computation_trace: list,
+    service_fact: dict | None,
+) -> tuple[str | None, str, str | None]:
+    """Derive (anchor_date, anchor_provenance, anchor_note) for one deadline row.
+
+    computation_trace[0] is always the "Trigger event date" step written by
+    deadline/compute.py's `_compute_single` (for posted service, this is
+    already the later-of-posting-and-mailing effective date) — so the anchor
+    date itself never needs re-deriving here, only its provenance.
+
+    Provenance: this rule's required_anchors says whether a "served" anchor
+    was even in play for this deadline; document_service_facts (B5-f3) is the
+    single source of truth for whether that anchor was user-supplied. Rules
+    anchored on something else (date_of_loss, rendered, etc.) are always
+    "extracted" — a user-supplied service date never feeds those.
+    """
+    anchor_date = computation_trace[0].get("date") if computation_trace else None
+
+    required_anchors = _REQUIRED_ANCHORS_BY_GOVERNING_RULE.get(governing_rule)
+    served_anchor = bool(required_anchors) and "served" in required_anchors
+    user_service_date = service_fact.get("service_date") if service_fact else None
+
+    if not (served_anchor and user_service_date):
+        return anchor_date, "extracted", None
+
+    anchor_note = None
+    service_method = (service_fact.get("service_method") or "").strip().lower()
+    clerk_mailing_date = service_fact.get("clerk_mailing_date")
+    if service_method == SERVICE_POSTED and clerk_mailing_date and clerk_mailing_date != user_service_date:
+        anchor_note = (
+            "Anchor is the later of the user-supplied posting date "
+            f"({user_service_date}) and the clerk's certificate-of-mailing "
+            f"date ({clerk_mailing_date}), extracted from the docket."
+        )
+    return anchor_date, "user_supplied", anchor_note
 
 
 def _escalation_response(guidance: str) -> dict:
@@ -186,13 +233,22 @@ async def get_deadlines(document_id: str, session_id: Optional[str] = None):
         raise HTTPException(status_code=404, detail="Document not found")
     try:
         result = (db.client.table("deadlines")
-                  .select("id,label,due_date,governing_rule,consequence_if_missed,"
-                          "severity,confidence,escalation_recommended,"
-                          "computation_trace,reminder_state,created_at")
+                  .select(_DEADLINE_SELECT_COLUMNS)
                   .eq("document_id", document_id)
                   .order("due_date")
                   .execute())
-        return apply_disclaimer({"deadlines": result.data or []}, lang="en")
+        rows = result.data or []
+        service_fact = db.get_document_service_fact(document_id)
+        for row in rows:
+            anchor_date, anchor_provenance, anchor_note = _anchor_for_deadline(
+                row.get("governing_rule", ""),
+                row.get("computation_trace") or [],
+                service_fact,
+            )
+            row["anchor_date"] = anchor_date
+            row["anchor_provenance"] = anchor_provenance
+            row["anchor_note"] = anchor_note
+        return apply_disclaimer({"deadlines": rows}, lang="en")
     except Exception as e:
         logger.error("get_deadlines failed: %s", e)
         raise HTTPException(status_code=500, detail="Could not retrieve deadlines") from e

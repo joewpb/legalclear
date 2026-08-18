@@ -65,6 +65,9 @@ class _FakeDB:
             return None
         return {"id": DOCUMENT_ID, "session_id": OWNING_SESSION}
 
+    def get_document_service_fact(self, document_id):
+        return None
+
 
 def test_get_deadlines_disclaimer_matches_canonical(monkeypatch):
     rows = [{"id": "dl-1", "label": "Answer"}]
