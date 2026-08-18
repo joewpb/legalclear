@@ -124,7 +124,8 @@ CREATE INDEX IF NOT EXISTS idx_legal_opinions_quality_flagged
 ALTER TABLE public.legal_opinions ENABLE ROW LEVEL SECURITY;
 
 
--- 5. Trigger Events (declared completely incl. B5 user-supplied columns)
+-- 5. Trigger Events (declared; user_* columns removed 2026-08-18 — dropped in prod
+-- by 20260817010000_g_drop_trigger_events_user_columns.sql; declaration mirrors prod)
 CREATE TABLE IF NOT EXISTS public.trigger_events (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     document_id UUID REFERENCES public.documents(id) ON DELETE CASCADE,
@@ -138,10 +139,7 @@ CREATE TABLE IF NOT EXISTS public.trigger_events (
     case_number TEXT,
     raw_text_excerpt TEXT NOT NULL,
     confidence NUMERIC NOT NULL,
-    user_service_date DATE,
-    user_service_method TEXT,
     clerk_mailing_date DATE,
-    service_date_provenance TEXT NOT NULL DEFAULT 'extracted',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ALTER TABLE public.trigger_events ENABLE ROW LEVEL SECURITY;
