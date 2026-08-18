@@ -16,11 +16,12 @@ Response is a stream of JSON chunks:
 """
 
 
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from src.agents.chat_expert import VALID_MODULES, ChatExpertAgent
+from src.api.limiter import limiter
 
 router = APIRouter(prefix="/api/chat")
 
@@ -55,7 +56,8 @@ class ChatMessageRequest(BaseModel):
 # ---------------------------------------------------------------------------
 
 @router.post("/{module}")
-async def chat_endpoint(module: str, body: ChatMessageRequest = Body(...)):
+@limiter.limit("10/minute")
+async def chat_endpoint(request: Request, module: str, body: ChatMessageRequest = Body(...)):
     """Stream a conversational response from the per-module expert."""
 
     if module not in VALID_MODULES:

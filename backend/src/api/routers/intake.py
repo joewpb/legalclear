@@ -9,9 +9,10 @@ import logging
 import traceback
 
 from anthropic import AsyncAnthropic
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body, HTTPException, Request
 from pydantic import BaseModel, Field
 
+from src.api.limiter import limiter
 from src.core.config import settings
 from src.core.json_utils import strip_markdown_fences
 from src.core.upl import apply_disclaimer
@@ -125,7 +126,8 @@ _MODEL = "claude-haiku-4-5-20251001"
 # ---------------------------------------------------------------------------
 
 @router.post("/intake", response_model=IntakeResponse)
-async def intake(payload: IntakeRequest = Body(...)) -> IntakeResponse:
+@limiter.limit("10/minute")
+async def intake(request: Request, payload: IntakeRequest = Body(...)) -> IntakeResponse:
     """Classify a plain-English situation description and route to a module."""
 
     user_prompt = (

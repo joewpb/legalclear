@@ -14,11 +14,12 @@ from typing import Any
 
 import httpx
 from anthropic import AsyncAnthropic
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from src.api.dependencies import require_api_key
+from src.api.limiter import limiter
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.core.upl import apply_upl_guardrails
@@ -501,7 +502,8 @@ def _format_candidates(rows: list[dict]) -> str:
 
 
 @router.post("/suggest")
-async def suggest_forms(payload: SuggestRequest = Body(...)):
+@limiter.limit("10/minute")
+async def suggest_forms(request: Request, payload: SuggestRequest = Body(...)):
     """Stream AI-identified relevant forms for a described situation (SSE)."""
     if db.client is None:
         raise HTTPException(status_code=503, detail="Database unavailable")
