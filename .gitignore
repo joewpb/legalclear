@@ -85,3 +85,6 @@ scripts/opinion_pipeline/logs/*
 .claude/*
 !.claude/skills/
 !.claude/commands/
+
+# dispatch run archives (local-only)
+runs/_wt_archive/
