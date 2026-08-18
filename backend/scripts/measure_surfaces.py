@@ -17,7 +17,7 @@ load_rule_citations_from_db(db)
 
 CITE_RE = re.compile(
     r"Fla\.\s*Stat\.\s*§\s*\d+(?:\.\d+)*(?:\(\w+\))*"
-    r"|Fla\.\s*R\.\s*(?:Gen\.\s*Prac\.\s*&\s*Jud\.\s*Admin\.|Civ\.|Crim\.|Sm\.\s*Cl\.)\s*[A-Za-z. ]*?\d+(?:\.\d+)*",
+    r"|Fla\.\s*R\.\s*(?:Gen\.\s*Prac\.\s*&\s*Jud\.\s*Admin\.|Civ\.|Crim\.|Sm\.\s*Cl\.|Prob\.)\s*[A-Za-z. ]*?\d+(?:\.\d+)*",
     re.IGNORECASE,
 )
 
@@ -79,8 +79,17 @@ async def run_agent(kind: str) -> str:
         out = await CriminalProcedureExplainer().explain("petit theft", "misdemeanor", "notice to appear", "en")
         return flatten(out)
     if kind == "discovery":
+        import fitz
         from src.agents.discovery_motion import DiscoveryMotionAnalyzer
-        out = await DiscoveryMotionAnalyzer().analyze(DISCOVERY_DOC.encode(), "motion.txt", "en")
+        doc = fitz.open()
+        page = doc.new_page()
+        page.insert_text((72, 72), DISCOVERY_DOC)
+        pdf_path = "/tmp/motion_test.pdf"
+        doc.save(pdf_path)
+        doc.close()
+        with open(pdf_path, "rb") as f:
+            pdf_bytes = f.read()
+        out = await DiscoveryMotionAnalyzer().analyze(pdf_bytes, "motion.pdf", "en")
         return flatten(out)
     if kind == "wills_trusts":
         from src.agents.wills_trusts import WillsTrustsExplainer
@@ -96,7 +105,7 @@ async def run_agent(kind: str) -> str:
     if kind == "chat":
         from src.agents.chat_expert import ChatExpertAgent
         chunks = []
-        async for chunk in ChatExpertAgent().chat("landlord_tenant", CHAT_Q, "measure-session", "en"):
+        async for chunk in ChatExpertAgent().chat("small_claims", CHAT_Q, "measure-session", "en"):
             chunks.append(str(chunk))
         return " ".join(chunks)
     raise ValueError(kind)
