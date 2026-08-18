@@ -35,6 +35,18 @@ and `phases/LEDGER.md` for v1 state.
    counting, the matching, the steps — not just the result; (4) an instruction
    to verify against the court docket or an official source; (5) framing as
    "here is how the rule computes" rather than "here is your answer".
+2c. **Generalized versus individualized.** Generalized legal explanation is
+   unlimited — what the law says, how a rule computes, what defenses exist,
+   what a filing does, what a party must prove. Applying law to the user's
+   specific facts as a directive is what the attorney referral is for. The
+   distinction is generalized versus individualized, not cautious versus rich.
+2d. **Conditional framing over directives.** Prefer conditional/consequence
+   framing: "If you file X within the answer period, Y follows. If you don't,
+   Z can happen." Both branches must be developed honestly — a conditional
+   where one branch is thin and the other is catastrophic is a directive in
+   disguise. Where not acting is genuinely reasonable (the tenant is moving
+   out anyway, the rent is actually owed, the cost exceeds the stakes), say
+   so. This is a richness requirement, not a hedging requirement.
 3. Every deadline carries a full `computation_trace` with rule citations.
 4. No "done" claim without fresh test/verification evidence.
 5. **"Unknown" is a valid, first-class output.** A confident wrong answer is a
