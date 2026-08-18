@@ -14,6 +14,8 @@ Checks:
      (explicit allowlist with reasons).
   4. Exactly one canonical disclaimer source, imported by every user-facing
      path.
+  5. Citation resolution guard present — any citation reaching a user must
+     resolve against the owned statutes/court_rules tables (Dispatch J1).
 
 Usage: python3 scripts/verify_educational.py   (from repo root)
 """
@@ -28,7 +30,7 @@ ROOT = Path(__file__).resolve().parent.parent
 FRONTEND = ROOT / "frontend" / "src"
 BACKEND = ROOT / "backend" / "src"
 
-violations: dict[str, list[str]] = {f"check{i}": [] for i in range(1, 5)}
+violations: dict[str, list[str]] = {f"check{i}": [] for i in range(1, 6)}
 notes: list[str] = []
 
 
@@ -263,10 +265,57 @@ else:
                 add(4, f"{rel}:{line}: frontend hardcodes a disclaimer string (duplicate of canonical)")
 
 # ─────────────────────────────────────────────────────────────────────────────
+# CHECK 5 — citation resolution guard present (Dispatch J1)
+# ─────────────────────────────────────────────────────────────────────────────
+resolver = ROOT / "backend/src/core/citation_resolver.py"
+if not resolver.exists():
+    add(5, "backend/src/core/citation_resolver.py MISSING")
+else:
+    rtext = resolver.read_text()
+    if "def resolve_citation(" not in rtext:
+        add(5, "backend/src/core/citation_resolver.py: no resolve_citation function")
+    if "def load_owned_citations(" not in rtext:
+        add(5, "backend/src/core/citation_resolver.py: no load_owned_citations function")
+
+resolver_tests = ROOT / "backend/tests/test_citation_resolver.py"
+if not resolver_tests.exists():
+    add(5, "backend/tests/test_citation_resolver.py MISSING")
+else:
+    ttext = resolver_tests.read_text()
+    for needle, label in (
+        ("34.01", "owned ch. 34 citation coverage"),
+        ("7.050", "unowned Rules 7.x suppression coverage"),
+        ("34.999", "fabricated-citation suppression coverage"),
+    ):
+        if needle not in ttext:
+            add(5, f"backend/tests/test_citation_resolver.py: missing coverage for '{needle}' ({label})")
+
+# Any file under backend/src/ that emits citation fields (a prompt mentioning
+# "citation" AND a schema field named citation) must import citation_resolver.
+# Today that set is empty — the rule goes live when the small-claims pilot
+# wires citations in (next dispatch).
+SCHEMA_FIELD_RE = re.compile(r"^\s*citation\s*:", re.MULTILINE)
+PROMPT_MENTIONS_CITATION_RE = re.compile(r"(prompt|instructions?)\w*\s*=.{0,500}citation", re.IGNORECASE | re.DOTALL)
+for path in sorted((ROOT / "backend/src").rglob("*.py")):
+    rel = str(path.relative_to(ROOT))
+    if rel == "backend/src/core/citation_resolver.py":
+        continue
+    try:
+        text = path.read_text()
+    except Exception:
+        continue
+    if not SCHEMA_FIELD_RE.search(text):
+        continue
+    if not PROMPT_MENTIONS_CITATION_RE.search(text):
+        continue
+    if "citation_resolver" not in text:
+        add(5, f"{rel}: emits a citation field from a prompt but does not import citation_resolver")
+
+# ─────────────────────────────────────────────────────────────────────────────
 # REPORT
 # ─────────────────────────────────────────────────────────────────────────────
 total = 0
-for i in range(1, 5):
+for i in range(1, 6):
     vs = violations[f"check{i}"]
     total += len(vs)
     print(f"\n=== CHECK {i} — {len(vs)} violation(s) ===")
@@ -275,5 +324,5 @@ for i in range(1, 5):
 print(f"\n=== NOTES ({len(notes)}) ===")
 for n in notes:
     print(f"  {n}")
-print(f"\nBASELINE: {total} violation(s) across 4 checks.")
+print(f"\nBASELINE: {total} violation(s) across 5 checks.")
 sys.exit(1 if total else 0)
