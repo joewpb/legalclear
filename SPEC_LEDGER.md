@@ -111,6 +111,7 @@ live backend on :8001). Backend unit-suite baseline at f145dd8: **352 passed,
 
 ## Known limitations (recorded, not blockers)
 
+- **Rate-limit tiers (2026-08-17, RL-2):** LLM-calling routes = `10/minute` (wills_trusts, property_casualty, small_claims ×2, discovery, criminal, police_report ×2, chat, intake, forms/suggest, attorney_referral/intake). Deterministic routes = `60/minute` (case_law/search, packet/build — Postgres round-trips, no LLM; VERIFIED no model calls). Expungement router routes carry NO limit: `/eligibility` is deterministic disqualifier matching and `/generate` is Stripe+PDF — neither calls an LLM (VERIFIED 2026-08-17); the LLM `ExpungementAgent` runs only in the `/api/upload` pipeline in routes.py.
 - **Rate-limit storage is per-process memory (slowapi MemoryStorage, no `storage_uri`).** Rate limits reset on every Railway deploy/restart and are per-instance — they do not survive restarts and would not be shared across workers if the app ever runs more than one. Recorded 2026-08-17 (RL-1, VERIFIED against the installed slowapi package). Also: the limiter keys on `X-Real-IP` (Railway's edge-set header, documented in Railway's Specs & Limits) with XFF-leftmost and remote-address fallbacks; spoofed X-Forwarded-For is ignored when X-Real-IP is present.
 
 ## Change protocol
