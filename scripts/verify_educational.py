@@ -212,17 +212,18 @@ else:
         atext = af.read_text()
         if "apply_disclaimer" not in atext and "disclaimer" not in atext.lower():
             add(4, f"{rel}: agent emits prose but references no canonical disclaimer")
-    # routers that emit prose must import the canonical source
-    prose_routers = ["criminal.py", "discovery.py", "wills_trusts.py",
-                     "small_claims.py", "property_casualty.py", "police_report.py",
-                     "chat.py", "attorney_referral.py"]
-    for name in prose_routers:
-        rf = ROOT / "backend/src/api/routers" / name
+    # agents that emit prose must import the canonical source (routers are
+    # pass-throughs — scope artifact verified 2026-08-18)
+    prose_agents = ["criminal_procedure.py", "discovery_motion.py", "wills_trusts.py",
+                    "small_claims.py", "property_casualty.py", "police_report_v2.py",
+                    "chat_expert.py", "attorney_referral.py"]
+    for name in prose_agents:
+        rf = ROOT / "backend/src/agents" / name
         if not rf.exists():
             continue
         rtext = rf.read_text()
-        if "core.upl" not in rtext and "apply_disclaimer" not in rtext:
-            add(4, f"backend/src/api/routers/{name}: prose router does not use canonical disclaimer")
+        if "core.upl" not in rtext and "apply_disclaimer" not in rtext and "get_disclaimer" not in rtext:
+            add(4, f"backend/src/agents/{name}: prose agent does not use canonical disclaimer")
 
     # frontend hardcoded disclaimers = duplicates of the canonical source.
     # The one sanctioned exception is the frontend mirror itself — a static
