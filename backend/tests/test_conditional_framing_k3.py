@@ -133,7 +133,7 @@ def test_chat_expert_modules_develop_inaction_reasonable_branch():
 
 def test_chat_prompt_carries_owned_citation_rule():
     from pathlib import Path
-    src = Path("backend/src/agents/chat_expert.py").read_text()
+    src = (Path(__file__).resolve().parents[1] / "src/agents/chat_expert.py").read_text()
     assert "_SHARED_CITATION_RULE" in src
     assert "2.514" in src
     assert "Fla. R. Crim. P. 3.x" in src
