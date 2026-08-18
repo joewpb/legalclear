@@ -327,6 +327,12 @@ else:
     cftext = citation_filter_mod.read_text()
     if "class StreamingCitationFilter" not in cftext:
         add(6, "backend/src/core/citation_filter.py: no StreamingCitationFilter class")
+    if "def register_rule_citations(" not in cftext:
+        add(6, "backend/src/core/citation_filter.py: no register_rule_citations function (Dispatch J5)")
+
+if resolver.exists():
+    if "def load_owned_rule_citations(" not in rtext:
+        add(6, "backend/src/core/citation_resolver.py: no load_owned_rule_citations function (Dispatch J5)")
 
 citation_filter_tests = ROOT / "backend/tests/test_citation_filter.py"
 if not citation_filter_tests.exists():

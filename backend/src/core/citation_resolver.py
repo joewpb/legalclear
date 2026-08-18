@@ -41,6 +41,7 @@ _KNOWN_PREFIXES = (
     "FLA. FAM. L. R. P.",
     "FLA. PROB. R.",
     "FLA. R. JUD. ADMIN.",
+    "FLA. R. GEN. PRAC. & JUD. ADMIN.",
 )
 
 
@@ -142,3 +143,26 @@ def load_owned_citations(db) -> dict[str, CitationResolution]:
         logger.error("load_owned_citations: court_rules lookup failed: %s", e)
 
     return owned
+
+
+def load_owned_rule_citations(db) -> list[str]:
+    """Load every owned rule citation from the ``court_rules`` table.
+
+    Mirrors ``load_owned_citations`` but returns the raw citation strings
+    rather than a resolution map — this feeds
+    ``citation_filter.register_rule_citations``, which normalizes and
+    registers them itself. All rule sets in ``court_rules`` are owned, so
+    there is no per-set filtering. Degrades to an empty list on a missing
+    client or failed query, same as ``load_owned_citations``.
+    """
+    citations: list[str] = []
+    if db is None or getattr(db, "client", None) is None:
+        return citations
+
+    try:
+        result = db.client.table("court_rules").select("citation").execute()
+        citations = [row["citation"] for row in result.data or [] if row.get("citation")]
+    except Exception as e:
+        logger.error("load_owned_rule_citations: court_rules lookup failed: %s", e)
+
+    return citations

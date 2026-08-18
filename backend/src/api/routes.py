@@ -72,6 +72,13 @@ form_guide = FormGuideAgent()
 risk_scanner = RiskScannerAgent()
 expungement = ExpungementAgent()
 db = DatabaseManager()
+
+# J5: load owned rule citations into the CitationFilter registry at startup.
+# Guarded internally — on DB failure the registry stays statute-curated and
+# rule citations degrade to stripped (never loosened).
+from src.core.citation_filter import load_rule_citations_from_db  # noqa: E402
+
+load_rule_citations_from_db(db)
 stripe_client = StripeClient()
 escalation_router = EscalationRouter()
 notifications = NotificationService()

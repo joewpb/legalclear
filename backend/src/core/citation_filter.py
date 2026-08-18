@@ -8,21 +8,22 @@ only from an approved list are not a guarantee, so this module strips
 unresolvable citation-shaped tokens out of generated prose at the output
 boundary, deterministically, after generation.
 
-Subsection rule: a citation-shaped token is matched against the curated
-union map (``agents.small_claims_citations`` ∪ ``agents.eviction_citations``)
-on its BASE citation — normalized, with any trailing subsection suffix like
-"(2)" or "(2)(a)" stripped for the lookup only. If the base resolves, the
-token survives VERBATIM, subsection included — e.g. "Fla. Stat. § 83.60(2)"
-survives because "Fla. Stat. § 83.60" is curated. This preserves the
-deadline engine's code-declared subsection granularity (``deadline/rules.py``
-cites "§ 83.60(2)" as a computed ``governing_rule``) while still suppressing
-fabricated ("§ 83.999") and real-but-uncurated ("§ 83.64") citations.
+Subsection rule: a citation-shaped token is matched against the resolution
+registry — statute-curated (``agents.small_claims_citations`` ∪
+``agents.eviction_citations``) UNION owned rule citations registered via
+``register_rule_citations`` (Dispatch J5, backed by the ``court_rules``
+table) — on its BASE citation, normalized, with any trailing subsection
+suffix like "(2)" or "(2)(a)" stripped for the lookup only. If the base
+resolves, the token survives VERBATIM, subsection included — e.g.
+"Fla. Stat. § 83.60(2)" survives because "Fla. Stat. § 83.60" is curated.
+This preserves the deadline engine's code-declared subsection granularity
+(``deadline/rules.py`` cites "§ 83.60(2)" as a computed ``governing_rule``)
+while still suppressing fabricated ("§ 83.999") and real-but-uncurated
+("§ 83.64") citations.
 
-Gap, by design: rule citations ("Fla. R. Civ. P. 1.140", "Fla. Sm. Cl. R.
-7.050") are not in either curated set today, so every rule-citation token
-this filter sees gets stripped. That is intended — coverage gaps degrade to
-silence, not fabrication — and closes only as curated rule-citation sets are
-built in later dispatches.
+A rule citation not yet registered in the owned ``court_rules`` set (or seen
+before that registry loads) still gets stripped. That is intended — coverage
+gaps degrade to silence, not fabrication.
 
 Stripped values are logged at INFO with the agent name for observability.
 They are NEVER included in any user-facing output.
@@ -32,16 +33,18 @@ from __future__ import annotations
 
 import logging
 import re
+from collections.abc import Iterable
 
 from src.core.citation_resolver import normalize_citation
 
 logger = logging.getLogger("legalclear.citation_filter")
 
-_CURATED_BASE_KEYS: frozenset[str] | None = None
+_STATUTE_CURATED_KEYS: frozenset[str] | None = None
+_REGISTERED_RULE_KEYS: set[str] = set()
 
 
-def _curated_keys() -> frozenset[str]:
-    """Lazy union of every module's curated base-citation set.
+def _statute_curated_keys() -> frozenset[str]:
+    """Lazy union of every module's curated statute base-citation set.
 
     Lazy on purpose: agents/__init__ imports explainer, and explainer imports
     this module — an eager import of the agents package here creates a cycle
@@ -49,26 +52,67 @@ def _curated_keys() -> frozenset[str]:
     sets are agent-module constants, so they load at first filter use, by
     which time the package graph is fully initialized.
     """
-    global _CURATED_BASE_KEYS
-    if _CURATED_BASE_KEYS is None:
+    global _STATUTE_CURATED_KEYS
+    if _STATUTE_CURATED_KEYS is None:
         from src.agents.eviction_citations import EVICTION_CURATED_CITATIONS
         from src.agents.small_claims_citations import SMALL_CLAIMS_CURATED_CITATIONS
 
-        _CURATED_BASE_KEYS = frozenset(
+        _STATUTE_CURATED_KEYS = frozenset(
             set(SMALL_CLAIMS_CURATED_CITATIONS) | set(EVICTION_CURATED_CITATIONS)
         )
-    return _CURATED_BASE_KEYS
+    return _STATUTE_CURATED_KEYS
+
+
+def register_rule_citations(citations: Iterable[str]) -> None:
+    """Merge normalized owned rule citations into the resolution registry.
+
+    Idempotent — normalization plus a set means registering the same
+    citation twice (or many times, e.g. re-running startup load) is a no-op
+    beyond the first insert. Additive-only: never removes a previously
+    registered key, so repeated partial loads can only widen coverage.
+    """
+    for citation in citations:
+        _REGISTERED_RULE_KEYS.add(normalize_citation(citation))
+
+
+def load_rule_citations_from_db(db) -> None:
+    """Fetch owned rule citations from ``court_rules`` and register them.
+
+    There is no dedicated backend startup hook that calls
+    ``load_owned_citations`` today (it is currently wired nowhere but its
+    own tests), so this has the same shape: a callable meant to be invoked
+    once wherever the backend constructs its ``DatabaseManager`` singleton
+    (see ``src.api.routes``), not triggered automatically by importing or
+    using this module. Guarded by try/except: on any failure (missing DB,
+    network, schema) the registry simply stays at whatever was already
+    registered — degrading to the statute-curated set, never loosening the
+    filter. Deliberately NOT called from ``_curated_keys()`` — that path is
+    exercised by pure unit tests (``test_citation_filter.py``) that must
+    never reach the network.
+    """
+    try:
+        from src.core.citation_resolver import load_owned_rule_citations
+
+        register_rule_citations(load_owned_rule_citations(db))
+    except Exception as e:
+        logger.error("citation_filter: rule-citation load failed: %s", e)
+
+
+def _curated_keys() -> frozenset[str]:
+    return frozenset(_statute_curated_keys() | _REGISTERED_RULE_KEYS)
 
 # Citation-shaped token patterns. Conservative by design: every alternative
 # requires an explicit citation marker ("Fla. Stat.", "Florida Statutes",
-# "§", or a "Fla. R. ... P." / "Fla. Sm. Cl. R." rule prefix) followed by a
-# numeric section pattern — plain prose mentioning "§" with no number after
-# it (e.g. "The § symbol in a contract.") never matches.
+# "§", or a "Fla. R. ... P." / "Fla. Sm. Cl. R." / "Fla. R. Gen. Prac. & Jud.
+# Admin." rule prefix) followed by a numeric section pattern — plain prose
+# mentioning "§" with no number after it (e.g. "The § symbol in a
+# contract.") never matches.
 _SECTION_NUM = r"\d+(?:\.\d+)*(?:\(\w+\))*"
 _CITATION_TOKEN_RE = re.compile(
     r"(?:Fla\.\s*Stat\.\s*(?:§\s*)?" + _SECTION_NUM + r")"
     r"|(?:Florida\s+Statutes\s*(?:§\s*)?" + _SECTION_NUM + r")"
     r"|(?:§\s*" + _SECTION_NUM + r")"
+    r"|(?:Fla\.\s*R\.\s*Gen\.\s*Prac\.\s*&\s*Jud\.\s*Admin\.\s*" + _SECTION_NUM + r")"
     r"|(?:Fla\.\s*R\.\s*(?:Civ\.|Crim\.|App\.|Fam\.\s*L\.|Jud\.\s*Admin\.|Prob\.)?\s*R?\.?\s*P\.\s*" + _SECTION_NUM + r")"
     r"|(?:Fla\.\s*Sm\.\s*Cl\.\s*R\.\s*" + _SECTION_NUM + r")",
     re.IGNORECASE,

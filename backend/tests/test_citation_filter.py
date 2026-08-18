@@ -9,7 +9,11 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.agents.property_casualty import _filter_citation_json_strings
-from src.core.citation_filter import StreamingCitationFilter, filter_citations_text
+from src.core.citation_filter import (
+    StreamingCitationFilter,
+    filter_citations_text,
+    register_rule_citations,
+)
 
 AGENT = "test-agent"
 
@@ -161,6 +165,47 @@ def test_discovery_motion_stream_filter_strips_fabricated_citation():
     out += f.flush()
     assert "999.220" not in out
     assert "This motion is analyzed under" in out
+
+
+# ---------------------------------------------------------------------------
+# Dispatch J5 — owned rule citations extend the resolution registry
+# ---------------------------------------------------------------------------
+
+
+def test_registered_rule_citation_survives():
+    register_rule_citations(["Fla. R. Gen. Prac. & Jud. Admin. 2.514"])
+    text = "Time is computed per Fla. R. Gen. Prac. & Jud. Admin. 2.514."
+    result = filter_citations_text(text, AGENT)
+    assert "Fla. R. Gen. Prac. & Jud. Admin. 2.514" in result
+
+
+def test_criminal_procedure_rule_citation_survives_after_registration():
+    register_rule_citations(["Fla. R. Crim. P. 3.220"])
+    text = "Discovery is governed by Fla. R. Crim. P. 3.220."
+    result = filter_citations_text(text, AGENT)
+    assert "Fla. R. Crim. P. 3.220" in result
+
+
+def test_unregistered_rule_citation_still_stripped():
+    text = "This cites Fla. R. Crim. P. 3.999, which is fabricated."
+    result = filter_citations_text(text, AGENT)
+    assert "3.999" not in result
+
+
+def test_register_rule_citations_is_idempotent():
+    register_rule_citations(["Fla. R. Crim. P. 3.220"])
+    register_rule_citations(["Fla. R. Crim. P. 3.220"])
+    register_rule_citations(["Fla. R. Crim. P. 3.220"])
+    text = "See Fla. R. Crim. P. 3.220 for discovery obligations."
+    result = filter_citations_text(text, AGENT)
+    assert "Fla. R. Crim. P. 3.220" in result
+
+
+def test_statute_curated_citations_survive_after_rule_registration():
+    register_rule_citations(["Fla. R. Gen. Prac. & Jud. Admin. 2.514"])
+    text = "The court has jurisdiction. See Fla. Stat. § 34.01 for details."
+    result = filter_citations_text(text, AGENT)
+    assert "Fla. Stat. § 34.01" in result
 
 
 def test_small_claims_structured_helper_strips_fabricated_citation():
