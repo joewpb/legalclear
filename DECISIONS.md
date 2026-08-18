@@ -195,3 +195,10 @@ DARK and reminders keep terminating failed until the key lands. Acceptable.
 
 ## Decision 9 — C4 mobile (2026-08-15)
 DEFERRED. push_tokens logged for Phase G. No work tonight.
+
+## Decision 10 — Session tokens DEFERRED (2026-08-17)
+Mitigation #3 (short-lived server-issued session tokens) is deferred: it should
+ride the user-accounts work required by the G2 payments gate rather than being
+built standalone. Mitigations 1 (Anthropic spend caps/alerts — Joe configuring)
+and 2 (per-IP rate limiting, XFF fix first) proceed now. S1-8 remains open until
+#3 lands; the spend cap bounds worst-case cost meanwhile.
