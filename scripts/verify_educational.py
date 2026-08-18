@@ -57,14 +57,15 @@ for path, needles, label in CITATION_EXPECTATIONS:
         if n not in text:
             add(1, f"{path}: no '{n}' field for {label}")
 
-# Prose explainer surfaces — must at least carry a disclaimer field; a citation
-# field is absent on all of them today (expected baseline red).
+# Prose explainer surfaces — the disclaimer + citation live in the AGENT
+# modules that generate the prose (the routers are thin SSE pass-throughs,
+# so checking them is a scope artifact — verified 2026-08-18, U1 re-check).
 PROSE_SURFACES = [
-    ("backend/src/api/routers/criminal.py", "criminal explainer"),
-    ("backend/src/api/routers/discovery.py", "discovery analyzer"),
-    ("backend/src/api/routers/wills_trusts.py", "wills/trusts explainer"),
-    ("backend/src/api/routers/small_claims.py", "small-claims explainer"),
-    ("backend/src/api/routers/chat.py", "chat expert"),
+    ("backend/src/agents/criminal_procedure.py", "criminal explainer"),
+    ("backend/src/agents/discovery_motion.py", "discovery analyzer"),
+    ("backend/src/agents/wills_trusts.py", "wills/trusts explainer"),
+    ("backend/src/agents/small_claims.py", "small-claims explainer"),
+    ("backend/src/agents/chat_expert.py", "chat expert"),
 ]
 for path, label in PROSE_SURFACES:
     f = ROOT / path
