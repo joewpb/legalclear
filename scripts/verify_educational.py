@@ -208,6 +208,7 @@ else:
         "__init__.py": "package marker, not an agent",
         "case_context.py": "deterministic context builder, no prose output",
         "small_claims_citations.py": "curated citation data constant, no prose output (Dispatch J2)",
+        "eviction_citations.py": "curated citation data constant, no prose output (Dispatch J3)",
     }
     for af in agent_files:
         rel = f"backend/src/agents/{af.name}"

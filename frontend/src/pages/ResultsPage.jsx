@@ -318,6 +318,15 @@ function TabButton({ active, onClick, icon, label, alertCount }) {
   );
 }
 
+// Small mono citation line, matching the SmallClaims explainer's
+// CitationLine pattern — never a clickable link, source_url is never
+// rendered here.
+function CitationLine({ citations, section }) {
+  const match = citations?.find((c) => c.section === section);
+  if (!match) return null;
+  return <p className="font-mono text-[11px] text-gray-500 mt-1">{match.citation}</p>;
+}
+
 function SummaryView({ explanation, escalation }) {
   if (!explanation?.summary) return <div className="text-gray-400 text-center py-12">No summary available.</div>;
   return (
@@ -330,11 +339,13 @@ function SummaryView({ explanation, escalation }) {
       <div>
         <h2 className="text-2xl font-bold mb-4 font-display">Plain Language Summary</h2>
         <p className="text-gray-300 text-lg leading-relaxed">{explanation.summary}</p>
+        <CitationLine citations={explanation.citations} section="summary" />
       </div>
       {explanation.what_this_means_for_you && (
         <div className="bg-zinc-800/30 border border-blue-500/20 rounded-xl p-6">
           <h3 className="text-lg font-bold text-blue-400 mb-3">What this means for you</h3>
           <p className="text-gray-300 leading-relaxed">{explanation.what_this_means_for_you}</p>
+          <CitationLine citations={explanation.citations} section="what_this_means_for_you" />
         </div>
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
