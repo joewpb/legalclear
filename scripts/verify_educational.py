@@ -344,6 +344,10 @@ PROSE_FILTER_FILES = [
     "backend/src/agents/wills_trusts.py",
     "backend/src/agents/property_casualty.py",
     "backend/src/agents/chat_expert.py",
+    "backend/src/agents/small_claims.py",
+    "backend/src/agents/criminal_procedure.py",
+    "backend/src/agents/discovery_motion.py",
+
 ]
 for path in PROSE_FILTER_FILES:
     f = ROOT / path

@@ -70,6 +70,7 @@ def test_non_citation_prose_untouched():
 
 
 # ---------------------------------------------------------------------------
+<<<<<<< HEAD
 # Dispatch J4-3 — wills_trusts / property_casualty / chat_expert wiring
 # ---------------------------------------------------------------------------
 #
@@ -115,3 +116,61 @@ def test_pc_json_strings_does_not_touch_key_deadlines_governing_rule():
     parsed = {"key_deadlines": [{"governing_rule": "Fla. Stat. § 627.70132"}]}
     result = _filter_citation_json_strings(parsed, "property_casualty")
     assert "627.70132" not in result["key_deadlines"][0]["governing_rule"]
+=======
+# Per-surface wiring smoke tests (Dispatch J4-2)
+#
+# These exercise the same StreamingCitationFilter/filter_citations_text
+# primitives each surface wires in, without a live model or network call —
+# each surface's own streaming generator requires an Anthropic API call to
+# drive, so the wiring itself is covered by scripts/verify_educational.py
+# check 6 (PROSE_FILTER_FILES) asserting the import is present.
+# ---------------------------------------------------------------------------
+
+
+def test_small_claims_stream_filter_strips_fabricated_citation():
+    f = StreamingCitationFilter("small_claims")
+    out = ""
+    out += f.feed(
+        "Small claims covers disputes up to $8,000. See Fla. Stat. § 83.999 "
+        "for details on filing."
+    )
+    out += f.flush()
+    assert "83.999" not in out
+    assert "Small claims covers disputes up to $8,000" in out
+
+
+def test_criminal_procedure_stream_filter_strips_fabricated_citation():
+    f = StreamingCitationFilter("criminal_procedure")
+    out = ""
+    out += f.feed(
+        "The arraignment stage is governed by Fla. Stat. § 999.001 in this "
+        "example."
+    )
+    out += f.flush()
+    assert "999.001" not in out
+    assert "The arraignment stage" in out
+
+
+def test_discovery_motion_stream_filter_strips_fabricated_citation():
+    f = StreamingCitationFilter("discovery_motion")
+    out = ""
+    out += f.feed(
+        "This motion is analyzed under Fla. Stat. § 999.220, a fabricated "
+        "citation for this test."
+    )
+    out += f.flush()
+    assert "999.220" not in out
+    assert "This motion is analyzed under" in out
+
+
+def test_small_claims_structured_helper_strips_fabricated_citation():
+    from src.agents.small_claims import _filter_citation_json_strings
+
+    parsed = {
+        "what_this_is": "Small claims court handles disputes up to $8,000.",
+        "watch_out_for": ["Cite Fla. Stat. § 83.999 improperly."],
+    }
+    cleaned = _filter_citation_json_strings(parsed, "small_claims")
+    assert "83.999" not in cleaned["watch_out_for"][0]
+    assert "Small claims court handles disputes up to $8,000." == cleaned["what_this_is"]
+>>>>>>> fix/j42-citation-filter-wiring-1

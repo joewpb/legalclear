@@ -15,6 +15,7 @@ from src.agents.small_claims_citations import (
     SMALL_CLAIMS_CITATION_LIST,
     SMALL_CLAIMS_CURATED_CITATIONS,
 )
+from src.core.citation_filter import StreamingCitationFilter, filter_citations_text
 from src.core.citation_resolver import resolve_citation
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
@@ -50,6 +51,21 @@ SYSTEM_PROMPT = (
     "citations: [{ section: string, citation: string }], "
     "disclaimer: string }"
 )
+
+def _filter_citation_json_strings(obj, agent_name: str):
+    """Recursively apply ``filter_citations_text`` to every string in a
+    parsed JSON value — catches citations embedded in prose fields, which
+    the structured ``citations`` field guard (``filter_citations``) does
+    not cover.
+    """
+    if isinstance(obj, dict):
+        return {k: _filter_citation_json_strings(v, agent_name) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_filter_citation_json_strings(v, agent_name) for v in obj]
+    if isinstance(obj, str):
+        return filter_citations_text(obj, agent_name)
+    return obj
+
 
 # ---------------------------------------------------------------------------
 # Agent
@@ -139,14 +155,16 @@ class SmallClaimsExplainer:
                 messages=[{"role": "user", "content": user_prompt}],
             ) as stream:
                 url_filter = StreamingURLFilter("small_claims")
+                citation_filter = StreamingCitationFilter("small_claims")
                 full_text = ""
                 async for chunk in stream.text_stream:
                     emitted_content = True
-                    safe = url_filter.feed(chunk)
+                    safe = citation_filter.feed(url_filter.feed(chunk))
                     if safe:
                         full_text += safe
                         yield f"data: {safe}\n\n"
-                tail = url_filter.flush()
+                tail = citation_filter.feed(url_filter.flush())
+                tail += citation_filter.flush()
                 if tail:
                     full_text += tail
                     yield f"data: {tail}\n\n"
@@ -207,6 +225,7 @@ class SmallClaimsExplainer:
             )
             raw = response.content[0].text
             parsed = json.loads(strip_markdown_fences(raw))
+            parsed = _filter_citation_json_strings(parsed, "small_claims")
             parsed["citations"] = self.filter_citations(parsed.get("citations"))
             parsed["disclaimer"] = get_disclaimer(language)
             return parsed

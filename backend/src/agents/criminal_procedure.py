@@ -12,6 +12,7 @@ from collections.abc import AsyncGenerator
 
 from anthropic import AsyncAnthropic
 
+from src.core.citation_filter import StreamingCitationFilter
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.core.json_utils import strip_markdown_fences
@@ -151,6 +152,7 @@ class CriminalProcedureExplainer:
         try:
             full_text = ""
             url_filter = StreamingURLFilter("criminal_procedure")
+            citation_filter = StreamingCitationFilter("criminal_procedure")
             async with self.client.messages.stream(
                 model=self.model,
                 max_tokens=4096,
@@ -166,10 +168,11 @@ class CriminalProcedureExplainer:
                 async for chunk in stream.text_stream:
                     full_text += chunk
                     emitted_content = True
-                    safe = url_filter.feed(chunk)
+                    safe = citation_filter.feed(url_filter.feed(chunk))
                     if safe:
                         yield f"data: {safe}\n\n"
-            tail = url_filter.flush()
+            tail = citation_filter.feed(url_filter.flush())
+            tail += citation_filter.flush()
             if tail:
                 yield f"data: {tail}\n\n"
 
