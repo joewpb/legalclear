@@ -13,6 +13,7 @@ import { useState, useRef, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
 import OpinionCard from "../components/policereport/OpinionCard";
+import { DISCLAIMER_TEXT } from "../components/DisclaimerNote";
 import type { RelevantOpinion } from "../components/policereport/types";
 import { readSSE } from "../lib/sse";
 
@@ -486,8 +487,7 @@ export default function CriminalProcedureExplainer() {
 
       {/* Disclaimer — always visible: below the submit button, above any LLM output */}
       <div style={css.disclaimer}>
-        {response.disclaimer ||
-          "LegalClear provides legal information, not legal advice."}
+        {response.disclaimer || DISCLAIMER_TEXT}
       </div>
 
       {/* Results — only after explicit submit */}

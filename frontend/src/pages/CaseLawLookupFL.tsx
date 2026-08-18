@@ -4,6 +4,7 @@ import SearchBar from "../components/caselaw/SearchBar";
 import ResultsList from "../components/caselaw/ResultsList";
 import type { CaseSearchResponse } from "../components/caselaw/types";
 import { EXAMPLE_SEARCHES, LEGAL_AID_LINKS } from "../components/caselaw/types";
+import { DISCLAIMER_TEXT } from "../components/DisclaimerNote";
 
 const API_URL = (import.meta as any).env?.VITE_API_URL || "http://localhost:8001";
 
@@ -383,11 +384,7 @@ export default function CaseLawLookupFL() {
                     Older cases may still be good law, but you should verify
                     they haven't been overturned.
                   </li>
-                  <li>
-                    This is legal information, not legal advice. If you plan
-                    to argue a case in court, consulting a Florida attorney
-                    will give you the strongest foundation.
-                  </li>
+                  <li>{DISCLAIMER_TEXT}</li>
                 </ul>
               </div>
             </div>
@@ -398,11 +395,10 @@ export default function CaseLawLookupFL() {
       {/* ---- CONSOLIDATED DISCLAIMER — legal aid links moved up ---- */}
       <footer className="page-disclaimer">
         <p style={{ margin: 0, lineHeight: 1.6 }}>
-          LegalClear is an informational tool, not legal advice. Using this
-          site does not create an attorney-client relationship. Case law
-          results are a starting point — not the final word. Always read
-          the full opinion and verify it applies to your situation. Free
-          legal-aid resources are linked at the top of this page.
+          {DISCLAIMER_TEXT} Case law results are a starting point — not the
+          final word. Always read the full opinion and verify it applies to
+          your situation. Free legal-aid resources are linked at the top of
+          this page.
         </p>
       </footer>
     </>
