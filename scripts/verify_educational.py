@@ -16,6 +16,9 @@ Checks:
      path.
   5. Citation resolution guard present — any citation reaching a user must
      resolve against the owned statutes/court_rules tables (Dispatch J1).
+  6. Citation filter present — a citation embedded in free-form prose text
+     (not the structured citations field) must be stripped unless its base
+     citation resolves against the curated union map (Dispatch J4-1).
 
 Usage: python3 scripts/verify_educational.py   (from repo root)
 """
@@ -30,7 +33,7 @@ ROOT = Path(__file__).resolve().parent.parent
 FRONTEND = ROOT / "frontend" / "src"
 BACKEND = ROOT / "backend" / "src"
 
-violations: dict[str, list[str]] = {f"check{i}": [] for i in range(1, 6)}
+violations: dict[str, list[str]] = {f"check{i}": [] for i in range(1, 7)}
 notes: list[str] = []
 
 
@@ -315,10 +318,44 @@ for path in sorted((ROOT / "backend/src").rglob("*.py")):
         add(5, f"{rel}: emits a citation field from a prompt but does not import citation_resolver")
 
 # ─────────────────────────────────────────────────────────────────────────────
+# CHECK 6 — citation filter present (Dispatch J4-1)
+# ─────────────────────────────────────────────────────────────────────────────
+citation_filter_mod = ROOT / "backend/src/core/citation_filter.py"
+if not citation_filter_mod.exists():
+    add(6, "backend/src/core/citation_filter.py MISSING")
+else:
+    cftext = citation_filter_mod.read_text()
+    if "class StreamingCitationFilter" not in cftext:
+        add(6, "backend/src/core/citation_filter.py: no StreamingCitationFilter class")
+
+citation_filter_tests = ROOT / "backend/tests/test_citation_filter.py"
+if not citation_filter_tests.exists():
+    add(6, "backend/tests/test_citation_filter.py MISSING")
+else:
+    cfttext = citation_filter_tests.read_text()
+    if "83.999" not in cfttext:
+        add(6, "backend/tests/test_citation_filter.py: missing coverage for fabricated-citation strip ('83.999')")
+
+# Every prose agent/stream listed here must reference citation_filter. Starts
+# with just explainer.py (Dispatch J4-1 wires the reference implementation);
+# later dispatches add the rest of the prose surfaces.
+PROSE_FILTER_FILES = [
+    "backend/src/agents/explainer.py",
+]
+for path in PROSE_FILTER_FILES:
+    f = ROOT / path
+    if not f.exists():
+        add(6, f"{path}: MISSING FILE")
+        continue
+    text = f.read_text()
+    if "citation_filter" not in text:
+        add(6, f"{path}: listed in PROSE_FILTER_FILES but does not reference citation_filter")
+
+# ─────────────────────────────────────────────────────────────────────────────
 # REPORT
 # ─────────────────────────────────────────────────────────────────────────────
 total = 0
-for i in range(1, 6):
+for i in range(1, 7):
     vs = violations[f"check{i}"]
     total += len(vs)
     print(f"\n=== CHECK {i} — {len(vs)} violation(s) ===")
@@ -327,5 +364,5 @@ for i in range(1, 6):
 print(f"\n=== NOTES ({len(notes)}) ===")
 for n in notes:
     print(f"  {n}")
-print(f"\nBASELINE: {total} violation(s) across 5 checks.")
+print(f"\nBASELINE: {total} violation(s) across 6 checks.")
 sys.exit(1 if total else 0)
