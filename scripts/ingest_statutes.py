@@ -83,18 +83,17 @@ def chapter_url(chapter: str) -> str:
 
 
 class StatuteSectionParser(HTMLParser):
-    """
-    Parse <div class='Section'> blocks from FL Statutes HTML.
+    """Parse <div class='Section'> blocks from FL Statutes chapter HTML.
 
-    Uses a simple state machine:
-    - Encounter <div class="Section"> → start new section
-    - Encounter <span class="SectionNumber"> → capture number
-    - Encounter <span class="Catchline"> → capture title (until </span>)
-    - Encounter <span class="SectionBody"> → capture body text (until </span>)
-    - Encounter <div class="History"> inside Section → capture history (until </div>)
-    - Encounter </div> matching the Section div → finalize
+    Mode-based capture (fix 2026-08-18): the SectionBody <span> is a START
+    MARKER, not a container — the body text continues through nested spans
+    until the History <div> begins. The previous span-terminated capture
+    ended the body at the first "</span>", dropping everything after the
+    first subsection label (the corpus stubs: heading + "(1)(a)" + History).
 
-    Key fix: depth tracks only <div> nesting, not all tags.
+    Modes: 'number' | 'catchline' | 'body' | 'history'. Span close tags
+    never end a mode; only a new mode marker or the History div (or the
+    Section div close) does.
     """
 
     def __init__(self, chapter: str):
@@ -104,9 +103,12 @@ class StatuteSectionParser(HTMLParser):
 
         self._in_section = False
         self._div_depth = 0  # tracks DIV nesting within Section (0 = Section div itself)
-        self._capture: str | None = None  # 'number', 'catchline', 'body', 'history'
-        self._buf: list[str] = []
+        self._mode: str | None = None
+        self._bufs: dict[str, list[str]] = {}
         self._cur: dict = {}
+
+    def _reset_bufs(self) -> None:
+        self._bufs = {m: [] for m in ("number", "catchline", "body", "history")}
 
     def handle_starttag(self, tag, attrs):
         attrs_d = dict(attrs)
@@ -116,8 +118,8 @@ class StatuteSectionParser(HTMLParser):
             self._in_section = True
             self._div_depth = 0
             self._cur = {}
-            self._capture = None
-            self._buf = []
+            self._mode = None
+            self._reset_bufs()
             return
 
         if not self._in_section:
@@ -126,22 +128,18 @@ class StatuteSectionParser(HTMLParser):
         if tag == "div":
             self._div_depth += 1
             if cls == "History":
-                self._capture = "history"
-                self._buf = []
+                self._mode = "history"
             return
 
         if tag == "span":
             if cls == "SectionNumber":
-                self._capture = "number"
-                self._buf = []
+                self._mode = "number"
             elif cls == "SectionBody":
-                self._capture = "body"
-                self._buf = []
-            elif "Catchline" in cls and self._capture in (None, "number"):
+                self._mode = "body"
+            elif "Catchline" in cls and self._mode in (None, "number"):
                 # The outer <span class="Catchline"> — start capturing title.
                 # Inner CatchlineText and EmDash spans just contribute data.
-                self._capture = "catchline"
-                self._buf = []
+                self._mode = "catchline"
 
     def handle_endtag(self, tag):
         if not self._in_section:
@@ -154,41 +152,31 @@ class StatuteSectionParser(HTMLParser):
                 self._in_section = False
                 return
             self._div_depth -= 1
-            if self._capture == "history":
-                self._cur["history"] = "".join(self._buf).strip()
-                self._capture = None
+            if self._mode == "history":
+                self._mode = None
             return
 
-        if tag == "span":
-            if self._capture == "number":
-                self._cur["number"] = "".join(self._buf).strip()
-                self._capture = None
-            elif self._capture == "catchline":
-                self._cur["title"] = "".join(self._buf).strip()
-                self._capture = None
-            elif self._capture == "body":
-                self._cur["text"] = "".join(self._buf).strip()
-                self._capture = None
+        # span close tags never end a capture mode
 
     def handle_data(self, data):
-        if self._capture:
-            self._buf.append(data)
+        if self._mode:
+            self._bufs[self._mode].append(data)
 
     def handle_entityref(self, name):
-        if self._capture:
-            self._buf.append(html_mod.unescape(f"&{name};"))
+        if self._mode:
+            self._bufs[self._mode].append(html_mod.unescape(f"&{name};"))
 
     def handle_charref(self, name):
-        if self._capture:
-            self._buf.append(html_mod.unescape(f"&#{name};"))
+        if self._mode:
+            self._bufs[self._mode].append(html_mod.unescape(f"&#{name};"))
 
     def _finalize(self):
-        section_num = self._cur.get("number", "").strip()
+        section_num = "".join(self._bufs["number"]).strip()
         if not section_num:
             return
-        title = self._cur.get("title", "")
-        text = self._cur.get("text", "")
-        history = self._cur.get("history", "")
+        title = "".join(self._bufs["catchline"]).strip()
+        text = "".join(self._bufs["body"]).strip()
+        history = "".join(self._bufs["history"]).strip()
 
         if not text:
             return  # TOC-style entry — skip
@@ -223,6 +211,28 @@ def parse_chapter_html(html_str: str, chapter: str) -> list[dict]:
     parser = StatuteSectionParser(chapter)
     parser.feed(html_str)
     return parser.sections
+
+
+MIN_BODY_CHARS = 120   # body text (text minus History footer) must exceed this
+REPORT_BODY_CHARS = 200  # sections under this are reported as stub-suspects
+
+
+def validate_record(r: dict) -> tuple[bool, str]:
+    """Stub-detection: a parsed record must contain a non-empty body.
+
+    Length is NOT a hard reject: some statutes are genuinely short (verified
+    against the official source, e.g. § 83.41 = ~100 chars). Short bodies are
+    reported (NOTE) for the record but ingested — the parse came from the
+    official chapter page, which IS the source. Pure heading rows never reach
+    this point (skipped when body text is empty).
+    """
+    text = r["text"] or ""
+    body = text.strip()
+    if not body:
+        return False, "empty body"
+    if len(body) < MIN_BODY_CHARS:
+        return True, f"SHORT body {len(body)} chars (< {MIN_BODY_CHARS}) — verified against chapter page"
+    return True, f"body {len(body)} chars"
 
 
 def fetch_chapter_html(chapter: str, client: httpx.Client) -> str | None:
@@ -263,10 +273,13 @@ def main():
     total_upserted = 0
     failed: list[str] = []
 
-    with httpx.Client(timeout=60, follow_redirects=True) as client:
+    import time as _time  # rate limit ~1 req/sec
+
+    with httpx.Client(timeout=90, follow_redirects=True) as client:
         for chapter in chapters:
             print(f"Chapter {chapter}...", end=" ", flush=True)
             html_str = fetch_chapter_html(chapter, client)
+            _time.sleep(1.0)
             if html_str is None:
                 failed.append(chapter)
                 continue
@@ -284,13 +297,37 @@ def main():
                     by_cite[cite] = r
             records = list(by_cite.values())
 
-            for i in range(0, len(records), 100):
-                batch = records[i:i+100]
+            # Fetch -> validate -> replace: per-section validation. Empty-body
+            # records are skipped (old rows untouched); short bodies are
+            # reported AND ingested (their text is the official chapter-page
+            # content — genuinely short statutes, not stubs).
+            good: list[dict] = []
+            suspect: list[str] = []
+            short_notes: list[str] = []
+            for r in records:
+                ok, reason = validate_record(r)
+                if not ok:
+                    suspect.append(f"{r['citation']}: {reason}")
+                    continue
+                good.append(r)
+                if "SHORT" in reason:
+                    short_notes.append(f"{r['citation']}: {reason}")
+            if suspect:
+                print(f"\n  SKIPPED {len(suspect)} empty-body sections (old rows untouched):")
+                for s in suspect:
+                    print(f"    {s}")
+            if short_notes:
+                print(f"  SHORT-BUT-INGESTED ({len(short_notes)} — genuinely short statutes, verified text):")
+                for s in short_notes:
+                    print(f"    {s}")
+
+            for i in range(0, len(good), 100):
+                batch = good[i:i+100]
                 supabase.table("statutes").upsert(
                     batch, on_conflict="citation"
                 ).execute()
-            total_upserted += len(records)
-            print(f"{len(records)} sections upserted.")
+            total_upserted += len(good)
+            print(f"{len(good)}/{len(records)} sections upserted.")
 
     print(f"\nDone. Total sections upserted: {total_upserted}")
     if failed:

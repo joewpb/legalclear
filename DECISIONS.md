@@ -250,3 +250,9 @@ the word "you" or the verb "should". The checker now runs 4 checks (citation
 fields, reasoning trace, no unsanctioned URLs/domains, single canonical
 disclaimer source); advice-phrasing detection is not coming back as a static
 regex check.
+
+## Decision 12 — Statutes corpus was stubs; rebuilt with real validation (2026-08-18)
+
+The owned `statutes` rows for ch. 34/83 were heading-only stubs (e.g. § 83.60 = 147 chars vs ~2,900 official; § 83.45 = 30 chars). Root cause: `ingest_statutes.py`'s span-terminated parser ended body capture at the first nested `</span>` inside SectionBody, keeping only the first subsection label + History footer.
+
+Decided: (1) the citation work's premise — verification against OWNED TEXT — was false until the corpus held real text; J3 merge + J4 prose filter were blocked until rebuild + re-verification. (2) The parser was rewritten mode-based (SectionBody span is a start marker; capture persists across nested spans until the History div). (3) Re-ingestion used fetch → validate → replace per section: empty-body records are skipped with the old row untouched; short-but-genuine statutes are ingested with their official text and reported. (4) Validation was replaced: "text present" (which passed on headings) is gone; the new checks are min-length reporting (every section under 120 chars named), empty-body rejection, and a 10% sample length-ratio check against official per-section pages. Result 2026-08-18: ch. 34 17/17 and ch. 83 74/74 re-ingested; sample 9/9 ratios 0.99–1.08; the ch. 34 pilot's 17 all re-verify against real text (16 body-OK, 1 genuinely short § 34.171 verified against source). The original pilot report's "verified" claim is recorded as true-as-stated, misleading-in-effect; the new standard is body detection + ratio sampling, not presence.
