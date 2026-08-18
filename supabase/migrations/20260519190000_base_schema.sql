@@ -71,14 +71,9 @@ CREATE TABLE IF NOT EXISTS public.chat_messages (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
--- 5. Push Tokens
-CREATE TABLE IF NOT EXISTS public.push_tokens (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
-    expo_token TEXT NOT NULL,
-    platform TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
-);
+-- 5. Push Tokens — DROPPED 2026-08-18 by 20260817000000_g_drop_push_tokens.sql
+-- (Joe's release ruling: table was empty and verified data-safe; Decision 9
+-- deferred the mobile app). Declaration removed so parity matches prod.
 
 -- 6. Usage Stats
 CREATE TABLE IF NOT EXISTS public.usage_stats (
