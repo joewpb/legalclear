@@ -11,6 +11,7 @@
 import { useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
+import { DISCLAIMER_TEXT } from "../components/DisclaimerNote";
 import { readSSE } from "../lib/sse";
 
 // ---------------------------------------------------------------------------
@@ -227,7 +228,7 @@ export default function DiscoveryMotionAnalyzer() {
         )}
       </div>
 
-      <div style={S.disc}>{resp.disclaimer || "LegalClear provides legal information, not legal advice. Nothing here creates an attorney-client relationship."}</div>
+      <div style={S.disc}>{resp.disclaimer || DISCLAIMER_TEXT}</div>
 
       <ChatButton module="discovery_motion" onClick={() => setChatOpen(true)} />
       {chatOpen && (

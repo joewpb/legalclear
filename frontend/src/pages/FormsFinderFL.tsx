@@ -14,14 +14,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api";
+import { DISCLAIMER_TEXT } from "../components/DisclaimerNote";
 import { readSSE } from "../lib/sse";
 
 const API_BASE =
   (import.meta as any).env?.VITE_API_URL || "http://localhost:8001";
 const API_KEY = (import.meta as any).env?.VITE_API_KEY;
 const PAGE_SIZE = 20;
-const FALLBACK_DISCLAIMER =
-  "This tool provides legal information only, not legal advice.";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -515,7 +514,7 @@ export default function FormsFinderFL() {
               {stripSecondPerson(aiText)}
               {aiStreaming && !aiText && "Reviewing the forms library…"}
             </p>
-            <div style={S.disc}>{aiDisclaimer || FALLBACK_DISCLAIMER}</div>
+            <div style={S.disc}>{aiDisclaimer || DISCLAIMER_TEXT}</div>
           </div>
         )}
       </section>
@@ -617,11 +616,7 @@ export default function FormsFinderFL() {
       </section>
 
       <footer className="page-disclaimer" style={{ marginTop: "var(--space-3)" }}>
-        <p>
-          LegalClear provides legal information, not legal advice. Forms are
-          official Florida court forms. Using this site does not create an
-          attorney-client relationship.
-        </p>
+        <p>{DISCLAIMER_TEXT}</p>
       </footer>
     </div>
   );
