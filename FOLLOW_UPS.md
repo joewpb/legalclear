@@ -219,6 +219,17 @@ what the workflows referenced. The old key is treated as compromised; rotation
 is in progress. Completion pending Joe's confirmation that the new key is live
 in Railway and in the GitHub Repository secrets. The stale Variables still
 exist in the repo Variables store — delete them once rotation is confirmed.
+## S1-8 — settings.API_KEY ships in the frontend bundle (2026-08-17, security + cost)
+The frontend embeds API_KEY as VITE_API_KEY and sends it as x-api-key; the SPA
+bundle is public, so the key is public by definition. Every API-key-gated route —
+including every LLM-calling one — is invocable by anyone who reads the bundle.
+Rotating the key does NOT fix this: a public SPA cannot hold a secret. Higher
+severity than the original auth-sweep items. Mitigations scoped 2026-08-17 for
+Joe's pick: (1) Anthropic spend caps/alerts (account-side backstop), (2) per-IP
+rate limits (slowapi exists; wired to 3 of ~13 LLM surfaces), (3) short-lived
+server-issued session tokens (proper fix; largest surface).
+CORRECTION to the auth sweep framing: gating behind API_KEY raises the bar
+against scanners; it is NOT access control.
 Related: GitHub-secret pastes routinely carry trailing newlines (SUPABASE_URL
 did — parity CI failed with http.client.InvalidURL until parity_check.py and
 migrate.yml were hardened to strip whitespace).

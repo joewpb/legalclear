@@ -104,7 +104,6 @@ from src.api.routers.property_casualty import (
 from src.api.routers.reminders import router as reminders_router
 from src.api.routers.small_claims import router as small_claims_router
 from src.api.routers.traffic import router as traffic_router
-from src.api.routers.triage import router as triage_router
 from src.api.routers.wills_trusts import router as wills_trusts_router
 
 app.include_router(intake_router)
@@ -121,7 +120,6 @@ app.include_router(packet_router)
 app.include_router(forms_router)
 app.include_router(law_router)
 app.include_router(deadline_router)
-app.include_router(triage_router)
 app.include_router(reminders_router)
 app.include_router(attorney_referral_router)
 app.include_router(chat_router)

@@ -60,7 +60,7 @@ from `frontend/src/App.tsx`; tiles from `MODULE_TILES` in
 | 18 | AI Intake | `/api/intake` | powers HomeHub | ✓ | LIVE |
 | 19 | Law reference | `/api/law/*` | none | — | HEADLESS (intentional — internal: deadline engine + case law) |
 | 20 | Reminders | `/api/reminders/process` | none | — | HEADLESS (intentional — pg_cron); email adapter DARK until provider key (Decision 8) |
-| 21 | Triage router | `/api/triage/classify`, `/confirm` | none (0 consumers) | — | **AMBIGUOUS** — Joe decision pending (retire vs wire); `/upload` classifies inline in `routes.py`. Do not touch. |
+| 21 | Triage router | `/api/triage/classify`, `/confirm` | none (0 consumers) | — | **RETIRED** 2026-08-17 (Joe's ruling): registration removed from `routes.py`; `triage.py` retained for its confirmation-loop design. The retire-vs-wire question is answered. |
 
 ### Removed in Phase G (no longer in the tree — must not be listed as live)
 
