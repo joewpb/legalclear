@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Scale, ChevronDown, BookOpen, UserCheck, Compass } from "lucide-react";
 import type { RelevantOpinion } from "./types";
+import { DISCLAIMER_TEXT } from "../DisclaimerNote";
 
 /**
  * OpinionCard — LegalClear
@@ -34,8 +35,7 @@ const STRINGS: Record<
   { disclaimer: string; englishOnlyNotice: string }
 > = {
   en: {
-    disclaimer:
-      "This is legal information, not legal advice. LegalClear is not a law firm and cannot tell you what to do in your case.",
+    disclaimer: DISCLAIMER_TEXT,
     englishOnlyNotice: "", // EN path: corpus is English-native, no stamp.
   },
   es: {

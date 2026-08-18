@@ -6,6 +6,7 @@ import EligibilityQuiz, {
 import ResultDisplay, {
   EligibilityResult,
 } from "../components/expungement/ResultDisplay";
+import DisclaimerNote from "../components/DisclaimerNote";
 
 const API_URL = (import.meta as any).env?.VITE_API_URL || "http://localhost:8001";
 
@@ -75,12 +76,7 @@ export default function ExpungementFL() {
         )}
       </main>
       <footer className="page-disclaimer">
-        <p>
-          LegalClear provides informational tools only. Nothing here is legal
-          advice. Using this site does not create an attorney-client
-          relationship. For your specific situation, consult a licensed Florida
-          attorney.
-        </p>
+        <DisclaimerNote />
       </footer>
     </>
   );

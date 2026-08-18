@@ -223,14 +223,39 @@ else:
         if "core.upl" not in rtext and "apply_disclaimer" not in rtext:
             add(4, f"backend/src/api/routers/{name}: prose router does not use canonical disclaimer")
 
-    # frontend hardcoded disclaimers = duplicates of the canonical source
+    # frontend hardcoded disclaimers = duplicates of the canonical source.
+    # The one sanctioned exception is the frontend mirror itself — a static
+    # SPA cannot import Python, so DisclaimerNote.tsx holds a hand-maintained
+    # copy of the backend canonical text. Verify the two stay in sync instead
+    # of flagging the mirror as a duplicate.
+    DISCLAIMER_MIRROR = "frontend/src/components/DisclaimerNote.tsx"
+    mirror_path = ROOT / DISCLAIMER_MIRROR
+    if mirror_path.exists():
+        mirror_text = mirror_path.read_text()
+        # Key phrases from the backend canonical ("standard"/"en" in
+        # _DISCLAIMERS above) rather than an exact string — the mirror is
+        # hand-wrapped JS source, not a byte-for-byte copy of the Python text.
+        key_phrases = [
+            "legal information from an automated tool",
+            "confirm with a Florida attorney",
+            "/find-legal-help",
+        ]
+        for phrase in key_phrases:
+            if phrase not in mirror_text:
+                add(4, f"{DISCLAIMER_MIRROR}: out of sync with backend canonical "
+                       f"(missing phrase: '{phrase}')")
+    else:
+        add(4, f"{DISCLAIMER_MIRROR} MISSING — no frontend mirror of canonical disclaimer")
+
     for glob, _label in [("frontend/src/**/*.jsx", "f"), ("frontend/src/**/*.tsx", "f")]:
         for path in sorted(Path(ROOT).glob(glob)):
+            rel = str(path.relative_to(ROOT))
+            if rel == DISCLAIMER_MIRROR:
+                continue
             try:
                 text = path.read_text()
             except Exception:
                 continue
-            rel = str(path.relative_to(ROOT))
             for m in re.finditer(r"(LegalClear provides informational tools only|is not legal advice|not legal advice)", text, re.IGNORECASE):
                 line = text[:m.start()].count("\n") + 1
                 add(4, f"{rel}:{line}: frontend hardcodes a disclaimer string (duplicate of canonical)")
