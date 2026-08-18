@@ -26,6 +26,7 @@ from datetime import date, datetime
 from anthropic import AsyncAnthropic
 
 from src.agents.police_report_v2 import compute_risk_score
+from src.core.citation_filter import StreamingCitationFilter, filter_citations_text
 from src.core.config import settings
 from src.core.json_utils import strip_markdown_fences
 from src.core.upl import apply_disclaimer
@@ -33,6 +34,22 @@ from src.core.url_filter import StreamingURLFilter, filter_json_strings
 from src.ingestion.pdf_parser import PDFParser
 
 logger = logging.getLogger(__name__)
+
+
+def _filter_citation_json_strings(obj, agent_name: str):
+    """Recursively apply ``filter_citations_text`` to every string in a
+    parsed JSON value — mirrors ``agents.explainer``. Applied BEFORE
+    ``key_deadlines`` is overwritten with the code-declared computed
+    deadlines below, so the deterministic ``governing_rule`` strings the
+    engine produces never pass through this filter.
+    """
+    if isinstance(obj, dict):
+        return {k: _filter_citation_json_strings(v, agent_name) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_filter_citation_json_strings(v, agent_name) for v in obj]
+    if isinstance(obj, str):
+        return filter_citations_text(obj, agent_name)
+    return obj
 
 # ---------------------------------------------------------------------------
 # P&C deadline rule keys — consumed by the deterministic engine
@@ -353,6 +370,7 @@ class PropertyCasualtyExplainer:
         try:
             full_text = ""
             url_filter = StreamingURLFilter("property_casualty")
+            citation_filter = StreamingCitationFilter("property_casualty")
             async with self.client.messages.stream(
                 model=self.model,
                 max_tokens=4096,
@@ -361,10 +379,11 @@ class PropertyCasualtyExplainer:
             ) as stream:
                 async for chunk in stream.text_stream:
                     full_text += chunk
-                    safe = url_filter.feed(chunk)
+                    safe = citation_filter.feed(url_filter.feed(chunk))
                     if safe:
                         yield f"data: {safe}\n\n"
-            tail = url_filter.flush()
+            tail = citation_filter.feed(url_filter.flush())
+            tail += citation_filter.flush()
             if tail:
                 yield f"data: {tail}\n\n"
 
@@ -372,6 +391,7 @@ class PropertyCasualtyExplainer:
             try:
                 parsed = json.loads(strip_markdown_fences(full_text))
                 parsed = filter_json_strings(parsed, "property_casualty")
+                parsed = _filter_citation_json_strings(parsed, "property_casualty")
                 if is_first_party and computed_deadlines:
                     parsed["key_deadlines"] = computed_deadlines
                 # ── Compute risk score from watch_out_for ──
@@ -442,6 +462,7 @@ class PropertyCasualtyExplainer:
                 messages=[{"role": "user", "content": user_content}],
             )
             parsed = json.loads(strip_markdown_fences(response.content[0].text))
+            parsed = _filter_citation_json_strings(parsed, "property_casualty")
 
             # ── Inject computed deadlines ──
             if is_first_party and computed_deadlines:

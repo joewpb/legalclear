@@ -341,6 +341,9 @@ else:
 # later dispatches add the rest of the prose surfaces.
 PROSE_FILTER_FILES = [
     "backend/src/agents/explainer.py",
+    "backend/src/agents/wills_trusts.py",
+    "backend/src/agents/property_casualty.py",
+    "backend/src/agents/chat_expert.py",
 ]
 for path in PROSE_FILTER_FILES:
     f = ROOT / path

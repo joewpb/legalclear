@@ -8,6 +8,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from src.agents.property_casualty import _filter_citation_json_strings
 from src.core.citation_filter import StreamingCitationFilter, filter_citations_text
 
 AGENT = "test-agent"
@@ -66,3 +67,51 @@ def test_non_citation_prose_untouched():
     text = "The § symbol in a contract."
     result = filter_citations_text(text, AGENT)
     assert result == text
+
+
+# ---------------------------------------------------------------------------
+# Dispatch J4-3 — wills_trusts / property_casualty / chat_expert wiring
+# ---------------------------------------------------------------------------
+#
+# wills_trusts.py and chat_expert.py wire StreamingCitationFilter directly
+# into their SSE generators — same feed()/flush() shape already covered
+# above (test_token_split_across_feed_chunk_boundaries and friends), and
+# those generators require a live Anthropic stream to exercise end to end.
+# The checker (scripts/verify_educational.py check 6, PROSE_FILTER_FILES)
+# asserts each file imports citation_filter; that plus the shared
+# StreamingCitationFilter tests above is the coverage for those two files.
+#
+# property_casualty.py additionally has a pure post-stream JSON helper,
+# _filter_citation_json_strings, which is testable directly with no network.
+
+
+def test_pc_json_strings_strips_fabricated_citation_in_nested_prose():
+    parsed = {
+        "what_this_is": "See Fla. Stat. § 83.999 for details.",
+        "watch_out_for": [
+            {"severity": "high", "description": "Cites Fla. Stat. § 83.999(2)."},
+        ],
+    }
+    result = _filter_citation_json_strings(parsed, "property_casualty")
+    assert "83.999" not in result["what_this_is"]
+    assert "83.999" not in result["watch_out_for"][0]["description"]
+
+
+def test_pc_json_strings_preserves_curated_citation():
+    parsed = {"what_this_is": "Jurisdiction follows Fla. Stat. § 34.01."}
+    result = _filter_citation_json_strings(parsed, "property_casualty")
+    assert "Fla. Stat. § 34.01" in result["what_this_is"]
+
+
+def test_pc_json_strings_does_not_touch_key_deadlines_governing_rule():
+    """key_deadlines is code-declared (deadline/compute.py) and gets
+    overwritten wholesale after this filter runs in the agent — but the
+    helper itself is a generic recursive string filter, so a governing_rule
+    string that happens to be an uncurated real citation (e.g. the P&C
+    engine's own "Fla. Stat. § 627.70132") would be stripped if it were ever
+    passed through here. This documents why the agent code applies the
+    filter BEFORE overwriting key_deadlines, never after.
+    """
+    parsed = {"key_deadlines": [{"governing_rule": "Fla. Stat. § 627.70132"}]}
+    result = _filter_citation_json_strings(parsed, "property_casualty")
+    assert "627.70132" not in result["key_deadlines"][0]["governing_rule"]

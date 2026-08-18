@@ -25,6 +25,7 @@ from collections.abc import AsyncGenerator
 
 from anthropic import AsyncAnthropic
 
+from src.core.citation_filter import StreamingCitationFilter
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.core.url_filter import StreamingURLFilter
@@ -219,6 +220,7 @@ class ChatExpertAgent:
         messages.append({"role": "user", "content": message})
 
         url_filter = StreamingURLFilter(f"chat_expert:{module}")
+        citation_filter = StreamingCitationFilter(f"chat_expert:{module}")
         try:
             async with self.client.messages.stream(
                 model=self.model,
@@ -231,10 +233,11 @@ class ChatExpertAgent:
                 messages=messages,
             ) as stream:
                 async for chunk in stream.text_stream:
-                    safe = url_filter.feed(chunk)
+                    safe = citation_filter.feed(url_filter.feed(chunk))
                     if safe:
                         yield f"data: {json.dumps({'chunk': safe})}\n\n"
-                tail = url_filter.flush()
+                tail = citation_filter.feed(url_filter.flush())
+                tail += citation_filter.flush()
                 if tail:
                     yield f"data: {json.dumps({'chunk': tail})}\n\n"
 

@@ -12,6 +12,7 @@ from collections.abc import AsyncGenerator
 
 from anthropic import AsyncAnthropic
 
+from src.core.citation_filter import StreamingCitationFilter
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.core.url_filter import StreamingURLFilter
@@ -179,12 +180,14 @@ class WillsTrustsExplainer:
                 messages=[{"role": "user", "content": user_prompt}],
             ) as stream:
                 url_filter = StreamingURLFilter("wills_trusts")
+                citation_filter = StreamingCitationFilter("wills_trusts")
                 async for chunk in stream.text_stream:
                     emitted_content = True
-                    safe = url_filter.feed(chunk)
+                    safe = citation_filter.feed(url_filter.feed(chunk))
                     if safe:
                         yield f"data: {json.dumps({'chunk': safe})}\n\n"
-                tail = url_filter.flush()
+                tail = citation_filter.feed(url_filter.flush())
+                tail += citation_filter.flush()
                 if tail:
                     yield f"data: {json.dumps({'chunk': tail})}\n\n"
 
