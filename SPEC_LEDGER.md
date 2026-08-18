@@ -78,7 +78,7 @@ live backend on :8001). Backend unit-suite baseline at f145dd8: **352 passed,
 
 | Item | Detail |
 |---|---|
-| **P&C Claim Guide module (Phase I)** | NOT_BUILT. Recorded 2026-08-15 in `REMEDIATION_PLAN.md` (Phase I), not scoped, not dispatched. Sequenced after Phase F because it needs the migration mechanism for its content corpus and deadline rules. ⚠️ `REMEDIATION_PLAN.md` says the spec lives at `docs/pc-claim-guide-module.md`, but **that file does not exist in the tree at f145dd8** — the spec is recorded-only and currently absent. |
+| **P&C Claim Guide module (Phase I)** | NOT_BUILT. Recorded 2026-08-15 in `REMEDIATION_PLAN.md` (Phase I), not scoped, not dispatched. Sequenced after Phase F because it needs the migration mechanism for its content corpus and deadline rules. Spec committed 2026-08-17: `docs/pc-claim-guide-module.md` (module spec) + `docs/property-casualty-claim-playbook.md` (FL statutory research it builds on). |
 | **ES opinion corpus** | NOT_BUILT (backlog). `legal_opinions` summaries are English-only; `OpinionCard.tsx` renders an ES honesty stamp instead. |
 
 ## Deferred

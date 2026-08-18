@@ -1,8 +1,8 @@
 # REMEDIATION_PLAN.md
 ### LegalClear — post-audit remediation, phased.
 **Written:** 2026-08-14 · **Owner:** Joe · **Executor:** Hermes
-**Current state:** Phases A–F COMPLETE (2026-08-17 night run) · origin/main = 4c911ea ·
-G1, G2, G3, G4, G5 CLOSED · Phase G not started (Joe's word required) · Phase H open
+**Current state:** Phases A–H COMPLETE (2026-08-17) · origin/main = afda816 ·
+G1, G2, G3, G4, G5 CLOSED · Phase I recorded-only, not scoped
 
 ---
 
@@ -157,7 +157,7 @@ no-external-links rule).
 
 ---
 
-## PHASE C — Finish the reminder feature
+## PHASE C — Finish the reminder feature · ✅ COMPLETE 2026-08-16 (C-1 df7973c, C-2 d4fda09; cron chain proven live; pg_cron job-level check = Joe's SQL editor)
 **Depends on:** Phase A. **Independent of B.**
 
 - **C1 — DONE.** Cron fires, authenticates, schedules. Two reminders live for Aug 21
@@ -170,7 +170,7 @@ no-external-links rule).
 
 ---
 
-## PHASE D — Discoverability and honest failure
+## PHASE D — Discoverability and honest failure · ✅ COMPLETE 2026-08-16 (Lane D 9836da6; D2 RLS live in prod)
 **Depends on:** Phase A. Small, independent, safe.
 
 - D1 — S2-1: `/attorney-referral` has no HomeHub tile or nav entry. Its only inbound link
@@ -183,7 +183,7 @@ no-external-links rule).
 
 ---
 
-## PHASE E — The referral path (G4)
+## PHASE E — The referral path (G4) · ✅ COMPLETE 2026-08-16 (referral tables + RLS live via CI; G4 closed)
 **Sequential. Each step gates the next.**
 
 1. **S1-5 decision — Joe's.** Recommendation: unset `DEEPSEEK_API_KEY`, observe what
@@ -224,7 +224,7 @@ quietly amended.
 
 ---
 
-## PHASE G — Cleanup. Only on Joe's explicit word.
+## PHASE G — Cleanup. Only on Joe's explicit word. · ✅ COMPLETE 2026-08-17 (f145dd8) — analysis router (S2-6), push_tokens endpoint + save_push_token + empty mobile/ submodule, 5 dead frontend components + POST /eligibility, deprecated get/set_user_supplied_service_date helpers removed; trigger_events user_* columns dropped via CI. push_tokens TABLE drop authored but HELD on branch fix/g2-push-tokens-table-drop (not merged).
 - S2-6 `/api/analyze/*` — dead or broken. Deletion deferred here since Phase 2
 - `push_tokens` / `mobile/` empty directory, pending C4
 - Dead-code deletions the original INTEGRATION_PLAN ordered and nobody performed
@@ -232,7 +232,7 @@ quietly amended.
 
 ---
 
-## PHASE H — Rebuild the documents
+## PHASE H — Rebuild the documents · ✅ COMPLETE 2026-08-17 (afda816) — SPEC_LEDGER + INTEGRATION_PLAN rebuilt against f145dd8, docs/ADRS.md (3 ADRs), docs/VERIFY.md + scripts/verify_docs.py + `make verify-docs` (114/114)
 **Last, deliberately.** Rebuilding the ledger before the code settles means doing it twice.
 
 - `SPEC_LEDGER.md` and `INTEGRATION_PLAN.md` to production grade: per entry — capability,
@@ -248,7 +248,9 @@ quietly amended.
 
 ## PHASE I — P&C Claim Guide module
 **Recorded 2026-08-15. NOT scoped, NOT dispatched.**
-Spec lives at docs/pc-claim-guide-module.md; the module is not yet built.
+Spec committed 2026-08-17 at docs/pc-claim-guide-module.md (+ research playbook
+docs/property-casualty-claim-playbook.md — the FL statutory research it builds
+on). The module is not yet built.
 Sequenced AFTER Phase F: it needs the migration mechanism for its content corpus
 and deadline rules. Recorded here so it stops being an unspoken assumption.
 

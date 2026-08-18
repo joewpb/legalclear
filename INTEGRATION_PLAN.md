@@ -91,9 +91,9 @@ from `frontend/src/App.tsx`; tiles from `MODULE_TILES` in
 ### Next planned work (recorded, not dispatched)
 
 - **Phase I — P&C Claim Guide module: NOT BUILT.** Recorded 2026-08-15 in
-  `REMEDIATION_PLAN.md`; not scoped, not dispatched. The referenced spec path
-  (`docs/pc-claim-guide-module.md`) does **not exist** in the tree at f145dd8 —
-  writing that spec is the first task of any Phase I dispatch.
+  `REMEDIATION_PLAN.md`; not scoped, not dispatched. The spec is now committed
+  (2026-08-17): `docs/pc-claim-guide-module.md` + the research playbook
+  `docs/property-casualty-claim-playbook.md`. Still NOT BUILT — recorded only.
 - **Triage router decision** (retire vs wire) — Joe.
 - **`push_tokens` table drop** — merge or discard branch `fix/g2-push-tokens-table-drop` — Joe.
 - **Email provider key** (Decision 8; recommendation Resend) — Joe.
