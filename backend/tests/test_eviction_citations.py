@@ -74,3 +74,24 @@ def test_prompt_instructs_cite_only_from_union_set():
         assert citation in SYSTEM_PROMPT
     for citation in SMALL_CLAIMS_CITATION_LIST:
         assert citation in SYSTEM_PROMPT
+
+
+def test_eviction_path_cites_time_computation_and_answer_rule():
+    """AGENTS 2d: the eviction explanation must cite the rules the
+    deadline engine actually computes with — 2.514 (time computation) and
+    83.60(2) (answer window / registry / default consequence) — even
+    though 83.60(2) is deliberately excluded from the curated citations
+    array (see test_83_60_subsection_2_is_not_a_curated_entry above)."""
+    assert "2.514" in SYSTEM_PROMPT
+    assert "Fla. R. Gen. Prac. & Jud. Admin. 2.514" in SYSTEM_PROMPT
+    assert "83.60(2)" in SYSTEM_PROMPT
+    assert "Fla. Stat. § 83.60(2)" in SYSTEM_PROMPT
+
+
+def test_prompt_uses_conditional_framing_not_bare_directives():
+    """AGENTS 2c/2d: conditional/consequence framing, not directives."""
+    lowered = SYSTEM_PROMPT.lower()
+    assert "if the" in lowered
+    assert "consequence" in lowered or "follows" in lowered
+    assert "you should file" not in lowered
+    assert "you must file" not in lowered

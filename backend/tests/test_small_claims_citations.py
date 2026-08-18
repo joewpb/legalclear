@@ -66,3 +66,23 @@ def test_prompt_instructs_cite_only_from_curated_set():
     assert "never invent" in lowered
     for citation in SMALL_CLAIMS_CITATION_LIST:
         assert citation in SYSTEM_PROMPT
+
+
+def test_prompt_develops_filing_and_not_filing_branches_honestly():
+    """AGENTS 2d: both the filing and not-filing branches must be
+    developed, including the case where not filing is reasonable
+    (amount below the cost of pursuing the claim)."""
+    lowered = SYSTEM_PROMPT.lower()
+    assert "if the person files" in lowered
+    assert "if the person does not file" in lowered
+    assert "enforced" in lowered  # filing branch: judgment enforcement
+    assert "statute of limitations" in lowered  # not-filing branch
+    assert "reasonable choice" in lowered  # honest not-filing branch
+
+
+def test_prompt_uses_conditional_framing_not_bare_directives():
+    lowered = SYSTEM_PROMPT.lower()
+    assert "if the" in lowered
+    assert "you should" not in lowered
+    assert "you must" not in lowered
+    assert "do this" not in lowered
