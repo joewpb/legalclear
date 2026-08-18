@@ -183,6 +183,20 @@ certificate of the fact and date of mailing.
   date AND direct the user to the case docket for the mailing certificate. If the
   mailing date is unavailable, ESCALATE — do not compute from the posting date alone.
 - PENDING CONFIRMATION by a Florida attorney before shipping.
+
+**UPDATE 2026-08-18 — legal answer received, matches this decision.**
+Source: Joe relayed a legal answer on § 48.183(2) that confirms the
+later-of computation. **ATTRIBUTION PENDING** — the answering attorney's
+name has not been provided to the executor; G1 does not open on an
+unattributed answer. Record the attorney's name and the date of the
+opinion here when supplied.
+The confirmation also covers the substitute-service timing: substitute
+service under § 48.183(2) (delivery to a qualified co-resident) uses the
+same day-after + 5-business-day treatment as personal service — the
+compute engine collapses `substitute` into the personal path (no own
+branch), which three worked-example tests now lock:
+`backend/tests/test_decision6_worked_examples.py` (personal 08-10→08-17,
+substitute 08-10→08-17, posted 08-10+mail 08-12→08-19; all passing).
 ## Decision 7 — DeepSeek retirement (closes S1-5) (2026-08-15)
 Repoint all three DeepSeek call sites — opinion_retrieval.py, orin_opinions.py,
 attorney-referral fallback — to Claude Haiku. After that deploys and verifies,
