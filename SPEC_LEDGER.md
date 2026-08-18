@@ -86,7 +86,7 @@ live backend on :8001). Backend unit-suite baseline at f145dd8: **352 passed,
 | Item | Detail |
 |---|---|
 | **Mobile app (C4)** | DEFERRED per Decision 9 (2026-08-15). Phase G removed the push-token endpoint, `save_push_token`, and the empty `mobile/` submodule. |
-| **`push_tokens` table drop** | HELD. The drop migration is authored on branch `fix/g2-push-tokens-table-drop` and **NOT merged**; the table still exists in prod until Joe merges it. No code references `push_tokens` at f145dd8. |
+| **`push_tokens` table drop** | RELEASED 2026-08-18 (Joe's ruling; table verified empty). Migration `20260817000000_g_drop_push_tokens.sql` applied via CI; baseline + parity declarations updated. Follow-up: `frontend/src/types/database.ts` still carries stale generated `push_tokens` type entries — regenerate DB types. |
 | **Reminder email provider key** | The delivery adapter is merged but DARK until a provider API key (recommendation: Resend) is configured (Decision 8). |
 | **Decision 6 attorney confirmation** | The § 48.183 posted-service later-of rule is live but pending confirmation by a Florida attorney before public announcement. |
 

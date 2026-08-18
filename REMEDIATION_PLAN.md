@@ -224,7 +224,7 @@ quietly amended.
 
 ---
 
-## PHASE G — Cleanup. Only on Joe's explicit word. · ✅ COMPLETE 2026-08-17 (f145dd8) — analysis router (S2-6), push_tokens endpoint + save_push_token + empty mobile/ submodule, 5 dead frontend components + POST /eligibility, deprecated get/set_user_supplied_service_date helpers removed; trigger_events user_* columns dropped via CI. push_tokens TABLE drop authored but HELD on branch fix/g2-push-tokens-table-drop (not merged).
+## PHASE G — Cleanup. Only on Joe's explicit word. · ✅ COMPLETE 2026-08-17 (f145dd8) — analysis router (S2-6), push_tokens endpoint + save_push_token + empty mobile/ submodule, 5 dead frontend components + POST /eligibility, deprecated get/set_user_supplied_service_date helpers removed; trigger_events user_* columns dropped via CI. push_tokens TABLE drop released 2026-08-18 (Joe's ruling; table verified empty) and applied via CI (20260817000000_g_drop_push_tokens.sql).
 - S2-6 `/api/analyze/*` — dead or broken. Deletion deferred here since Phase 2
 - `push_tokens` / `mobile/` empty directory, pending C4
 - Dead-code deletions the original INTEGRATION_PLAN ordered and nobody performed
@@ -251,6 +251,17 @@ quietly amended.
 Spec committed 2026-08-17 at docs/pc-claim-guide-module.md (+ research playbook
 docs/property-casualty-claim-playbook.md — the FL statutory research it builds
 on). The module is not yet built.
+
+---
+
+## PHASE J — Defect-category retrieval (candidate, RECORDED ONLY)
+
+Branch `feat/defect-category-retrieval` (renamed from `docs/integration-plan-p2-status`
+2026-08-18 — the old name misdescribed it). Content: `defect_category` propagation
+into case-law retrieval with tag-relevance re-ranking (~170 lines; police_report_v2.py,
+opinion_retrieval.py, test_opinion_mapper.py). Joe's ruling: KEEP, do not merge.
+Predates the audit; needs a fresh review against current main before any merge.
+NOT scoped, NOT dispatched. Recorded here so it stops being an unspoken branch.
 Sequenced AFTER Phase F: it needs the migration mechanism for its content corpus
 and deadline rules. Recorded here so it stops being an unspoken assumption.
 
