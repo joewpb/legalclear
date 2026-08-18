@@ -7,6 +7,52 @@
 
 ---
 
+## 0. SWEEP 2026-08-18 (post-remediation re-check against main 44b1b49)
+
+Every open finding re-verified against current main + live prod. Statuses with
+evidence; originals preserved (struck through where closed).
+
+| Finding | Status 2026-08-18 | Evidence |
+|---|---|---|
+| Finding 1 — nondeterministic migrations | **CLOSED** | migrate.yml per-file DB checks (CI green); `user_profiles`, `attorney_inquiries`, `filings` all exist in prod; circuit-closures seed applied (`court_closures` 108 rows, was 9) |
+| Finding 2 — flagship never ran in prod | **CLOSED** (with caveat) | `trigger_events` 27, `deadlines` 1, `deadline_reminders` 1 rows in prod — the B5 four-case live gate ran the full pipeline end-to-end. Caveat: reminders still lack the pg_cron caller + email key (row 4/32 open) |
+| Finding 3 — auth (testkey default, unauthed endpoints, IDOR) | **MOSTLY CLOSED** | `testkey123` default GONE from config.py (startup fail-fast); IDOR fixed (A-phase, idor tests green); every LLM surface rate-limited (RL-2, tiers by cost). REMAINS: S1-8 (key ships in public bundle — architectural, Decision 10 defers session tokens to G2) |
+| Finding 4 — DeepSeek PII | **CLOSED** | zero deepseek references in backend/src; D2 RLS migration live; Haiku repoint (Decision 7) |
+| Finding 5 — U1 UPL wall | **CLOSED** | see struck-through update above |
+| Row 2 — triage router | **RETIRED** | route unregistered 2026-08-17; code kept headless |
+| Row 3 — deadline engine | **CLOSED** | prod rows exist (27 TE / 1 deadline / 1 reminder) |
+| Row 4/32 — reminders/email | **OPEN** | email still honest stub; C2 email key not provisioned; pg_cron unconfigured |
+| Row 6 — form guide stale library | **OPEN** | `form_guide.py:41` still loads `data/forms_library.json`; 692-row `court_forms` still ignored |
+| Row 14 — police legacy batch | **OPEN** | `police_report.py:66` batch route still exists, zero callers |
+| Row 16 — citation treatment empty | **CLOSED** | `citation_treatment` 4,770 rows in prod |
+| Row 17 — Orin fallback | **OPEN** (low priority) | SSH-coupled path unchanged; superseded by 425K corpus |
+| Row 23 — packet payments/mark_paid | **OPEN** | `packet.py:165` mark_paid endpoint exists; PAYMENTS_ENABLED false (rides G2) |
+| Row 24 — chat paywall resettable | **OPEN** (moot) | client-supplied chat_history still the counter; moot while payments off |
+| Row 25 — intake swallow | **OPEN** | `intake.py:190-202` retry/except → module unknown still present |
+| Row 26 — attorney referral PHANTOM | **CLOSED** | tables exist in prod; HomeHub tile added (D1) |
+| Row 27 — find-legal-help unreachable | **CLOSED** | HomeHub tile `HomeHub.tsx:43` |
+| Row 29 — closures seed phantom | **CLOSED** | 108 rows in prod |
+| Row 33 — mobile PHANTOM | **CLOSED** | `mobile/` removed + push-token endpoint + `push_tokens` table dropped (G2) |
+| Row 34 — compliance router | **OPEN** | still conditional-mount, not in requirements.txt |
+| Row 35 — ES i18n | **UNVERIFIED** | no end-to-end ES verification performed in this sweep |
+| Row 36 — top-level /eligibility | **CLOSED** | route + dead caller deleted (G3) |
+| 4.1 — orphaned routes | **PARTIAL** | analysis router GONE (G1); `/user`, `/subscribe`, packet `/walkthrough`, batch remain |
+| 4.2 — frontend calls to dead tables | **CLOSED** | referral tables exist; ExpungementPage deleted |
+| 4.3 — unrouted dead components | **CLOSED** | G3 deleted the dead set |
+| 4.4 — dead navigation | **CLOSED** | both pages have HomeHub tiles now |
+| 4.7 — swallowed exceptions | **PARTIAL** | property_casualty:381 swallow gone; discovery_motion:209 swallow still present (row 10); intake swallow open |
+| 4.9 — auth gaps | **MOSTLY CLOSED** | see finding 3; mark_paid remains |
+| 4.10 — broken analysis endpoints | **CLOSED** | analysis.py + route deleted (G1) |
+| 4.12 — stubs as done | **CLOSED** except email | citation_treatment populated; mobile removed; expungement eligibility now documented-deterministic |
+| 4.14 — test theater | **IMPROVED** | suite 374/1; `test_opinion_retrieval_integration.py` now skips without creds (was silent prod hit) |
+
+**Still open after remediation (priority order):** C2 email key (Decision 8:
+Resend) · pg_cron caller · form_guide library → court_forms · police legacy
+batch deletion · packet mark_paid + payments gate (G2) · intake swallow ·
+compliance router · ES end-to-end verification · Orin SSH coupling.
+
+---
+
 ## 1. EXECUTIVE SUMMARY
 
 ### Status counts (36 traced capabilities, §3)
