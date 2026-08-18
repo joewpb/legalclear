@@ -11,6 +11,11 @@ from collections.abc import AsyncGenerator
 
 from anthropic import AsyncAnthropic
 
+from src.agents.small_claims_citations import (
+    SMALL_CLAIMS_CITATION_LIST,
+    SMALL_CLAIMS_CURATED_CITATIONS,
+)
+from src.core.citation_resolver import resolve_citation
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
 from src.core.json_utils import strip_markdown_fences
@@ -22,6 +27,8 @@ logger = logging.getLogger(__name__)
 # System prompt
 # ---------------------------------------------------------------------------
 
+_CITATION_LIST_TEXT = "; ".join(SMALL_CLAIMS_CITATION_LIST)
+
 SYSTEM_PROMPT = (
     "You explain Florida small claims court to people with no "
     "legal background. Florida small claims handles disputes up "
@@ -32,10 +39,15 @@ SYSTEM_PROMPT = (
     "typically occur for this dispute type. "
     "Third-person framing only. Never say 'you should' or "
     "'you must'. Never state deadlines as obligations. "
+    "You may cite ONLY the following Florida Statutes citations, copied "
+    "verbatim, and never invent, alter, or cite any other citation: "
+    f"{_CITATION_LIST_TEXT}. If none of these citations is relevant to a "
+    "section, omit a citation for that section rather than guessing. "
     "Return structured JSON: "
     "{ what_this_is: string, what_usually_happens: string, "
     "typical_timeline: string, useful_documentation: string[], "
     "watch_out_for: string[], typical_outcomes: string[], "
+    "citations: [{ section: string, citation: string }], "
     "disclaimer: string }"
 )
 
@@ -81,6 +93,28 @@ class SmallClaimsExplainer:
 
     # ── helpers ─────────────────────────────────────────────────────────
 
+    @staticmethod
+    def filter_citations(raw_citations) -> list[dict]:
+        """Strip any citation not resolvable against the curated ch. 34 set.
+
+        Never fails the response — an unresolvable citation is dropped, the
+        section keeps its text. Applied to agent output, never to a prompt.
+        """
+        filtered: list[dict] = []
+        if not isinstance(raw_citations, list):
+            return filtered
+        for item in raw_citations:
+            if not isinstance(item, dict):
+                continue
+            cite = item.get("citation")
+            if not cite:
+                continue
+            match = resolve_citation(cite, SMALL_CLAIMS_CURATED_CITATIONS)
+            if match is None:
+                continue
+            filtered.append({"section": item.get("section"), "citation": match.citation})
+        return filtered
+
     # ── streaming ───────────────────────────────────────────────────────
 
     async def explain_stream(
@@ -105,14 +139,28 @@ class SmallClaimsExplainer:
                 messages=[{"role": "user", "content": user_prompt}],
             ) as stream:
                 url_filter = StreamingURLFilter("small_claims")
+                full_text = ""
                 async for chunk in stream.text_stream:
                     emitted_content = True
                     safe = url_filter.feed(chunk)
                     if safe:
+                        full_text += safe
                         yield f"data: {safe}\n\n"
                 tail = url_filter.flush()
                 if tail:
+                    full_text += tail
                     yield f"data: {tail}\n\n"
+
+            try:
+                parsed = json.loads(strip_markdown_fences(full_text))
+                filtered_citations = self.filter_citations(parsed.get("citations"))
+            except Exception:
+                filtered_citations = []
+
+            yield (
+                "event: citations\n"
+                f"data: {json.dumps({'citations': filtered_citations})}\n\n"
+            )
 
             yield (
                 "event: disclaimer\n"
@@ -159,6 +207,7 @@ class SmallClaimsExplainer:
             )
             raw = response.content[0].text
             parsed = json.loads(strip_markdown_fences(raw))
+            parsed["citations"] = self.filter_citations(parsed.get("citations"))
             parsed["disclaimer"] = get_disclaimer(language)
             return parsed
 

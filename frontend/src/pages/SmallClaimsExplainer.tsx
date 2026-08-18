@@ -17,6 +17,11 @@ import { readSSE } from "../lib/sse";
 // Types
 // ---------------------------------------------------------------------------
 
+interface SmallClaimsCitation {
+  section: string;
+  citation: string;
+}
+
 interface ExplainResponse {
   what_this_is: string;
   what_usually_happens: string;
@@ -24,6 +29,7 @@ interface ExplainResponse {
   useful_documentation: string[];
   watch_out_for: string[];
   typical_outcomes: string[];
+  citations: SmallClaimsCitation[];
   disclaimer: string;
 }
 
@@ -168,6 +174,13 @@ const css = {
     lineHeight: 1.5,
   } as React.CSSProperties,
 
+  citationText: {
+    fontFamily: "var(--font-mono, monospace)",
+    fontSize: 11,
+    color: "var(--muted, #6B6B66)",
+    margin: "-6px 0 12px",
+  } as React.CSSProperties,
+
   disclaimer: {
     marginTop: "var(--space-3, 24px)",
     padding: "var(--space-2, 16px)",
@@ -257,6 +270,23 @@ const css = {
 };
 
 // ---------------------------------------------------------------------------
+// Citation line — small mono text, non-link (no-external-links rule: cite
+// text only, source_url is never rendered as a clickable link)
+// ---------------------------------------------------------------------------
+
+function CitationLine({
+  citations,
+  section,
+}: {
+  citations?: SmallClaimsCitation[];
+  section: string;
+}) {
+  const match = citations?.find((c) => c.section === section);
+  if (!match) return null;
+  return <p style={css.citationText}>{match.citation}</p>;
+}
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -321,6 +351,15 @@ export default function SmallClaimsExplainer() {
           }
           continue;
         }
+        if (event === "citations") {
+          try {
+            const parsed = JSON.parse(chunk);
+            setResponse((p) => ({ ...p, citations: parsed.citations ?? [] }));
+          } catch {
+            // Malformed citations event — leave citations unset rather than guess.
+          }
+          continue;
+        }
         if (event !== "message") {
           console.debug(`[SSE] ignoring unknown event type: ${event}`);
           continue;
@@ -328,10 +367,12 @@ export default function SmallClaimsExplainer() {
         full += chunk;
         setRawChunks(full);
 
-        // Try to parse partial JSON — if it fails we just keep streaming
+        // Try to parse partial JSON — if it fails we just keep streaming.
+        // citations always come from the dedicated "citations" event (server-
+        // filtered against the curated set), never from the model's raw JSON.
         try {
           const parsed = JSON.parse(full);
-          setResponse(parsed as ExplainResponse);
+          setResponse((p) => ({ ...p, ...parsed, citations: p.citations ?? [] }));
         } catch {
           // Partial JSON, keep accumulating
         }
@@ -340,7 +381,7 @@ export default function SmallClaimsExplainer() {
       // Final parse
       try {
         const parsed = JSON.parse(full);
-        setResponse(parsed as ExplainResponse);
+        setResponse((p) => ({ ...p, ...parsed, citations: p.citations ?? [] }));
       } catch {
         setError("Could not parse the explanation. Please try again.");
       }
@@ -427,12 +468,15 @@ export default function SmallClaimsExplainer() {
           <>
             <h2 style={css.sectionTitle}>What This Is</h2>
             <p style={css.bodyText}>{response.what_this_is}</p>
+            <CitationLine citations={response.citations} section="what_this_is" />
 
             <h2 style={css.sectionTitle}>What Usually Happens</h2>
             <p style={css.bodyText}>{response.what_usually_happens}</p>
+            <CitationLine citations={response.citations} section="what_usually_happens" />
 
             <h2 style={css.sectionTitle}>Typical Timeline</h2>
             <p style={css.bodyText}>{response.typical_timeline}</p>
+            <CitationLine citations={response.citations} section="typical_timeline" />
 
             {response.useful_documentation &&
               response.useful_documentation.length > 0 && (

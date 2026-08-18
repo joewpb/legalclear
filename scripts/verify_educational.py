@@ -116,6 +116,7 @@ ALLOWED_DOMAINS: dict[str, str] = {
     "supabase.co": "infrastructure backend origin (API base URL), not user-facing content",
     "railway.app": "infrastructure deploy origin (API base URL), not user-facing content",
     "floridalawhelp.org": "legal-aid finder org application site — sanctioned",
+    "leg.state.fl.us": "official FL Legislature statutes portal — source_url for curated citation sets (Dispatch J2)",
 }
 # Infrastructure endpoints appearing in BACKEND API/config code — not
 # user-facing strings. Recorded as notes, not violations.
@@ -206,6 +207,7 @@ else:
         "classifier.py": "deterministic-adjacent classifier, no prose output",
         "__init__.py": "package marker, not an agent",
         "case_context.py": "deterministic context builder, no prose output",
+        "small_claims_citations.py": "curated citation data constant, no prose output (Dispatch J2)",
     }
     for af in agent_files:
         rel = f"backend/src/agents/{af.name}"
