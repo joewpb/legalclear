@@ -17,13 +17,14 @@ from datetime import UTC, datetime
 from typing import Any
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from ...core.config import settings
 from ...core.upl import apply_disclaimer
 from ...memory.db import DatabaseManager
 from ..dependencies import require_api_key
+from ..limiter import limiter
 
 logger = logging.getLogger(__name__)
 
@@ -143,7 +144,8 @@ def get_user(user_id: str) -> dict[str, Any]:
 
 
 @router.post("/intake", dependencies=[Depends(require_api_key)])
-async def intake_chat(req: IntakeRequest) -> IntakeResponse:
+@limiter.limit("10/minute")
+async def intake_chat(request: Request, req: IntakeRequest) -> IntakeResponse:
     """Advance the AI intake conversation by one turn."""
     # Build messages: system + conversation so far
     messages = [

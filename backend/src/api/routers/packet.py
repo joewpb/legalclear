@@ -16,9 +16,10 @@ import logging
 from pathlib import Path
 
 import stripe
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse
 
+from src.api.limiter import limiter
 from src.core.config import settings
 from src.core.upl import apply_disclaimer
 from src.services.packet_builder import (
@@ -108,7 +109,8 @@ def _create_checkout(result, req: PacketRequest) -> str:
 
 
 @router.post("/build")
-async def build(req: PacketRequest):
+@limiter.limit("60/minute")
+async def build(request: Request, req: PacketRequest):
     return await build_packet_with_checkout(req)
 
 

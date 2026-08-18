@@ -28,9 +28,10 @@ import logging
 import re
 
 import httpx
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from pydantic import BaseModel
 
+from src.api.limiter import limiter
 from src.core.config import settings
 from src.core.upl import apply_disclaimer
 from src.memory.db import DatabaseManager
@@ -227,7 +228,8 @@ def _fetch_treatments(cluster_ids: list[int]) -> dict[int, list[dict]]:
 
 
 @router.post("/search")
-async def search_case_law(req: CaseLawSearchRequest):
+@limiter.limit("60/minute")
+async def search_case_law(request: Request, req: CaseLawSearchRequest):
     """Search the FL case-law corpus (Supabase legal_opinions) by free text.
 
     Hard rules enforced here:
