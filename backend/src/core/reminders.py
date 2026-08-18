@@ -77,53 +77,53 @@ _COPY: dict[str, dict[str, dict[str, str]]] = {
     "en": {
         "14d": {
             "title": "Deadline in 14 days",
-            "body":  "You have a legal deadline coming up in 14 days. Review it now.",
+            "body":  "You have a legal deadline coming up in 14 days. The court docket is the official source for this deadline.",
         },
         "7d": {
             "title": "Deadline in 7 days",
-            "body":  "You have a legal deadline in 7 days. Don't wait — act now.",
+            "body":  "You have a legal deadline in 7 days. The court docket is the official source for this deadline.",
         },
         "3d": {
             "title": "Deadline in 3 days",
-            "body":  "Your deadline is in 3 days. This requires urgent attention.",
+            "body":  "Your deadline is in 3 days. The court docket is the official source for this deadline.",
         },
         "1d": {
             "title": "Deadline TOMORROW",
-            "body":  "Your legal deadline is TOMORROW. Act immediately.",
+            "body":  "Your legal deadline is TOMORROW. The court docket is the official source for this deadline.",
         },
         "urgent": {
             "title": "URGENT: Deadline within hours",
-            "body":  "You have a legal deadline within hours. Seek assistance immediately.",
+            "body":  "You have a legal deadline within hours. The court docket is the official source for this deadline.",
         },
         "expired": {
             "title": "Deadline has passed",
-            "body":  "A legal deadline has passed. Seek legal advice immediately.",
+            "body":  "A legal deadline has passed. The court docket is the official source for this deadline.",
         },
     },
     "es": {
         "14d": {
             "title": "Plazo en 14 días",
-            "body":  "Tiene un plazo legal en 14 días. Revíselo ahora.",
+            "body":  "Tiene un plazo legal en 14 días. El expediente judicial es la fuente oficial de este plazo.",
         },
         "7d": {
             "title": "Plazo en 7 días",
-            "body":  "Tiene un plazo legal en 7 días. No espere — actúe ahora.",
+            "body":  "Tiene un plazo legal en 7 días. El expediente judicial es la fuente oficial de este plazo.",
         },
         "3d": {
             "title": "Plazo en 3 días",
-            "body":  "Su plazo es en 3 días. Esto requiere atención urgente.",
+            "body":  "Su plazo es en 3 días. El expediente judicial es la fuente oficial de este plazo.",
         },
         "1d": {
             "title": "Plazo MAÑANA",
-            "body":  "Su plazo legal es MAÑANA. Actúe de inmediato.",
+            "body":  "Su plazo legal es MAÑANA. El expediente judicial es la fuente oficial de este plazo.",
         },
         "urgent": {
             "title": "URGENTE: Plazo en pocas horas",
-            "body":  "Tiene un plazo legal en pocas horas. Busque asistencia de inmediato.",
+            "body":  "Tiene un plazo legal en pocas horas. El expediente judicial es la fuente oficial de este plazo.",
         },
         "expired": {
             "title": "El plazo ha vencido",
-            "body":  "Un plazo legal ha vencido. Busque asesoramiento legal de inmediato.",
+            "body":  "Un plazo legal ha vencido. El expediente judicial es la fuente oficial de este plazo.",
         },
     },
 }

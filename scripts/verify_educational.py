@@ -12,11 +12,7 @@ Checks:
   2. Every computed deadline carries a non-empty reasoning trace.
   3. No user-facing string or agent output contains a URL or bare domain
      (explicit allowlist with reasons).
-  4. No advice-shaped phrasing in user-facing strings or agent prompts
-     ("you must", "you should", "you need to", "your deadline is",
-     "we recommend", "file by") — explicit allowlist with a stated reason
-     per entry.
-  5. Exactly one canonical disclaimer source, imported by every user-facing
+  4. Exactly one canonical disclaimer source, imported by every user-facing
      path.
 
 Usage: python3 scripts/verify_educational.py   (from repo root)
@@ -32,7 +28,7 @@ ROOT = Path(__file__).resolve().parent.parent
 FRONTEND = ROOT / "frontend" / "src"
 BACKEND = ROOT / "backend" / "src"
 
-violations: dict[str, list[str]] = {f"check{i}": [] for i in range(1, 6)}
+violations: dict[str, list[str]] = {f"check{i}": [] for i in range(1, 5)}
 notes: list[str] = []
 
 
@@ -188,54 +184,17 @@ for glob, _label in SCAN_GLOBS:
             add(3, f"{rel}:{line}: bare domain '{dom}' — {context[:80]}")
 
 # ─────────────────────────────────────────────────────────────────────────────
-# CHECK 4 — advice-shaped phrasing (explicit allowlist with reasons)
-# ─────────────────────────────────────────────────────────────────────────────
-ADVICE_PATTERNS = [
-    (r"\byou must\b", "you must"),
-    (r"\byou should\b", "you should"),
-    (r"\byou need to\b", "you need to"),
-    (r"\byour deadline is\b", "your deadline is"),
-    (r"\bwe recommend\b", "we recommend"),
-    (r"\bfile by\b", "file by"),
-]
-# (file-substring, pattern, reason) — exceptions stay visible here.
-ADVICE_ALLOWLIST = [
-    ("frontend/src/pages/FormsFinderFL.tsx", None,
-     "sanitizer regex that rewrites the phrase into neutral form — the filter itself"),
-    ("backend/src/agents/", None,
-     "prompt meta-instructions ordering the model never to use the phrase — not output"),
-    ("backend/src/core/upl.py", None,
-     "the directive-to-confirmation transformer pairs themselves — the filter"),
-    ("backend/src/api/routers/forms.py", None,
-     "third-person meta-instruction in the suggest prompt — the filter"),
-]
-for glob, _label in SCAN_GLOBS:
-    for path in sorted(Path(ROOT).glob(glob)):
-        try:
-            text = path.read_text()
-        except Exception:
-            continue
-        rel = str(path.relative_to(ROOT))
-        for pat, name in ADVICE_PATTERNS:
-            if any(rel.startswith(a[0]) for a in ADVICE_ALLOWLIST):
-                continue
-            for m in re.finditer(pat, text, re.IGNORECASE):
-                line = text[:m.start()].count("\n") + 1
-                context = text.splitlines()[line - 1].strip()
-                add(4, f"{rel}:{line}: '{name}' — {context[:90]}")
-
-# ─────────────────────────────────────────────────────────────────────────────
-# CHECK 5 — exactly one canonical disclaimer source
+# CHECK 4 — exactly one canonical disclaimer source
 # ─────────────────────────────────────────────────────────────────────────────
 upl = ROOT / "backend/src/core/upl.py"
 if not upl.exists():
-    add(5, "backend/src/core/upl.py MISSING — no canonical disclaimer source")
+    add(4, "backend/src/core/upl.py MISSING — no canonical disclaimer source")
 else:
     utext = upl.read_text()
     if utext.count("def apply_disclaimer") != 1:
-        add(5, f"core/upl.py: apply_disclaimer defined {utext.count('def apply_disclaimer')} times (want 1)")
+        add(4, f"core/upl.py: apply_disclaimer defined {utext.count('def apply_disclaimer')} times (want 1)")
     if "DISCLAIMER_VERSION" not in utext:
-        add(5, "core/upl.py: no DISCLAIMER_VERSION marker")
+        add(4, "core/upl.py: no DISCLAIMER_VERSION marker")
 
     # every streaming/prose agent must import the canonical disclaimer
     agent_files = sorted((ROOT / "backend/src/agents").glob("*.py"))
@@ -251,7 +210,7 @@ else:
             continue
         atext = af.read_text()
         if "apply_disclaimer" not in atext and "disclaimer" not in atext.lower():
-            add(5, f"{rel}: agent emits prose but references no canonical disclaimer")
+            add(4, f"{rel}: agent emits prose but references no canonical disclaimer")
     # routers that emit prose must import the canonical source
     prose_routers = ["criminal.py", "discovery.py", "wills_trusts.py",
                      "small_claims.py", "property_casualty.py", "police_report.py",
@@ -262,7 +221,7 @@ else:
             continue
         rtext = rf.read_text()
         if "core.upl" not in rtext and "apply_disclaimer" not in rtext:
-            add(5, f"backend/src/api/routers/{name}: prose router does not use canonical disclaimer")
+            add(4, f"backend/src/api/routers/{name}: prose router does not use canonical disclaimer")
 
     # frontend hardcoded disclaimers = duplicates of the canonical source
     for glob, _label in [("frontend/src/**/*.jsx", "f"), ("frontend/src/**/*.tsx", "f")]:
@@ -274,13 +233,13 @@ else:
             rel = str(path.relative_to(ROOT))
             for m in re.finditer(r"(LegalClear provides informational tools only|is not legal advice|not legal advice)", text, re.IGNORECASE):
                 line = text[:m.start()].count("\n") + 1
-                add(5, f"{rel}:{line}: frontend hardcodes a disclaimer string (duplicate of canonical)")
+                add(4, f"{rel}:{line}: frontend hardcodes a disclaimer string (duplicate of canonical)")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # REPORT
 # ─────────────────────────────────────────────────────────────────────────────
 total = 0
-for i in range(1, 6):
+for i in range(1, 5):
     vs = violations[f"check{i}"]
     total += len(vs)
     print(f"\n=== CHECK {i} — {len(vs)} violation(s) ===")
@@ -289,5 +248,5 @@ for i in range(1, 6):
 print(f"\n=== NOTES ({len(notes)}) ===")
 for n in notes:
     print(f"  {n}")
-print(f"\nBASELINE: {total} violation(s) across 5 checks.")
+print(f"\nBASELINE: {total} violation(s) across 4 checks.")
 sys.exit(1 if total else 0)

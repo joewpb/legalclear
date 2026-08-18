@@ -233,3 +233,20 @@ The engine already produces the trace; the gap is presentation. The
 § 48.183(2) answer received 2026-08-18 stands as research input, not as an
 attorney review. Surfaces audited 2026-08-18; fixes sequenced after Joe's
 slice ruling.
+
+**Addendum (2026-08-18) — advice-phrasing check removed from verify_educational.py:**
+Check #4 (regex-based detection of "you must" / "you should" / "your deadline
+is" / etc. in user-facing strings and agent prompts) was built, run against
+the codebase, and removed on evidence. Two of its three hits were
+CaseLawLookupFL's "you should double-check/verify" lines — exactly the
+verify-against-an-official-source instruction item 4 above requires. Regex
+phrase-policing can't distinguish required verification language from
+prohibited advice-giving; it flagged the former as the latter and would have
+pushed toward stripping the safety instruction to pass the checker. Second-person
+guidance and substantive legal explanation are the product's purpose — the
+educational-framing standard is about what backs a statement (citation,
+inputs, trace, verify-instruction, "here is how" framing), not about avoiding
+the word "you" or the verb "should". The checker now runs 4 checks (citation
+fields, reasoning trace, no unsanctioned URLs/domains, single canonical
+disclaimer source); advice-phrasing detection is not coming back as a static
+regex check.

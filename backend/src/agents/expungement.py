@@ -94,7 +94,8 @@ what_does_not_change: list of important limitations
 
 free_resources: list of objects each with:
   label, url, description
-Always include expungement.com and lawhelp.org
+Do not include any external website or domain. For free legal
+help, direct users to the in-app Find Legal Help page.
 
 Document text:
 {document.get("text", "")[:80000]}"""
