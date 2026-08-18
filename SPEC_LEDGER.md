@@ -109,6 +109,10 @@ live backend on :8001). Backend unit-suite baseline at f145dd8: **352 passed,
 
 ---
 
+## Known limitations (recorded, not blockers)
+
+- **Rate-limit storage is per-process memory (slowapi MemoryStorage, no `storage_uri`).** Rate limits reset on every Railway deploy/restart and are per-instance — they do not survive restarts and would not be shared across workers if the app ever runs more than one. Recorded 2026-08-17 (RL-1, VERIFIED against the installed slowapi package). Also: the limiter keys on `X-Real-IP` (Railway's edge-set header, documented in Railway's Specs & Limits) with XFF-leftmost and remote-address fallbacks; spoofed X-Forwarded-For is ignored when X-Real-IP is present.
+
 ## Change protocol
 
 - Locate the capability's row before writing code; no row → write the row (and a spec) first.
