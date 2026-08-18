@@ -1,216 +1,118 @@
-# SPEC_LEDGER.md
+# SPEC_LEDGER.md — LegalClear capability ledger
 
-Canonical mapping of every router/agent in `routes.py` to its governing spec. This is the single lookup future spec prompts diff against before any code is written. Last fully re-verified against source: **2026-06-30**.
+**Rebuilt 2026-08-17 against main @ `f145dd8`** (Phase H). This rebuild corrects
+**audit finding 7**: the previous SPEC_LEDGER (last verified 2026-06-30/07-05) was
+materially false in places — it listed the analysis router as live (deleted in
+Phase G, S2-6), described case-law lookup as an LLM call (it is deterministic ILIKE
+retrieval — see `docs/ADRS.md` ADR-1), and carried a model registry that omitted the
+DeepSeek call sites (since retired, Decision 7).
 
-Spec-version key: `v1-oneshot` = `archive/Complete One Shot Build.md` / `LegalClear_OneShot_Prompt.md`; `v2-phase` = `phases/source/PHASE_*.md` or `phases/BUILD_PLAN.md`; `v3-undocumented` = exists in code, in no spec document.
-
----
-
-## 1. LEDGER TABLE
-
-Registration lines are in `backend/src/api/routes.py`.
-
-| Module | Router (file) | Agent (file) | Governing spec | Spec version | Last verified | Drift status | Owner action |
-|---|---|---|---|---|---|---|---|
-| AI Intake Router | `routers/intake.py` (reg :72) | none — inline Haiku call (`intake.py:122`) | **UNDOCUMENTED — v3** | v3-undocumented | 2026-06-30 | N/A — no spec | Y |
-| Small Claims | `routers/small_claims.py` (reg :73) | `agents/small_claims.py` | `PHASE_16_small_claims.md` | v2-phase | 2026-06-30 | MAJOR | Y |
-| Criminal Procedure | `routers/criminal.py` (reg :74) | `agents/criminal_procedure.py` | **UNDOCUMENTED — v3** | v3-undocumented | 2026-06-30 | N/A — no spec | Y |
-| Motion for Discovery | `routers/discovery.py` (reg :75) | `agents/discovery_motion.py` | **UNDOCUMENTED — v3** | v3-undocumented | 2026-06-30 | N/A — no spec | Y |
-| Property & Casualty | `routers/property_casualty.py` (reg :76) | `agents/property_casualty.py` | **UNDOCUMENTED — v3** | v3-undocumented | 2026-07-05 | N/A — no spec | Y |
-| Expungement | `routers/expungement.py` (reg :77) | `agents/expungement.py` | `PHASE_17_expungement_ui.md` | v2-phase | 2026-06-30 | MAJOR | Y |
-| Landlord/Tenant | `routers/landlord.py` (reg :78) | `services/packet_builder.py` (shared) | `PHASE_18_landlord_tenant.md` | v2-phase | 2026-06-30 | MINOR | N |
-| Traffic | `routers/traffic.py` (reg :79) | `services/packet_builder.py` (shared) | `PHASE_20_traffic.md` | v2-phase | 2026-06-30 | MINOR | N |
-| Police Report | `routers/police_report.py` (reg :80) | `agents/police_report_v2.py` + `agents/scanner.py` (parallel) | `PHASE_21_police_report.md` + `BUILD_PLAN` Phase 9 | v2-phase | 2026-07-02 | MAJOR | Y |
-| Case Law | `routers/case_law.py` (reg :81) | none — inline Anthropic call (`case_law.py:72`) | `PHASE_22_case_law.md` | v2-phase | 2026-06-30 | MINOR | N |
-| Packet Builder | `routers/packet.py` (reg :82) | `services/packet_builder.py` | `PHASE_23_packet_builder.md` | v2-phase | 2026-06-30 | MAJOR | Y |
-| Forms | `routers/forms.py` (reg :83) | inline `SUGGEST_MODEL` (`forms.py:30`) | `PHASE_19_forms_finder.md` + Phase 2/10 | v2-phase | 2026-06-30 | MINOR | Y |
-| Law Corpus | `routers/law.py` (reg :84) | none — verbatim DB lookup | `BUILD_PLAN` Phase 3 | v2-phase | 2026-06-30 | MINOR | Y |
-| Deadline Engine | `routers/deadline.py` (reg :85) | `deadline/{extract,compute,pipeline}.py` | `BUILD_PLAN` Phase 4 + `PHASE_10_api.md` | v2-phase | 2026-07-02 | MAJOR | Y |
-| Triage Classifier | `routers/triage.py` (reg :86) | `triage/classify.py` + `agents/classifier.py` | `BUILD_PLAN` Phase 5 + `PHASE_03_classifier_agent.md` | v2-phase | 2026-06-30 | MAJOR | Y |
-| Reminders | `routers/reminders.py` (reg :87) | `core/{reminders,notifications}.py` | `BUILD_PLAN` Phase 6 | v2-phase | 2026-06-30 | MAJOR | Y |
-| Analysis / UPL | `routers/analysis.py` (reg :88) | `agents/{explainer,form_guide,risk_scanner}.py` | `BUILD_PLAN` Phase 8 + `PHASE_04/05/06_*.md` | v2-phase | 2026-06-30 | MAJOR | Y |
-| Chat Expert | `routers/chat.py` (reg :89) | `agents/chat_expert.py` | **UNDOCUMENTED — v3** | v3-undocumented | 2026-06-30 | N/A — no spec | Y |
-| Wills & Trusts | `routers/wills_trusts.py` (reg :90) | `agents/wills_trusts.py` | **UNDOCUMENTED — v3** | v3-undocumented | 2026-06-30 | N/A — no spec | Y |
-| Compliance (optional) | `_compliance_router` (reg :101, gated) | none | none — feature-gated behind `compliance/` pkg | n/a | 2026-06-30 | NONE | N |
-
-Drift-status basis (MAJOR items): Small Claims = response contract replaced by packet builder + paywall bypassed; Expungement = router ignores its own agent, hardcoded JSON rules, phantom `Phase 07`/`v1.1` TODO; Police Report = `/analyze` silently swapped to streaming, `scan_documents` modified against Phase 9 guardrail, parallel v1/v2 impls; Packet = $35 paywall disabled in code (contradicts CLAUDE.md); Deadline = muted fatal-deadline closure escalation, sync client in async, partial-write 200 (circuit/date parsing hardened 2026-07-02); Triage = 18-label taxonomy matches no spec, Haiku model drift; Reminders = TOCTOU + no real email delivery; Analysis = streaming-success path emits no disclaimer (U1), IDOR on document lookups, no router auth.
+Every code path and test path below is mechanically checked by
+`scripts/verify_docs.py` (`make verify-docs`). See `docs/VERIFY.md`.
 
 ---
 
-## 2. UNDOCUMENTED SURFACE REGISTRY (v3)
+## Status vocabulary
 
-| Module | What it does | Spec it should have had | Recommendation |
-|---|---|---|---|
-| **AI Intake Router** (`routers/intake.py`) | Classifies a free-text user situation into one of 6 modules + extracts entities via Haiku; returns module + entities to the client. | A Phase-10-era "intake/routing" spec defining the module taxonomy, the entity schema, and its relationship to the Phase 3 document classifier. | **(b) Reconcile/rebuild.** Defect, not feature: it bypasses the Phase 3 `ClassifierAgent` entirely (two disconnected classifiers), runs an undocumented Haiku model, feeds nothing downstream, swallows errors to HTTP 200, and is unauthenticated. Do not retroactively spec the bypass — spec must describe routing that reuses the canonical classifier, carries auth, and surfaces failures. |
-| **Criminal Procedure** (`routers/criminal.py` + `agents/criminal_procedure.py`) | Streaming plain-language explainer for criminal-procedure documents. | A v3 module spec (parallel to `PHASE_04_explainer_agent.md`) with UPL constraints specific to criminal matter. | **(b) Spec describes correct behavior; code must change.** The module is a legitimate feature, but the spec must mandate third-person framing + disclaimer-on-every-stream, and the code currently emits no disclaimer on the streaming success path (U1). Spec the correct behavior; fix U1 against it. |
-| **Motion for Discovery** (`routers/discovery.py` + `agents/discovery_motion.py`) | Streaming analyzer for discovery motions (PDF/image vision input), structured findings + risk score. | A v3 module spec. | **(b) Same as Criminal Procedure** — legitimate feature, but spec must require disclaimer-on-stream + third-person; code has U1 + the `ask_attorney` directive-schema leak + list-of-strings `.get()` crash. |
-| **Property & Casualty** (`routers/property_casualty.py` + `agents/property_casualty.py`) | Streaming explainer for property/casualty situations. First-party property claims compute statutory deadlines from date-of-loss via deterministic deadline engine. | A v3 module spec. | **(b) Same** — U1 + `ask_attorney` directive schema. **API verified live 2026-07-05**: backend returns deadline data with statute references (Fla. Stat. § 627.70132) when called with correct format (see Section 8). |
-| **Wills & Trusts** (`routers/wills_trusts.py` + `agents/wills_trusts.py`) | Streaming explainer for wills/trusts documents. | A v3 module spec. | **(a) Document as intended — with constraints.** This is the one streaming agent that emits a correct `{"done": true}` + disclaimer terminal event. Spec it to match behavior, but bake in auth + the model pin. |
-| **Chat Expert** (`routers/chat.py` + `agents/chat_expert.py`) | Multi-module conversational Q&A across 6 legal topics. | A v3 spec (distinct from Phase 10's single-doc `/api/chat`). | **(a) Document as intended — with constraints.** `chat_expert.py` is the codebase's positive-control template (appends disclaimer after stream on both success and error; prompts enforce third-person + no-directives). Spec it to match, bake in auth + Sonnet pin. Do not let the weaker explainer agents inherit by copying them. |
-
-Net: 2 modules are acceptable-to-document (Wills, Chat Expert — they follow the known-good template); 4 are defects-to-reconcile (Intake bypass; Criminal/Discovery/P&C streaming-disclaimer + UPL gaps). No v3 module gets a spec that merely describes its current bugs.
-
----
-
-## 3. DUPLICATE / PARALLEL IMPLEMENTATION REGISTRY
-
-| Parallel set | Implementations | Canonical going forward | To deprecate | Dead code to remove (once migration verified) |
-|---|---|---|---|---|
-| Police Report analysis | `agents/police_report_v2.py` (`PoliceReportAnalyzerV2`, async streaming, drives `/analyze`) vs `agents/scanner.py` (`scan_documents` + `extract_case_context`, sync, drives legacy `/analyze/batch`) — both imported at `routers/police_report.py:16–17` | `agents/police_report_v2.py` | `agents/scanner.py` (v1) | After migrating `/analyze/batch` (`police_report.py:67–102`) onto `PoliceReportAnalyzerV2` or removing it: delete `scanner.py:174–246` (`scan_documents`) and the legacy batch route. **Keep** `extract_case_context` (`scanner.py:269–311`) until relocated into `police_report_v2.py` or `case_context.py` — it is live via `/analyze/batch`. |
-| Expungement eligibility | `agents/expungement.py` `ExpungementAgent.check_eligibility()` (LLM, used in `routes.py:133,305`) vs `routers/expungement.py:51–98` (hardcoded JSON substring match against `data/fl_disqualifying_offenses.json`) | `agents/expungement.py` (`ExpungementAgent`) | `routers/expungement.py` hardcoded `/eligibility` body | `routers/expungement.py:51–98` + the phantom `# TODO … Phase 07 … v1.1` (`:54`). Wire `/eligibility` to `ExpungementAgent` first. |
-| Classification | `agents/classifier.py` (Phase 3 document-type classifier, 18-label) vs `routers/intake.py` inline classifier (situation→module routing) | Both legitimate **if documented as distinct** — document-type vs situation-routing are different jobs | Neither, until a decision | If merged: delete the inline Haiku call in `intake.py:121–205` and route through `ClassifierAgent`. If kept separate: add both to Section 1 with explicit distinct specs. |
-| Form catalog (source of truth) | `routers/forms.py` (serves `court_forms` table, 443 published) vs `agents/form_guide.py:38–41` (loads `data/forms_library.json`, ~6 entries, 2026-05-14) | `court_forms` Supabase table (via `forms.py`) | `form_guide.py` JSON loader | `data/forms_library.json` + `form_guide.py:35–43`; rewrite `FormGuideAgent` to read `court_forms` (Phase 10 ingest never reached it). |
+| Status | Meaning |
+|---|---|
+| **LIVE** | Deployed and reachable by users end-to-end (backend route + frontend surface where applicable). |
+| **DARK** | Code is present and merged but intentionally not active (feature-flagged off, or missing a required credential). |
+| **HEADLESS** | Backend capability with no frontend surface, by design (internal or machine-consumed). |
+| **DEFERRED** | Explicitly decided to postpone; recorded with the decision that deferred it. |
+| **REJECTED** | Considered and explicitly decided against; recorded with the decision. |
+| **NOT_BUILT** | Planned/recorded but no code exists in the tree. |
+| **AMBIGUOUS** | Exists in the tree but has no consumers and no decision on retire-vs-wire; awaiting Joe. |
+| **UNVERIFIED** | Could not be verified from the tree on the last-verified date; claim is inherited, not proven. |
 
 ---
 
-## 4. MODEL PINNING REGISTRY
+## Capability ledger
 
-CLAUDE.md pins `claude-sonnet-4-6`. Every LLM call-site in the repo:
+All rows: last verified **2026-08-17** at SHA **f145dd8**. Paths are repo-relative.
 
-| File:line | Model | Intended (sonnet-4-6) | Justified deviation | Note |
-|---|---|---|---|---|
-| `deadline/extract.py:124` | claude-sonnet-4-6 | ✓ | N | — |
-| `agents/chat_expert.py:152` | claude-sonnet-4-6 | ✓ | N | — |
-| `agents/criminal_procedure.py:79` | claude-sonnet-4-6 | ✓ | N | — |
-| `agents/discovery_motion.py:82` | claude-sonnet-4-6 | ✓ | N | — |
-| `agents/explainer.py:27` | claude-sonnet-4-6 | ✓ | N | — |
-| `agents/expungement.py:42` (`guide_model`) | claude-sonnet-4-6 | ✓ | N | — |
-| `agents/expungement.py:43` (`eligibility_model`) | **claude-haiku-4-5-20251001** | ✗ | **N — undocumented** | If Haiku is intentional for cheap eligibility screening, it must be recorded as a documented exception here and in CLAUDE.md. |
-| `agents/form_guide.py:32` | claude-sonnet-4-6 | ✓ | N | — |
-| `agents/police_report_v2.py:156` | claude-sonnet-4-6 | ✓ | N | — |
-| `agents/property_casualty.py:81` | claude-sonnet-4-6 | ✓ | N | — |
-| `agents/risk_scanner.py:34` | **claude-haiku-4-5-20251001** | ✗ | **N — undocumented** | Same: document as exception or revert to Sonnet. |
-| `agents/scanner.py:137` (`_MODEL`) | claude-sonnet-4-6 | ✓ | N | — |
-| `agents/small_claims.py:50` | claude-sonnet-4-6 | ✓ | N | — |
-| `agents/wills_trusts.py:106` | claude-sonnet-4-6 | ✓ | N | — |
-| `routers/case_law.py:72` | claude-sonnet-4-6 | ✓ | N | — |
-| `routers/forms.py:30` (`SUGGEST_MODEL`) | claude-sonnet-4-6 | ✓ | N | — |
-| `routers/intake.py:122` (`_MODEL`) | **claude-haiku-4-5-20251001** | ✗ | **N — undocumented** | Intake is undocumented (Section 2); model choice is unresolved pending reconcile. |
-| `agents/classifier.py:37` | **claude-haiku-4-5-20251001** | ✗ | **N — undocumented** | Triage classifier — pipeline-critical. Phase 3 verification greps for `claude-sonnet-4-6` and would fail. |
+| Capability | Owner (agent/module/file) | Status | Code path | Test path | Verified | SHA |
+|---|---|---|---|---|---|---|
+| Document upload + ingestion (core) | `backend/src/api/routes.py` `/upload` + `backend/src/ingestion/pdf_parser.py` | LIVE | `backend/src/api/routes.py`, `frontend/src/pages/UploadFlow.jsx` | `backend/tests/test_upload_text_key.py`, `backend/tests/test_upload_token_estimate.py` | 2026-08-17 | f145dd8 |
+| Document processing / explain pipeline | `backend/src/agents/explainer.py`, `backend/src/agents/risk_scanner.py`, `backend/src/agents/form_guide.py` | LIVE | `backend/src/api/routes.py`, `frontend/src/pages/ResultsPage.jsx` | `backend/tests/test_process_endpoint.py` | 2026-08-17 | f145dd8 |
+| Document-type classifier (pipeline) | `backend/src/agents/classifier.py`, `backend/triage/classify.py` | LIVE | `backend/triage/classify.py`, `backend/triage/router.py` | `backend/evals/ground_truth.json` (eval harness `backend/evals/run_all.py`) | 2026-08-17 | f145dd8 |
+| Deadline engine (extract → deterministic compute) | `backend/deadline/pipeline.py` | LIVE | `backend/deadline/extract.py`, `backend/deadline/compute.py`, `backend/deadline/rules.py`, `backend/deadline/pipeline.py` | `backend/tests/test_deadline_compute.py`, `backend/tests/test_deadline_pipeline.py`, `backend/tests/test_anchor_gate.py` | 2026-08-17 | f145dd8 |
+| Deadline API (list/analyze/recompute) | `backend/src/api/routers/deadline.py` | LIVE | `backend/src/api/routers/deadline.py` | `backend/tests/test_deadline_router_idor.py`, `backend/tests/test_deadline_disclaimer.py`, `backend/tests/test_deadline_recompute_escalation.py` | 2026-08-17 | f145dd8 |
+| User-supplied service facts (B5-f3/f4) | `backend/deadline/pipeline.py` + `document_service_facts` table | LIVE | `supabase/migrations/20260815000002_b5f3_document_service_facts.sql`, `backend/deadline/pipeline.py` | `backend/tests/test_deadline_service_date.py` | 2026-08-17 | f145dd8 |
+| AI Intake (HomeHub situation router) | `backend/src/api/routers/intake.py` (inline Haiku call) | LIVE | `backend/src/api/routers/intake.py`, `frontend/src/pages/HomeHub.tsx` | `backend/tests/test_intake_router.py` | 2026-08-17 | f145dd8 |
+| Small Claims Explainer | `backend/src/agents/small_claims.py` | LIVE | `backend/src/api/routers/small_claims.py`, `frontend/src/pages/SmallClaimsExplainer.tsx` | `backend/tests/test_small_claims_disclaimer_sse.py` | 2026-08-17 | f145dd8 |
+| Small Claims Filing Wizard | `backend/src/services/packet_builder.py` | LIVE | `frontend/src/pages/SmallClaimsFL.tsx` | `backend/tests/test_phase_16.py` (integration, CI-excluded) | 2026-08-17 | f145dd8 |
+| Criminal Procedure Explainer | `backend/src/agents/criminal_procedure.py` | LIVE | `backend/src/api/routers/criminal.py`, `frontend/src/pages/CriminalProcedureExplainer.tsx` | `backend/tests/test_criminal_disclaimer_sse.py` | 2026-08-17 | f145dd8 |
+| Discovery Motion Analyzer | `backend/src/agents/discovery_motion.py` | LIVE | `backend/src/api/routers/discovery.py`, `frontend/src/pages/DiscoveryMotionAnalyzer.tsx` | `backend/tests/test_discovery_motion.py`, `backend/tests/test_discovery_disclaimer_sse.py` | 2026-08-17 | f145dd8 |
+| Property & Casualty Explainer | `backend/src/agents/property_casualty.py` | LIVE | `backend/src/api/routers/property_casualty.py`, `frontend/src/pages/PropertyCasualtyExplainer.tsx` | `backend/tests/test_pc_deadlines.py`, `backend/tests/test_pc_upl.py` | 2026-08-17 | f145dd8 |
+| Wills & Trusts Explainer | `backend/src/agents/wills_trusts.py` | LIVE | `backend/src/api/routers/wills_trusts.py`, `frontend/src/pages/WillsTrustsExplainer.tsx` | `backend/tests/test_wills_trusts_disclaimer_sse.py` | 2026-08-17 | f145dd8 |
+| Police Report Analyzer (+ opinion retrieval) | `backend/src/agents/police_report_v2.py`, `backend/src/services/opinion_retrieval.py` | LIVE | `backend/src/api/routers/police_report.py`, `frontend/src/pages/PoliceReportAnalyzer.tsx` | `backend/tests/test_opinion_mapper.py`, `frontend/src/components/policereport/sseMerge.test.ts` | 2026-08-17 | f145dd8 |
+| Case Law Lookup (deterministic — ADR-1) | `backend/src/api/routers/case_law.py` (ILIKE over `legal_opinions`, **no LLM**) | LIVE | `backend/src/api/routers/case_law.py`, `frontend/src/pages/CaseLawLookupFL.tsx` | `backend/tests/test_phase_22.py` (integration, CI-excluded) | 2026-08-17 | f145dd8 |
+| Expungement (FL) | `backend/src/agents/expungement.py` | LIVE | `backend/src/api/routers/expungement.py`, `frontend/src/pages/ExpungementFL.tsx` | `backend/tests/test_phase_17.py` (integration, CI-excluded) | 2026-08-17 | f145dd8 |
+| Landlord / Tenant defense | `backend/src/services/packet_builder.py` (shared) | LIVE | `backend/src/api/routers/landlord.py`, `frontend/src/pages/LandlordTenantFL.tsx` | `backend/tests/test_phase_18.py` (integration, CI-excluded) | 2026-08-17 | f145dd8 |
+| Traffic Citation Wizard | `backend/src/services/packet_builder.py` (shared) | LIVE | `backend/src/api/routers/traffic.py`, `frontend/src/pages/TrafficFL.tsx` | `backend/tests/test_phase_20.py` (integration, CI-excluded) | 2026-08-17 | f145dd8 |
+| Forms Finder (443 published forms + AI suggest) | `backend/src/api/routers/forms.py`, `backend/src/services/form_recommender.py` | LIVE | `backend/src/api/routers/forms.py`, `frontend/src/pages/FormsFinderFL.tsx` | `backend/tests/test_form_recommender.py`, `backend/tests/test_forms_disclaimer_sse.py` | 2026-08-17 | f145dd8 |
+| Filing Packet builder | `backend/src/services/packet_builder.py`, `backend/src/services/pdfa_generator.py` | LIVE | `backend/src/api/routers/packet.py`, `frontend/src/pages/FilingPacket.tsx` | `backend/tests/test_phase_23.py` (integration, CI-excluded) | 2026-08-17 | f145dd8 |
+| Payments / Stripe paywall | `backend/src/payments/` + `backend/src/api/routes.py` (`/subscribe`, `/webhook`) | DARK (Decision 1: `PAYMENTS_ENABLED` off; code kept, not deleted) | `frontend/src/pages/PaywallPage.jsx` | `backend/tests/test_payments_disabled.py` | 2026-08-17 | f145dd8 |
+| Chat Expert (per-module drawer) | `backend/src/agents/chat_expert.py` | LIVE | `backend/src/api/routers/chat.py`, `frontend/src/components/ChatDrawer.tsx` | — (no dedicated test file in tree) | 2026-08-17 | f145dd8 |
+| Attorney Referral intake | `backend/src/api/routers/attorney_referral.py` | LIVE | `backend/src/api/routers/attorney_referral.py`, `frontend/src/pages/AttorneyReferralFL.tsx` | `backend/tests/test_attorney_referral_auth.py`, `backend/tests/test_attorney_referral_disclaimer.py` | 2026-08-17 | f145dd8 |
+| Find Legal Help (county legal-aid directory) | `backend/src/services/county_router.py` | LIVE | `frontend/src/pages/FindLegalHelpFL.tsx` | — (no dedicated test file in tree) | 2026-08-17 | f145dd8 |
+| Law corpus (statutes / rules / closures) | `backend/src/api/routers/law.py` | HEADLESS (intentional — consumed by deadline engine and internal callers, no UI planned) | `backend/src/api/routers/law.py` | — (no dedicated test file in tree) | 2026-08-17 | f145dd8 |
+| Reminders (scheduled processing) | `backend/src/core/reminders.py`, `backend/src/core/notifications.py` | HEADLESS (intentional — pg_cron driven) | `backend/src/api/routers/reminders.py` | `backend/tests/test_reminders.py`, `backend/tests/test_notifications.py` | 2026-08-17 | f145dd8 |
+| Email delivery adapter (C2) | `backend/src/services/email_delivery.py` | DARK (Decision 8: provider-agnostic adapter shipped; no provider API key set — reminders fail honestly) | `backend/src/services/email_delivery.py` | `backend/tests/test_email_delivery.py` | 2026-08-17 | f145dd8 |
+| UPL wall / disclaimers / URL filter | `backend/src/core/upl.py`, `backend/src/core/disclaimer.py`, `backend/src/core/escalation.py`, `backend/src/core/url_filter.py` | LIVE | `backend/src/core/upl.py`, `backend/src/core/url_filter.py` | `backend/tests/test_upl.py`, `backend/tests/test_url_filter.py` | 2026-08-17 | f145dd8 |
+| PII redaction (ingestion) | `backend/src/ingestion/pii_redactor.py` | LIVE | `backend/src/ingestion/pii_redactor.py` | `backend/tests/test_pii_redactor.py` | 2026-08-17 | f145dd8 |
+| Startup config validation / API-key fail-fast | `backend/src/core/config.py` | LIVE | `backend/src/core/config.py` | `backend/tests/test_startup_config_validation.py`, `backend/tests/test_config_apikey.py` | 2026-08-17 | f145dd8 |
+| CI migration pipeline + schema parity (Phase F, gate G3) | `.github/workflows/migrate.yml`, `.github/workflows/parity.yml` | LIVE | `.github/workflows/migrate.yml`, `.github/workflows/parity.yml`, `scripts/parity_check.py` | `backend/tests/test_parity_check.py` | 2026-08-17 | f145dd8 |
+| Triage router (API surface) | `backend/src/api/routers/triage.py` | **AMBIGUOUS** — 0 frontend consumers; `/upload` classifies inline in `routes.py`. Retire-vs-wire decision pending with Joe. Do not build on it. | `backend/src/api/routers/triage.py` | `backend/tests/test_triage_router.py` | 2026-08-17 | f145dd8 |
+| Compliance router (optional) | `backend/src/api/routes.py` (gated registration) | DARK (feature-gated behind `compliance/` package) | `backend/src/api/routes.py` | — (no dedicated test file in tree) | 2026-08-17 | f145dd8 |
 
-4 undocumented Haiku deviations. Rule: any non-Sonnet call-site requires a `Y` in this column with a stated reason; `N` means the deviation is a defect to resolve.
-
----
-
-## 5. DEPENDENCY SOURCE-OF-TRUTH DECLARATION
-
-**Production source of truth: `pip` + `backend/requirements.txt`** — not uv.
-
-Evidence: `backend/nixpacks.toml` (the `[phases.install]` comment, verbatim): *"The Nixpacks Python provider detects requirements.txt, creates the /opt/venv virtualenv, puts /opt/venv/bin on PATH, and runs `pip install -r requirements.txt` automatically."* Railway's Nixpacks build installs from `requirements.txt`. `pyproject.toml` exists only to support local `uv` workflows (its own header admits this). ~~The two have already drifted: `httpx` was in `requirements.txt` but not `pyproject.toml`~~ — **fixed 2026-07-02**: `httpx` added to `pyproject.toml` deps + `uv.lock` regenerated; both files in sync.
-
-**Going-forward rule (single source of truth):**
-- `backend/requirements.txt` is canonical for production. Every dependency added or bumped must be added there first.
-- `pyproject.toml` is a generated/synced mirror for local `uv` dev only. It MUST be regenerated from `requirements.txt` in the same commit (or the drift returns).
-- CLAUDE.md's "uv-ONLY … never pip/venv directly" invariant is **inaccurate for production** and must be corrected to: *"Local dev uses uv against pyproject.toml; production (Railway/Nixpacks) installs from requirements.txt via pip. requirements.txt is canonical — keep pyproject.toml in sync."*
-- Alternative (out of scope here, requires a deploy change): migrate Nixpacks to install via `uv sync` from `pyproject.toml`, then delete `requirements.txt` and make pyproject the single source. Pick one; do not keep both authoritative.
-
----
-
-## 6. CHANGE PROTOCOL
-
-Enforceable checklist. Every future spec prompt follows this before touching the repo.
-
-- [ ] **Locate the module's row** in the Section 1 ledger before writing any code.
-- [ ] **If no row exists:** it is a new module. Write the spec FIRST (`phases/source/PHASE_NN_*.md`), add the ledger row (governing spec + version + drift = NONE), THEN build.
-- [ ] **If the row is `v3-undocumented`:** do not extend it. Resolve it per Section 2 (write the spec describing correct behavior, or reconcile/rebuild) before adding features on top.
-- [ ] **If drift status is MAJOR:** do not build on top of it. Resolve the drift per the Section 2 or Section 3 action first.
-- [ ] **Any new LLM call-site:** add a row to Section 4. Non-Sonnet models require a `Y` justification or they are a defect.
-- [ ] **Any dependency change:** edit `requirements.txt` first (Section 5), then sync `pyproject.toml` in the same commit.
-- [ ] **In the same PR/commit as the code change:** update the affected ledger row's `Last verified` date and `Drift status`. Never after. Never batched.
-- [ ] **If a parallel/duplicate implementation is introduced or resolved:** update Section 3 in the same commit.
-
-This ledger is the diff target. A module not traceable to a row here, or a row whose drift is MAJOR and unaddressed, blocks the change.
+Rows marked "integration, CI-excluded" reference server-dependent test files that
+exist in the tree but are excluded from `.github/workflows/pytest.yml` (they need a
+live backend on :8001). Backend unit-suite baseline at f145dd8: **352 passed,
+1 skipped**.
 
 ---
 
-## 7. POLICE REPORT V2 — OPINION RETRIEVAL (English path hardened 2026-07-04)
+## Not built
 
-Module #1 of the sitewide opinion-retrieval pattern (759-opinion Supabase corpus → Police Report Analyzer). Seven-fix hardening pass applied; this section records the proof-gap closure.
+| Item | Detail |
+|---|---|
+| **P&C Claim Guide module (Phase I)** | NOT_BUILT. Recorded 2026-08-15 in `REMEDIATION_PLAN.md` (Phase I), not scoped, not dispatched. Sequenced after Phase F because it needs the migration mechanism for its content corpus and deadline rules. ⚠️ `REMEDIATION_PLAN.md` says the spec lives at `docs/pc-claim-guide-module.md`, but **that file does not exist in the tree at f145dd8** — the spec is recorded-only and currently absent. |
+| **ES opinion corpus** | NOT_BUILT (backlog). `legal_opinions` summaries are English-only; `OpinionCard.tsx` renders an ES honesty stamp instead. |
 
-**Extraction flags are load-bearing routing signals, RETAINED as-is.** `miranda_noted` and `probable_cause_present` (and the charge/discrepancy fields) drive deterministic tag derivation in `services/opinion_retrieval.py::derive_situation_tags`. They were not removed, renamed, or refactored in this pass. Raw flag values are now logged at mapper time for observability (see below).
+## Deferred
 
-**English path — hardened + verified:**
+| Item | Detail |
+|---|---|
+| **Mobile app (C4)** | DEFERRED per Decision 9 (2026-08-15). Phase G removed the push-token endpoint, `save_push_token`, and the empty `mobile/` submodule. |
+| **`push_tokens` table drop** | HELD. The drop migration is authored on branch `fix/g2-push-tokens-table-drop` and **NOT merged**; the table still exists in prod until Joe merges it. No code references `push_tokens` at f145dd8. |
+| **Reminder email provider key** | The delivery adapter is merged but DARK until a provider API key (recommendation: Resend) is configured (Decision 8). |
+| **Decision 6 attorney confirmation** | The § 48.183 posted-service later-of rule is live but pending confirmation by a Florida attorney before public announcement. |
 
-| Concern | Resolution | Verification |
-|---|---|---|
-| SSE merge showstopper | Merge logic extracted to pure reducer `frontend/.../policereport/sseMerge.ts::applySseEvent`; component calls it at all three sites. Order-independent carry-overs for `risk_analysis` / `relevant_opinions` / `situation_tags_used`. | New `sseMerge.test.ts` (vitest): 5 tests incl. adversarial order-independence (relevant_opinions followed by an analysis-JSON or risk-only event that omits it). Vacuousness probe confirmed the test catches the original buggy merge. `tsc --noEmit` clean; `npm run build` clean. |
-| Blocking I/O in async stream | `get_relevant_opinions` now runs via `asyncio.to_thread` in `police_report_v2.py`. | Import + call-site audit. |
-| Migration read-path | `legal_opinions` DDL captured in `supabase/migrations/20260703020000_legal_opinions.sql` (idempotent; GIN index on `situation_tags`; RLS enabled, no policies). Read uses **service-role** (`SUPABASE_SERVICE_KEY`, bypasses RLS) → no SELECT policy needed. Migration sorts last; self-contained. | `memory/db.py` confirms service-role init; `ls supabase/migrations \| sort`. |
-| Mapper literal precision | Bare `assault` removed from `_CHARGE_FELONY` (FL simple assault is a misdemeanor); `aggravated assault` / `aggravated batter` / `sexual batter` qualifiers added. Literals are intentional **stems** (leading `\b` only, no trailing `\b`; `.search()` substring match) — verified `aggravated battery` and `sexual battery` match, `simple assault` excluded. | `tests/test_opinion_mapper.py` 16/16 (3 new cases). |
-| Boolean-flag drift | `_is_explicit_false` normalizes `False` / `"false"` / `"False"` / `0`; `None` and truthy still mean "not a violation." No speculative handling of un-observed shapes. | Mapper suite green. |
+## Rejected
 
-**Observability hook (mapper):** `derive_situation_tags` emits one structured log line per invocation recording the RAW flag values (pre-normalization) + emitted tags — no PII, no report body. Turns a silent zero-opinions miss into a diagnosable one. Sample:
-```
-INFO src.services.opinion_retrieval: derive_situation_tags miranda_noted='No' probable_cause_present=None tags=[]
-```
-Deferring further drift handling is now SAFE because every miss leaves a trace.
+| Item | Detail |
+|---|---|
+| **DeepSeek as an LLM provider** | REJECTED (Decision 7, 2026-08-15). All three call sites (`opinion_retrieval.py`, `orin_opinions.py`, attorney-referral fallback) repointed to Claude Haiku; enforced by `backend/tests/test_no_deepseek_in_production.py`. |
+| **External-link allowlist** | REJECTED (Decision 4). Rule is *no external links*; enforced by a deterministic output filter (`backend/src/core/url_filter.py`) that strips every URL from agent output at the boundary. |
+| **Refusing to compute when service date is unextractable** | REJECTED (Decision 2, 2026-08-15). The product asks the user (date + method, with "I don't know" → escalation), never silently refuses and never records the answer as an extracted fact. |
+| **LLM-generated case-law retrieval over the full corpus** | REJECTED (ADR-1 in `docs/ADRS.md`). Deterministic ILIKE + pg_trgm chosen over tagging 425,850 rows with an LLM. |
 
-**ES opinion corpus — DEFERRED (backlog).** `summary_plain` / `summary_legal` / `attorney_prompt` are English-only in the corpus. Interim coherence (not completeness): `OpinionCard.tsx` renders an EN/ES honesty stamp above the body when `language === 'es'` ("La jurisprudencia está disponible únicamente en inglés por el momento."), threaded through the localized `STRINGS` map. UPL disclaimer is EN/ES. Design default is STAMP (preserve information); a one-boolean flip to HIDE the whole card for ES is documented in a code comment if product later prefers hiding. Spanish opinion content / an ES corpus is out of scope.
+## Removed at Phase G (must not reappear as live anywhere)
 
-**Frontend test infra:** vitest added (Vite-native); `npm test` now runs `vitest run`. CI (`node.js.yml`) runs `npm test --if-present` so this is covered.
-
-**Backend suite scope (reconciled 2026-07-04):** the coverage-scoped unit suite (`tests/` minus the live `test_opinion_retrieval_integration.py`) shows **43 failed / 121 passed**. Per-failure breakdown (`--tb=line`, one exception per failed test): **38 `httpx.ConnectError` + 5 `FileNotFoundError` = 43** — all server-dependent integration tests (live backend / CourtListener / fixture-packet assets) excluded from CI per CLAUDE.md. Zero assertion/import/type errors. **None of the 9 failing files** (`test_full_v1`, `test_phase_2/16/17/18/20/21/22/23`) import `opinion_retrieval` or `police_report_v2` (or `derive_situation_tags`/`get_relevant_opinions`). _(Earlier draft mis-counted by tallying traceback-line occurrences: 61/11; the correct per-failure count is 38/5.)_
+- Analysis router (`/api/analyze/*`) — **deleted** (S2-6). `backend/src/api/routers/analysis.py` no longer exists.
+- Push-token endpoint + `DatabaseManager.save_push_token` + empty `mobile/` submodule — **deleted**.
+- Top-level `POST /eligibility` — **deleted** (superseded by `/api/expungement/eligibility`, which remains).
+- 5 dead frontend components (`AnalysisDashboard.jsx`, `LandingPage.jsx`, `ExpungementPage.jsx`, `PhaseStub.tsx`, `layout/Navbar.jsx`) — **deleted**.
+- Deprecated `get/set_user_supplied_service_date` helpers — **deleted**; `trigger_events.user_*` columns dropped in prod via CI migration (`supabase/migrations/20260817010000_g_drop_trigger_events_user_columns.sql`).
 
 ---
 
-## 8. PROPERTY & CASUALTY — API ENDPOINT REFERENCE (verified live 2026-07-05)
+## Change protocol
 
-**Endpoint:** `POST /api/property-casualty/explain`
-
-**Purpose:** Streaming SSE explainer for Florida property/casualty situations. First-party property claims compute statutory deadlines from date-of-loss via deterministic deadline engine.
-
-**Request format:**
-
-```bash
-curl -X POST https://zesty-delight-production-b533.up.railway.app/api/property-casualty/explain \
-  -F 'sub_type=first_party_property' \
-  -F 'entities_json={"situation":"Hurricane roof damage on primary residence, homeowners insurer denied claim, Stuart FL","date_of_loss":"2026-06-01"}'
-```
-
-**Form fields:**
-
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| `sub_type` | string | Yes | One of: `first_party_property`, `insurance_bad_faith`, `premises_liability`, `unknown` |
-| `entities_json` | JSON string | Yes | Must be a JSON string (not individual form fields). Keys: `situation` (string), `date_of_loss` (string, format `YYYY-MM-DD` for deadline computation). |
-| `language` | string | No | `en` (default) or `es` |
-| `file` | file | No | Optional PDF or image upload |
-
-**Response:** Server-Sent Events (SSE) stream. Each event is a JSON object prefixed with `data: `. For first-party property claims with a valid `date_of_loss`, the response includes a `key_deadlines` array with statute references (e.g., `"governing_rule": "Fla. Stat. § 627.70132"`).
-
-**Example response snippet (first-party property with date_of_loss):**
-
-```json
-{
-  "sub_type_identified": "first_party_property",
-  "what_this_is": "...",
-  "key_deadlines": [
-    {
-      "label": "Report Property Insurance Claim",
-      "due_date": "2027-06-01",
-      "governing_rule": "Fla. Stat. § 627.70132",
-      "severity": "high",
-      "consequence": "Missing this deadline may result in claim denial.",
-      "is_past": false,
-      "deadline_type": "insurer_deadline",
-      "computation_trace": [...]
-    }
-  ],
-  "disclaimer": "This is legal information, not legal advice..."
-}
-```
-
-**Critical implementation notes:**
-
-1. **`entities_json` must be a JSON string**, not individual form fields. The router parses it via `json.loads(entities_json)`.
-2. **`date_of_loss` is required for deadline computation.** Without it, `key_deadlines` will be empty (first-party only).
-3. **Date format:** `YYYY-MM-DD` (ISO 8601). Parser also accepts `MM/DD/YYYY`, `MM/DD/YY`, `B d, Y`, `b d, Y`.
-4. **Deadline engine:** Routes through `deadline/compute.py::compute_deadline_for_event` with rule keys from `_PC_DEADLINE_RULES` (report_claim, supplemental_claim, file_suit, pay_or_deny, notice_of_intent).
-5. **Statute references:** Sourced from `backend/deadline/rules.py` (e.g., Fla. Stat. § 627.70132 for weather-event date-of-loss rules).
-
-**Verification (2026-07-05):**
-- Backend (zesty-delight): commit b7348e01, includes deadline engine with P&C rules.
-- Frontend (appealing-victory): commit b7348e01, includes date-of-loss input UI.
-- Artifact test: `627.70132` appears 4 times in response when called with correct format.
-- Build config: Vite build command correct; Nixpacks config correct.
-
+- Locate the capability's row before writing code; no row → write the row (and a spec) first.
+- A row whose status is AMBIGUOUS or UNVERIFIED blocks building on top of it.
+- Update the row's Verified date + SHA **in the same commit** as the code change.
+- Run `make verify-docs` before committing any edit to this file — it fails on any
+  code/test path that does not exist in the tree.
