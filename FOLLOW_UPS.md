@@ -1,5 +1,8 @@
 # Follow-ups
 
+## Citation filter regex gap — singular "Florida Statute N" passes unfiltered (2026-08-20, found by I-1 live proof)
+`citation_filter.py` `_CITATION_TOKEN_RE` (:114-120) matches `"Fla. Stat. §"`, `"Florida Statutes"` (plural), and bare `"§"` — but NOT singular `"Florida Statute 627.70131"`. The I-1 live emission run showed the model naturally phrases citations that way; those strings pass through the filter with no curated-set check at all. In that run the content happened to be correctly scoped, but the filter's guarantee (Decision 4 — deterministic code guarantees what prompts can't) does not cover this phrasing, so a fabricated singular-form citation would survive. The prompt instructs the `"Fla. Stat. §"` format, which is not a guarantee. Same class: regulatory cites (`Florida Administrative Code Rule 69O-166.031`) are not matched by the filter's statute path either. Fix shape: extend the token regex alternation + tests (fabricated singular-form citation must be stripped). Recorded-not-scheduled; fold into the next citation-guard dispatch on Joe's word.
+
 ## Checker check-4 debt — 7 frontend disclaimer duplicates (2026-08-20, recorded from the invisible-debt audit)
 Decision 3 makes `apply_disclaimer` canonical; the checker's check 4 still flags 7 frontend pages hardcoding their own disclaimer string: `LandlordTenantFL.tsx:110`, `PoliceReportAnalyzer.tsx:992`, `PropertyCasualtyExplainer.tsx:510`, `SmallClaimsExplainer.tsx:447`, `SmallClaimsFL.tsx:46`, `TrafficFL.tsx:57`, `WillsTrustsExplainer.tsx:615`. This is the standing checker BASELINE (7 violations across 6 checks). Not blockers; the pages must consume the canonical disclaimer (backend-provided) or the checker baseline must be amended by decision. Recorded-not-scheduled.
 
