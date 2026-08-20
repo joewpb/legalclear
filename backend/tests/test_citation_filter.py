@@ -112,14 +112,14 @@ def test_pc_json_strings_does_not_touch_key_deadlines_governing_rule():
     """key_deadlines is code-declared (deadline/compute.py) and gets
     overwritten wholesale after this filter runs in the agent — but the
     helper itself is a generic recursive string filter, so a governing_rule
-    string that happens to be an uncurated real citation (e.g. the P&C
-    engine's own "Fla. Stat. § 627.70132") would be stripped if it were ever
+    string that happens to be an uncurated citation (e.g. "Fla. Stat. §
+    627.428", not in the P&C curated set) would be stripped if it were ever
     passed through here. This documents why the agent code applies the
     filter BEFORE overwriting key_deadlines, never after.
     """
-    parsed = {"key_deadlines": [{"governing_rule": "Fla. Stat. § 627.70132"}]}
+    parsed = {"key_deadlines": [{"governing_rule": "Fla. Stat. § 627.428"}]}
     result = _filter_citation_json_strings(parsed, "property_casualty")
-    assert "627.70132" not in result["key_deadlines"][0]["governing_rule"]
+    assert "627.428" not in result["key_deadlines"][0]["governing_rule"]
 
 # Per-surface wiring smoke tests (Dispatch J4-2)
 #

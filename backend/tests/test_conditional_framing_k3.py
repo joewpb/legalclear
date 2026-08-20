@@ -72,10 +72,13 @@ def test_property_casualty_first_party_prompt_has_conditional_framing():
     _assert_no_bare_directives(property_casualty._FIRST_PARTY_SYSTEM_PROMPT)
 
 
-def test_property_casualty_first_party_prompt_does_not_cite_unowned_statutes():
+def test_property_casualty_first_party_prompt_cites_from_curated_set_only():
+    """Dispatch I-1 replaced the K3 'cite nothing' instruction with a
+    cite-from-the-P&C-curated-set instruction — the prompt now references
+    the curated chapters/sections by name, but only ever the curated ones."""
     text = property_casualty._FIRST_PARTY_SYSTEM_PROMPT
-    assert "627." not in text
-    assert "95.11" not in text
+    assert "curated set" in text
+    assert "Never cite outside the owned corpus" in text
 
 
 def test_property_casualty_first_party_prompt_develops_non_pursuit_branch():

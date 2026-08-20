@@ -55,10 +55,13 @@ def _statute_curated_keys() -> frozenset[str]:
     global _STATUTE_CURATED_KEYS
     if _STATUTE_CURATED_KEYS is None:
         from src.agents.eviction_citations import EVICTION_CURATED_CITATIONS
+        from src.agents.pc_citations import PC_CURATED_CITATIONS
         from src.agents.small_claims_citations import SMALL_CLAIMS_CURATED_CITATIONS
 
         _STATUTE_CURATED_KEYS = frozenset(
-            set(SMALL_CLAIMS_CURATED_CITATIONS) | set(EVICTION_CURATED_CITATIONS)
+            set(SMALL_CLAIMS_CURATED_CITATIONS)
+            | set(EVICTION_CURATED_CITATIONS)
+            | set(PC_CURATED_CITATIONS)
         )
     return _STATUTE_CURATED_KEYS
 
