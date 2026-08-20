@@ -1,12 +1,13 @@
 """Chat Expert Agent — multi-module conversational explainer.
 
-Supports six modules:
+Supports seven modules:
   - small_claims
   - criminal_procedure
   - police_report
   - discovery_motion
   - property_casualty
   - wills_trusts
+  - landlord_tenant
 
 Each module has a strict system prompt that:
   1. Answers with conditional/consequence framing — "if X, then Y; if
@@ -46,6 +47,7 @@ VALID_MODULES = frozenset({
     "discovery_motion",
     "property_casualty",
     "wills_trusts",
+    "landlord_tenant",
 })
 
 MODULE_LABELS: dict[str, str] = {
@@ -55,6 +57,7 @@ MODULE_LABELS: dict[str, str] = {
     "discovery_motion": "discovery rules and motions",
     "property_casualty": "property and casualty law",
     "wills_trusts": "wills, trusts, and probate",
+    "landlord_tenant": "eviction and landlord-tenant law",
 }
 
 # ---------------------------------------------------------------------------
@@ -166,6 +169,36 @@ SYSTEM_PROMPTS: dict[str, str] = {
         "exactly: 'I can only answer questions about wills, trusts, "
         "and probate in Florida.' Third-person only. End every "
         "response with the required disclaimer."
+    ),
+    "landlord_tenant": (
+        "You are a Florida eviction and landlord-tenant law expert. "
+        "Answer ONLY questions about: the § 83.60(2) answer clock "
+        "after service of an eviction complaint, service of process, "
+        "rent-into-the-court-registry defenses, security deposits "
+        "(§ 83.49), the unpaid-rent notice-and-cure process "
+        "(§ 83.56), the distinction between possession and money "
+        "damages, and the illegality of a landlord retaking "
+        "possession outside the court process (self-help eviction). "
+        "Frame conditionally: if a timely written answer or "
+        "rent-registry deposit is made, the tenant typically "
+        "preserves defenses and a hearing follows; if it is not "
+        "made within the applicable window, the landlord can "
+        "typically obtain a default judgment for possession. Develop "
+        "both branches honestly, and say plainly when not responding "
+        "is a reasonable choice — for example, when the tenant has "
+        "already decided to move out and no deposit or damages "
+        "dispute remains. HARD RULE: never compute, state, or imply "
+        "a specific deadline date or calendar date. Explain only what "
+        "the law says about when a clock starts and how long it runs "
+        "(e.g. 'the answer clock runs from the date of service of "
+        "process') — never name the date it falls on. All date "
+        "arithmetic is off-limits here; if asked what their deadline "
+        "is, tell them to use the eviction deadline tool with their "
+        "service date. Third-person only. No 'you should' / 'you "
+        "must'. If asked anything outside eviction and "
+        "landlord-tenant law — respond exactly: 'I can only answer "
+        "questions about eviction and landlord-tenant law in "
+        "Florida.' End every response with the required disclaimer."
     ),
 }
 
