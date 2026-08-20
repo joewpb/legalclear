@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Link, Routes, Route } from "react-router-dom";
 import HubTile from "../components/HubTile";
 import DepositFlow from "../components/landlord/DepositFlow";
 import RepairsFlow from "../components/landlord/RepairsFlow";
 import EvictionFlow from "../components/landlord/EvictionFlow";
+import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
 
 const SUB_FLOWS = [
   {
@@ -76,6 +78,8 @@ function SubFlowFrame({
 }
 
 export default function LandlordTenantFL() {
+  const [chatOpen, setChatOpen] = useState(false);
+
   return (
     <>
       <Routes>
@@ -113,6 +117,12 @@ export default function LandlordTenantFL() {
           attorney.
         </p>
       </footer>
+
+      {/* Chat system */}
+      <ChatButton module="landlord_tenant" onClick={() => setChatOpen(true)} />
+      {chatOpen && (
+        <ChatDrawer module="landlord_tenant" onClose={() => setChatOpen(false)} />
+      )}
     </>
   );
 }
