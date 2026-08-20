@@ -105,42 +105,120 @@ def _curated_keys() -> frozenset[str]:
     return frozenset(_statute_curated_keys() | _REGISTERED_RULE_KEYS)
 
 # Citation-shaped token patterns. Conservative by design: every alternative
-# requires an explicit citation marker ("Fla. Stat.", "Florida Statutes",
-# "§", or a "Fla. R. ... P." / "Fla. Sm. Cl. R." / "Fla. R. Gen. Prac. & Jud.
-# Admin." rule prefix) followed by a numeric section pattern — plain prose
-# mentioning "§" with no number after it (e.g. "The § symbol in a
-# contract.") never matches.
+# requires an explicit citation marker ("Fla. Stat.", "Fla. Stats.",
+# "Florida Statute(s)", "F.S.", "§", a trailing "section N, Florida
+# Statutes" phrase, a "Fla. R. ... P." / "Fla. Sm. Cl. R." / "Fla. R. Gen.
+# Prac. & Jud. Admin." rule prefix, or a Florida Administrative Code rule
+# marker) followed by a numeric section pattern — plain prose mentioning "§"
+# with no number after it (e.g. "The § symbol in a contract.") never
+# matches.
 _SECTION_NUM = r"\d+(?:\.\d+)*(?:\(\w+\))*"
+# Admin Code rule numbers carry a leading agency-code letter/hyphen shape
+# ("69O-166.031") that bare statute sections never do.
+_ADMIN_NUM = r"\d+[A-Za-z]?-\d+(?:\.\d+)*(?:\(\w+\))*"
+# Every word/abbreviation form the models use for "Fla. Stat." — merged into
+# one alternative so each new phrasing doesn't need its own top-level branch.
+_STATUTE_PREFIX = (
+    r"(?:Fla\.\s*Stats?\.\s*(?:§\s*)?"
+    r"|Florida\s+Statutes?\s*(?:§\s*)?"
+    r"|F\.S\.\s*(?:§\s*)?)"
+)
 _CITATION_TOKEN_RE = re.compile(
-    r"(?:Fla\.\s*Stat\.\s*(?:§\s*)?" + _SECTION_NUM + r")"
-    r"|(?:Florida\s+Statutes\s*(?:§\s*)?" + _SECTION_NUM + r")"
+    r"(?:" + _STATUTE_PREFIX + _SECTION_NUM + r")"
+    # "section 626.9541, Florida Statutes" / "Section 626.9541 of the
+    # Florida Statutes" — the number comes before the statute marker.
+    r"|(?:(?:section|sec\.)\s+" + _SECTION_NUM + r"\s*(?:,\s*|\s+of\s+(?:the\s+)?)Florida\s+Statutes?)"
     r"|(?:§\s*" + _SECTION_NUM + r")"
-    r"|(?:Fla\.\s*R\.\s*Gen\.\s*Prac\.\s*&\s*Jud\.\s*Admin\.\s*" + _SECTION_NUM + r")"
-    r"|(?:Fla\.\s*R\.\s*(?:Civ\.|Crim\.|App\.|Fam\.\s*L\.|Jud\.\s*Admin\.|Prob\.)?\s*R?\.?\s*P\.\s*" + _SECTION_NUM + r")"
-    r"|(?:Fla\.\s*Sm\.\s*Cl\.\s*R\.\s*" + _SECTION_NUM + r")",
+    r"|(?:(?:Fla\.\s*)?R\.\s*Gen\.\s*Prac\.\s*&\s*Jud\.\s*Admin\.\s*" + _SECTION_NUM + r")"
+    r"|(?:(?:Fla\.\s*)?R\.\s*(?:Civ\.|Crim\.|App\.|Fam\.\s*L\.|Jud\.\s*Admin\.|Prob\.)?\s*R?\.?\s*P\.\s*" + _SECTION_NUM + r")"
+    r"|(?:(?:Fla\.\s*)?Sm\.\s*Cl\.\s*R\.\s*" + _SECTION_NUM + r")"
+    r"|(?:(?:Fla\.\s*)?Prob\.\s*R\.\s*" + _SECTION_NUM + r")"
+    # Florida Administrative Code rule cites — matched so the filter can
+    # strip them; there is no regulatory curated set, so these never
+    # resolve and are always removed.
+    r"|(?:(?:Fla\.\s*Admin\.\s*Code\s*R(?:ule)?\.?|Florida\s+Administrative\s+Code\s+Rule|F\.A\.C\.)\s*" + _ADMIN_NUM + r")",
     re.IGNORECASE,
 )
+
+# A bare "N.NNN" chapter-dot-section shape with no citation marker at all is
+# only citation-shaped when it sits next to statute language — otherwise
+# it's indistinguishable from an ordinary decimal number in prose.
+_BARE_SECTION_NUM_RE = re.compile(r"\b\d{1,4}\.\d{2,5}\b")
+_STATUTE_LANGUAGE_RE = re.compile(r"florida|statute|section|chapter", re.IGNORECASE)
+_BARE_NUM_CONTEXT_WINDOW = 30
 
 # Longest realistic citation token (a rule cite with a two-level subsection
 # suffix) is well under this — used to bound how far back a streaming
 # consumer must look for a not-yet-complete token near the buffer tail.
 _MAX_TOKEN_LEN = 60
-_TRIGGER_RE = re.compile(r"Fla\.?|Florida|§", re.IGNORECASE)
+_TRIGGER_RE = re.compile(r"Fla\.?|Florida|F\.S\.|section|sec\.|§", re.IGNORECASE)
 
 _TRAILING_SUFFIX_RE = re.compile(r"(?:\(\w+\)\s*)+$")
+
+# Word/abbreviation forms of "Fla. Stat." that appear AFTER the section
+# number ("section N, Florida Statutes") — rewritten to the canonical
+# leading form before normalization so lookup works the same as every other
+# phrasing.
+_TRAILING_STAT_ALIAS_RE = re.compile(
+    r"^(?:section|sec\.)\s+(?P<num>" + _SECTION_NUM + r")\s*"
+    r"(?:,\s*|\s+of\s+(?:the\s+)?)Florida\s+Statutes?\.?$",
+    re.IGNORECASE,
+)
+# Word/abbreviation forms that appear BEFORE the section number — rewritten
+# to "Fla. Stat. §" so normalize_citation's existing "Fla. Stat." handling
+# covers them without needing its own alias logic.
+_LEADING_STAT_ALIAS_RE = re.compile(
+    r"^(?:Florida\s+Statutes?|F\.S\.|Fla\.\s*Stats?\.)\s*",
+    re.IGNORECASE,
+)
+
+
+def _canonicalize_statute_alias(value: str) -> str:
+    """Rewrite any word/abbreviation phrasing of a statute citation to the
+    canonical "Fla. Stat. § N" shape ``normalize_citation`` already
+    understands, for lookup purposes only.
+    """
+    trailing = _TRAILING_STAT_ALIAS_RE.match(value)
+    if trailing:
+        return f"Fla. Stat. § {trailing.group('num')}"
+    leading = _LEADING_STAT_ALIAS_RE.match(value)
+    if leading:
+        rest = value[leading.end():].strip().lstrip("§").strip()
+        return f"Fla. Stat. § {rest}"
+    return value
 
 
 def _base_citation(matched_value: str) -> str:
     """Strip a trailing subsection suffix (one or more "(...)" groups) from
-    a matched citation token, for lookup purposes only — never mutates what
-    gets emitted when the token is kept.
+    a matched citation token, then canonicalize word/abbreviation statute
+    phrasings, for lookup purposes only — never mutates what gets emitted
+    when the token is kept.
     """
-    return _TRAILING_SUFFIX_RE.sub("", matched_value.strip()).strip()
+    stripped = _TRAILING_SUFFIX_RE.sub("", matched_value.strip()).strip()
+    return _canonicalize_statute_alias(stripped)
 
 
 def _resolves(matched_value: str) -> bool:
     base = _base_citation(matched_value)
     return normalize_citation(base) in _curated_keys()
+
+
+def _bare_number_tokens(text: str, consumed: list[tuple[int, int]]) -> list[tuple[int, int, str]]:
+    """Find bare "N.NNN" numbers that sit within ``_BARE_NUM_CONTEXT_WINDOW``
+    characters of statute language, skipping spans already claimed by the
+    main token regex.
+    """
+    found = []
+    for m in _BARE_SECTION_NUM_RE.finditer(text):
+        start, end = m.span()
+        if any(cs <= start < ce for cs, ce in consumed):
+            continue
+        ctx_start = max(0, start - _BARE_NUM_CONTEXT_WINDOW)
+        ctx_end = min(len(text), end + _BARE_NUM_CONTEXT_WINDOW)
+        context = text[ctx_start:start] + text[end:ctx_end]
+        if _STATUTE_LANGUAGE_RE.search(context):
+            found.append((start, end, m.group(0)))
+    return found
 
 
 def filter_citations_text(text: str, agent_name: str) -> str:
@@ -154,13 +232,15 @@ def filter_citations_text(text: str, agent_name: str) -> str:
     if not text:
         return text
 
+    main_matches = [(m.start(), m.end(), m.group(0)) for m in _CITATION_TOKEN_RE.finditer(text)]
+    bare_matches = _bare_number_tokens(text, [(s, e) for s, e, _ in main_matches])
+    all_matches = sorted(main_matches + bare_matches, key=lambda t: t[0])
+
     pieces: list[str] = []
     last_end = 0
-    for m in _CITATION_TOKEN_RE.finditer(text):
-        start, end = m.span()
+    for start, end, value in all_matches:
         if start < last_end:
             continue
-        value = m.group(0)
         if _resolves(value):
             continue
         ctx_start = max(0, start - 60)
