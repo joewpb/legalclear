@@ -1,8 +1,8 @@
 # REMEDIATION_PLAN.md
 ### LegalClear — post-audit remediation, phased.
 **Written:** 2026-08-14 · **Owner:** Joe · **Executor:** Hermes
-**Current state:** Phases A–H COMPLETE (2026-08-17) · origin/main = afda816 ·
-G1, G2, G3, G4, G5 CLOSED · Phase I recorded-only, not scoped
+**Current state:** Phases A–H COMPLETE (2026-08-17) · origin/main tracked live in STATUS.md (see repo root — the sync ledger; this header updated 2026-08-20, last known main a9cb141)
+G1, G2, G3, G4, G5 CLOSED · Phase I scoped 2026-08-20 (9 slices, I-1 first), awaiting build
 
 ---
 

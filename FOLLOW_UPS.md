@@ -1,6 +1,18 @@
 # Follow-ups
 
-- S1-3: upsert-by-email in `attorney_referral.py:upsert_user` still overwrites an
+## Checker check-4 debt — 7 frontend disclaimer duplicates (2026-08-20, recorded from the invisible-debt audit)
+Decision 3 makes `apply_disclaimer` canonical; the checker's check 4 still flags 7 frontend pages hardcoding their own disclaimer string: `LandlordTenantFL.tsx:110`, `PoliceReportAnalyzer.tsx:992`, `PropertyCasualtyExplainer.tsx:510`, `SmallClaimsExplainer.tsx:447`, `SmallClaimsFL.tsx:46`, `TrafficFL.tsx:57`, `WillsTrustsExplainer.tsx:615`. This is the standing checker BASELINE (7 violations across 6 checks). Not blockers; the pages must consume the canonical disclaimer (backend-provided) or the checker baseline must be amended by decision. Recorded-not-scheduled.
+
+## Orin staged rule sets — loaded decision, unloaded remainder (2026-08-20)
+Orin's 2026-08-18 harvest staged 9 rule sets. Loaded to `court_rules`: criminal 3.x (156), small_claims 7.x (25), general_practice 2.x (57 incl. 2.514), civil_procedure 1.280–1.400 (14). Staged but deliberately NOT loaded: traffic (43), juvenile (207), svp_commitment (25), and fuller appellate (55) + probate (123) parses. Reasoning: the substantive sets already in prod are verified against official PDFs (Decision 14 best-side merge applied), and loading Orin's other parses would replace verified text with unverified text; the FORM rows were routed to `court_forms` instead (22 inserted, 8 skipped). Staged files remain on Orin at `~/legal_data/fl_harvest/data/stage/`. Revisit only if traffic/juvenile/svp modules ever exist.
+
+## Intermittent JSONDecodeError in structured-output parsing (2026-08-20)
+During the seven-surface emission measurement, multiple agent runs died on malformed LLM JSON before the CitationFilter ever saw the text (discovery and wills runs each failed at least once; outputs vary run-to-run). AGENTS.md §5 requires strip-fences + retry-once before raising; the failure mode appears mid-stream and is intermittent, not prompt-deterministic. Needs its own investigation: which agents parse JSON how, whether retry-once is actually wired on every path, and whether a bounded-repair fallback is warranted. Recorded-not-scheduled.
+
+## Upload pipeline has no rate limit (2026-08-20, from the rate-limit enumeration)
+`routes.py:249 /api/upload` + `process_document:299` run classifier, risk_scanner, scanner, explainer, form_guide, and the expungement analyzer — the heaviest LLM surface in the product — with NO limiter. Every other LLM route is 10/min (RL-2). Fix is one decorator; Joe rules whether it rides G2 or lands standalone.
+
+## S1-3: upsert-by-email in `attorney_referral.py:upsert_user` still overwrites an
   existing profile found by client-supplied `email` with no verification (e.g. email
   ownership confirmation). Out of scope for this fix per DECISIONS.md; needs a
   verification step (e.g. magic link) before it can upsert by email.
