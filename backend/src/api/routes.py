@@ -246,6 +246,7 @@ async def subscribe(user_id: str, email: str, success_url: str, cancel_url: str)
     return stripe_client.create_subscription_checkout(email, user_id, success_url, cancel_url)
 
 @app.post("/upload", dependencies=[Depends(verify_api_key)])
+@limiter.limit("10/minute")
 async def upload_document(
     request: Request,
     user_id: str = Header(),

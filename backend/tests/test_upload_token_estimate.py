@@ -9,11 +9,33 @@ import os
 import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from starlette.requests import Request
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.api import routes  # noqa: E402
 import src.ingestion as ingestion_module  # noqa: E402
 from src.ingestion import ingest_document  # noqa: E402
+
+
+def _real_request(body: bytes) -> Request:
+    scope = {
+        "type": "http",
+        "method": "POST",
+        "path": "/upload",
+        "raw_path": b"/upload",
+        "headers": [(b"x-api-key", b"test")],
+        "query_string": b"",
+        "client": ("127.0.0.1", 50000),
+        "server": ("testserver", 80),
+        "scheme": "http",
+        "state": {},
+    }
+
+    async def _receive():
+        return {"type": "http.request", "body": body, "more_body": False}
+
+    return Request(scope, receive=_receive)
 
 
 class _FakeRequest:
@@ -71,7 +93,7 @@ async def _run_upload_stores_real_token_estimate():
         mock_db.create_document = MagicMock(return_value="document-1")
 
         await routes.upload_document(
-            request=_FakeRequest(b"%PDF-fake-bytes"),
+            request=_real_request(b"%PDF-fake-bytes"),
             user_id="user-1",
             filename="doc.pdf",
             email="user@example.com",
