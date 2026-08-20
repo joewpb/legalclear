@@ -107,7 +107,7 @@ Per instruction, listed only; contents not analyzed.
 
 ## 3. TRACEABILITY MATRIX
 
-Sources of promise: SL = SPEC_LEDGER.md, IP = INTEGRATION_PLAN.md, VL = phases/V2_LEDGER.md, ST = STATUS.md, RM = README.md, GH = git history (commit SHA). "Prod DB" = read-only row-count/existence check against Supabase `miedifclpqewnixxkahs` on 2026-08-13.
+Sources of promise: SL = SPEC_LEDGER.md, IP = INTEGRATION_PLAN.md, VL = phases/V2_LEDGER.md, ST = BUILD_STATUS.md, RM = README.md, GH = git history (commit SHA). "Prod DB" = read-only row-count/existence check against Supabase `miedifclpqewnixxkahs` on 2026-08-13.
 
 "Reachable in UI" asserted only where the chain route→component→nav link was traced in `frontend/src/App.tsx` + `pages/HomeHub.tsx:31-42` (12 tiles) or an in-page link.
 
@@ -145,7 +145,7 @@ Sources of promise: SL = SPEC_LEDGER.md, IP = INTEGRATION_PLAN.md, VL = phases/V
 | 30 | PII redaction | VL P1 | `ingestion/pii_redactor.py`, wired at `routes.py:363` | n/a | inside `/process` | n/a | n/a | `test_pii_redactor.py` (21) | **WORKING** |
 | 31 | Eval harness + launch gate | VL P7 | `evals/run_all.py` | locked `ground_truth.json` — git history: single creating commit `714b054`, never edited | CI `eval-deadline.yml` | n/a | ran live: **34/34 fatal PASS** | — | **WORKING** |
 | 32 | Reminder email delivery (Resend) | memory/VL open gap | `notifications.py:68-105` — returns False always; `TODO(email)` `:98` | n/a | — | — | — | `test_notifications.py` | **MISSING** (honest stub, correctly documented as such) |
-| 33 | React Native (Expo) mobile app | ST v1 P13 "✅ DEPLOYED" | **`mobile/` is empty** (0 files) | push_tokens 0 rows | `/user/*/push-token` exists | n/a | n/a | none | **PHANTOM** — STATUS.md claims DEPLOYED; nothing exists |
+| 33 | React Native (Expo) mobile app | ST v1 P13 "✅ DEPLOYED" | **`mobile/` is empty** (0 files) | push_tokens 0 rows | `/user/*/push-token` exists | n/a | n/a | none | **PHANTOM** — BUILD_STATUS.md claims DEPLOYED; nothing exists |
 | 34 | Compliance framework | `routes.py:126-141` gating | `compliance/` package (own pyproject) | n/a | `/compliance/*` mounted only if importable | none | ✗ | own tests dir | **CODED_NOT_WIRED** — not in `requirements.txt`, so never installed on Railway; router never mounts in prod |
 | 35 | ES (Spanish) i18n end-to-end | CLAUDE.md, VL | `core/i18n`, disclaimers EN/ES; opinion corpus EN-only w/ honesty stamp (SL §7) | n/a | `language` params present | `react-i18next` | partially | some | **PARTIAL / UNVERIFIED** — plumbing exists everywhere checked; no end-to-end ES verification performed in this audit |
 | 36 | Top-level `POST /eligibility` | IP #22 "DARK — delete" | `routes.py:165` — LLM-backed (`expungement.check_eligibility`), **no auth, no rate limit** | n/a | yes | only dead `ExpungementPage.jsx:44` (unrouted) | ✗ | — | **CODED_NOT_WIRED** — dead endpoint + dead caller pair, both still present; now also an open LLM cost surface |
@@ -220,7 +220,7 @@ Sources of promise: SL = SPEC_LEDGER.md, IP = INTEGRATION_PLAN.md, VL = phases/V
 | circuit closures seed (~90 rows, 2026–27) | migration 20260808 | **not applied** (9 statewide rows only, created 2026-05-19) | circuit-specific deadline adjustments impossible |
 | `citation_treatment` | migration 20260812 | exists, **0 rows** | feature ships UI with no data behind it |
 | `legal_opinions` | migration 20260703 (759-era) | **425,850 rows** | corpus grew 560× via out-of-band ingestion — no migration/script in repo records how prod got these rows |
-| `billing_events` | claimed in STATUS.md "v2 tables" | never in any migration, never in code | pure documentation fiction |
+| `billing_events` | claimed in BUILD_STATUS.md "v2 tables" | never in any migration, never in code | pure documentation fiction |
 | `deadlines`/`trigger_events`/`deadline_reminders`/`push_tokens` | full schema + RLS | exist, **0 rows ever** | core pipeline never executed in prod |
 | RLS | all Phase-1 tables have policies | `documents` verified: anon sees 0/45 ✓ | `user_profiles`/`attorney_inquiries`/`citation_treatment` migrations contain **no RLS** (`citation_treatment` confirmed anon-readable in prod, harmless today because public-ish data + 0 rows; the other two become a PII leak the day their migration is applied) |
 
@@ -256,7 +256,7 @@ Sources of promise: SL = SPEC_LEDGER.md, IP = INTEGRATION_PLAN.md, VL = phases/V
 - Email delivery: honest stub, honestly labeled (`notifications.py`) — the *docs* (V2_LEDGER P6 "COMPLETE") oversell it.
 - Expungement `/eligibility`: hardcoded JSON substring matching presented as the product's eligibility check; TODO references a phantom "Phase 07 … v1.1" (`expungement.py:58`).
 - Citation treatment: fully-built UI + query path over a permanently-empty prod table — functionally a stub in production.
-- STATUS.md "React Native (Expo) ✅ DEPLOYED" over an empty directory — the starkest stub-as-done.
+- BUILD_STATUS.md "React Native (Expo) ✅ DEPLOYED" over an empty directory — the starkest stub-as-done.
 
 ### 4.13 Dependency reality
 
@@ -318,7 +318,7 @@ Sources of promise: SL = SPEC_LEDGER.md, IP = INTEGRATION_PLAN.md, VL = phases/V
 
 ### 5.3 Collateral documents (context, briefer)
 
-- **STATUS.md**: claims React Native DEPLOYED (empty dir), `billing_events` table (never existed), duplicate/conflicting numbering in its own open-items table (#8-#10 appear twice), form counts stale (443 vs prod 426 published).
+- **BUILD_STATUS.md**: claims React Native DEPLOYED (empty dir), `billing_events` table (never existed), duplicate/conflicting numbering in its own open-items table (#8-#10 appear twice), form counts stale (443 vs prod 426 published).
 - **V2_LEDGER.md**: improvement C "99 closure entries … MERGED" — merged to git, never applied to prod; P6 "COMPLETE" overstates a stub-backed reminder system; "Refactor agent re-enabled (cron …)" describes infrastructure outside the repo.
 - **README.md**: v2 badge says "in progress" while V2_LEDGER/STATUS say all complete — pick one.
 
@@ -380,7 +380,7 @@ Severity per the agreed scale. **Blast radius** = what could break if fixed care
 |---|---|---|
 | S5-1 | SPEC_LEDGER stale/false claims (§5.1 items 1–8) | Phase 3 rebuild |
 | S5-2 | INTEGRATION_PLAN never closed out; now misleads (§5.2) | Phase 3 rebuild: split immutable audit from living plan |
-| S5-3 | STATUS.md phantom claims (RN app, billing_events, dup numbering) | Correct or retire in favor of ledgers |
+| S5-3 | BUILD_STATUS.md phantom claims (RN app, billing_events, dup numbering) | Correct or retire in favor of ledgers |
 | S5-4 | V2_LEDGER P6 "COMPLETE" + improvement C "MERGED" overstate prod reality | Annotate with prod-verified status |
 | S5-5 | README v2 badge conflicts with ledgers | Align |
 | S5-6 | CLAUDE.md ".env.example has all required env var names" false | Fix alongside S4-7 |
@@ -408,7 +408,7 @@ Severity per the agreed scale. **Blast radius** = what could break if fixed care
 5. **Citation treatment:** did you intend to run `scripts/` extractors against prod before exposing the good-law UI? Empty-table-behind-live-UI is arguably worse than no feature (absence of negative treatment reads as endorsement).
 6. **Attorney referral + Find Legal Help unreachable:** soft-launch on purpose (direct URL only), or was the nav tile forgotten?
 7. **`deadlines` = 0 rows:** consistent with "no real users yet," or do Railway logs show `/api/deadline/analyze` attempts failing? I can't see prod logs; this distinguishes "unused" from "broken."
-8. **Mobile app:** STATUS.md claims Phase 13 deployed; `mobile/` is empty. Was it built elsewhere and never committed, or abandoned? Determines fate of `/user/*` push-token routes.
+8. **Mobile app:** BUILD_STATUS.md claims Phase 13 deployed; `mobile/` is empty. Was it built elsewhere and never committed, or abandoned? Determines fate of `/user/*` push-token routes.
 9. **Orin box:** keep the SSH fallback (dev-only convenience) or remove now that the corpus lives in Supabase?
 10. **Compliance package:** future workstream or graveyard? It's the only conditionally-mounted router.
 11. **Intent for `/api/triage` and `/api/analyze` routers:** IP marked both "AMBIGUOUS — decide" in July; still undecided. Retire or adopt?

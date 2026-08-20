@@ -18,6 +18,9 @@ import re
 import sys
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parent.parent
+STATUS_PATH = ROOT / "STATUS.md"
+
 REPO = Path(__file__).resolve().parent.parent
 LEDGER = REPO / "SPEC_LEDGER.md"
 
@@ -105,6 +108,21 @@ def main() -> int:
         else:
             print(f"FAIL  [grep] {label} (pattern {pattern!r} in {rel}: found={found})")
             failures += 1
+
+    # STATUS.md sync invariant: regenerate mechanical fields, then assert the
+    # tree is in sync with origin/main. A status file that can't be brought
+    # into sync (unpushed commits) fails verification — that IS the point.
+    import subprocess as sp
+
+    r = sp.run(
+        [sys.executable, str(Path(__file__).resolve().parent / "gen_status.py"), "--skip-suite"],
+        cwd=ROOT, capture_output=True, text=True,
+    )
+    checks += 1
+    status_text = STATUS_PATH.read_text() if STATUS_PATH.exists() else ""
+    if "sync: YES" not in status_text or r.returncode != 0:
+        print(f"FAIL: STATUS.md not in sync with origin/main (gen_status exit {r.returncode})")
+        failures += 1
 
     print(f"\nSUMMARY: {checks - failures}/{checks} checks passed, {failures} failed")
     return 1 if failures else 0
