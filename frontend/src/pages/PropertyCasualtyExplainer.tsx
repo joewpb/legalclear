@@ -325,6 +325,7 @@ export default function PropertyCasualtyExplainer() {
           continue;
         }
         try { const solo = JSON.parse(c);
+          if (solo.type === "session") { returnedSessionId = solo.session_id ?? returnedSessionId; if (solo.claim_regime) setResp(p => ({ ...p, claim_regime: solo.claim_regime })); continue; }
           if (solo.type === "risk_analysis") { setResp(p => ({ ...p, risk_analysis: solo })); continue; }
         } catch {}
         full += c; setRaw(full);

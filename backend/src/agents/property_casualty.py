@@ -426,6 +426,18 @@ class PropertyCasualtyExplainer:
         user_text = self._build_user_text(sub_type, entities, lang_label, doc_text, computed_deadlines)
         user_content.append({"type": "text", "text": user_text})
 
+        # ── leading metadata chunk ────────────────────────────────────
+        # session_id and claim_regime are DETERMINISTIC values the client
+        # needs for /facts and regime display. They must not ride inside the
+        # model's JSON — a token-capped/truncated answer would silently drop
+        # them (I-2c live-gate finding 2026-08-20). Emitted up front,
+        # independent of the model stream.
+        if session_id:
+            meta: dict = {"type": "session", "session_id": session_id}
+            if claim_regime:
+                meta["claim_regime"] = claim_regime
+            yield f"data: {json.dumps(meta)}\n\n"
+
         try:
             full_text = ""
             url_filter = StreamingURLFilter("property_casualty")
