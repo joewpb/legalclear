@@ -10,6 +10,7 @@ and Supabase env vars configured.
 
 Run: cd backend && uv run python scripts/gate_i2c_live.py
 """
+import json
 import sys
 from pathlib import Path
 
@@ -94,10 +95,36 @@ def case_3_unknown_escalates():
         timeout=30,
     )
     ok = explain_resp.status_code == 200
-    text = explain_resp.text.replace(" ", "")
-    ok = ok and '"regime":"unknown"' in text
-    ok = ok and "guidance" in text
-    ok = ok and '"key_deadlines"' not in text
+    # The rendered contract is the FINAL payload chunk (the client parses the
+    # last complete payload and renders it; the raw model stream is
+    # transitional). Deterministic boundary: the post-stream block pops
+    # key_deadlines when regime is unknown, so the final payload must not
+    # carry one. The leading session chunk carries regime + guidance.
+    final_payload = None
+    for line in explain_resp.text.splitlines():
+        if line.startswith("data: "):
+            candidate = line[len("data: "):]
+            try:
+                parsed = json.loads(candidate)
+            except Exception:
+                continue
+            if "session_id" not in parsed and "sub_type_identified" in parsed:
+                final_payload = parsed
+    meta_chunk = None
+    for line in explain_resp.text.splitlines():
+        if line.startswith("data: "):
+            try:
+                parsed = json.loads(line[len("data: "):])
+            except Exception:
+                continue
+            if parsed.get("type") == "session":
+                meta_chunk = parsed
+                break
+    ok = ok and meta_chunk is not None
+    ok = ok and meta_chunk.get("claim_regime", {}).get("regime") == "unknown"
+    ok = ok and "guidance" in json.dumps(meta_chunk)
+    ok = ok and (final_payload is None or "key_deadlines" not in final_payload)
+    text = json.dumps(meta_chunk)[:500]
     _report("3. Unknown (absent) -> escalated, regime unknown, guidance present, no regime content", ok, explain_resp.text[:500])
     return session_id
 
