@@ -27,13 +27,30 @@ from anthropic import AsyncAnthropic
 
 from src.agents.police_report_v2 import compute_risk_score
 from src.core.citation_filter import StreamingCitationFilter, filter_citations_text
+from src.core.claim_regime import resolve_regime
 from src.core.config import settings
 from src.core.json_utils import strip_markdown_fences
 from src.core.upl import apply_disclaimer
 from src.core.url_filter import StreamingURLFilter, filter_json_strings
 from src.ingestion.pdf_parser import PDFParser
+from src.memory.db import DatabaseManager
 
 logger = logging.getLogger(__name__)
+
+# I-2c — Decision 13 conditional framing: explains the fork the inception
+# date determines rather than instructing the user what to do. Surfaced when
+# no policy_inception_date is on file for the session (claim_facts
+# absent/null) — regime stays "unknown", no regime-specific content is
+# selected (I-3 wires the actual rule-set fork).
+GUIDANCE_UNKNOWN_POLICY_INCEPTION = (
+    "Which statutory deadlines apply depends on when the policy began. If "
+    "the policy began on or after 2022-12-16, the SB 2-A deadlines apply — "
+    "7 days for the insurer to acknowledge the claim, 60 days to pay or "
+    "deny it. If it began before 2022-12-16, the older deadlines applied "
+    "instead. The policy inception date is on the declarations page of the "
+    "policy; it can also be found in the full policy documents or by "
+    "asking the insurance carrier."
+)
 
 
 def _filter_citation_json_strings(obj, agent_name: str):
@@ -197,6 +214,25 @@ class PropertyCasualtyExplainer:
         self.client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
         self.model = "claude-sonnet-4-6"
         self._pdf_parser = PDFParser()
+        self._db = DatabaseManager()
+
+    def _resolve_claim_regime(self, session_id: str) -> dict:
+        """I-2c — resolve pre/post/unknown from the user-supplied policy
+        inception date on file for this session (Option A ruling
+        2026-08-20: claim_facts is keyed by session_id, never by entities
+        passed in on the request). The explain flow always has a session
+        by the time this is called (existing session or one just created),
+        so this always returns a dict — "not applicable" no longer exists.
+
+        provenance is always 'user_supplied' — see claim_facts.
+        """
+        fact = self._db.get_claim_fact(session_id)
+        inception = fact.get("policy_inception_date") if fact else None
+        inception_date = date.fromisoformat(inception) if inception else None
+        regime = resolve_regime(inception_date)
+        if regime == "unknown":
+            return {"regime": "unknown", "guidance": GUIDANCE_UNKNOWN_POLICY_INCEPTION}
+        return {"regime": regime}
 
     # ── content builders ────────────────────────────────────────────────
 
@@ -341,6 +377,7 @@ class PropertyCasualtyExplainer:
         language: str = "en",
         file_bytes: bytes | None = None,
         filename: str | None = None,
+        session_id: str | None = None,
     ) -> AsyncGenerator[str, None]:
         """Stream a property/casualty explanation as SSE chunks."""
         lang_label = "Spanish" if language == "es" else "English"
@@ -348,9 +385,14 @@ class PropertyCasualtyExplainer:
         doc_text: str | None = None
         is_first_party = sub_type == "first_party_property"
 
+        # ── I-2c: resolve claim regime from the user-supplied policy
+        # inception date, keyed by session_id (Option A ruling 2026-08-20).
+        # {"regime": "unknown", ...} means checked-and-absent — escalate.
+        claim_regime = self._resolve_claim_regime(session_id) if session_id else None
+
         # ── first-party: compute deadlines from date_of_loss ─────────
         computed_deadlines: list[dict] | None = None
-        if is_first_party:
+        if is_first_party and not (claim_regime and claim_regime["regime"] == "unknown"):
             loss_date = self._parse_date_of_loss(entities)
             if loss_date:
                 computed_deadlines = self._compute_deadlines(loss_date)
@@ -411,6 +453,10 @@ class PropertyCasualtyExplainer:
                 parsed = _filter_citation_json_strings(parsed, "property_casualty")
                 if is_first_party and computed_deadlines:
                     parsed["key_deadlines"] = computed_deadlines
+                if claim_regime:
+                    parsed["claim_regime"] = claim_regime
+                if session_id:
+                    parsed["session_id"] = session_id
                 # ── Compute risk score from watch_out_for ──
                 all_findings = [
                     {"severity": w.get("severity", "low"), "description": w.get("description", w if isinstance(w, str) else "")}
@@ -439,6 +485,7 @@ class PropertyCasualtyExplainer:
         language: str = "en",
         file_bytes: bytes | None = None,
         filename: str | None = None,
+        session_id: str | None = None,
     ) -> dict:
         """Non-streaming explanation."""
         lang_label = "Spanish" if language == "es" else "English"
@@ -446,9 +493,12 @@ class PropertyCasualtyExplainer:
         doc_text: str | None = None
         is_first_party = sub_type == "first_party_property"
 
+        # ── I-2c: resolve claim regime (see explain_stream for contract) ──
+        claim_regime = self._resolve_claim_regime(session_id) if session_id else None
+
         # ── first-party: compute deadlines ──────────────────────────
         computed_deadlines: list[dict] | None = None
-        if is_first_party:
+        if is_first_party and not (claim_regime and claim_regime["regime"] == "unknown"):
             loss_date = self._parse_date_of_loss(entities)
             if loss_date:
                 computed_deadlines = self._compute_deadlines(loss_date)
@@ -484,6 +534,10 @@ class PropertyCasualtyExplainer:
             # ── Inject computed deadlines ──
             if is_first_party and computed_deadlines:
                 parsed["key_deadlines"] = computed_deadlines
+            if claim_regime:
+                parsed["claim_regime"] = claim_regime
+            if session_id:
+                parsed["session_id"] = session_id
 
             # ── Compute deterministic risk score ──
             all_findings = [

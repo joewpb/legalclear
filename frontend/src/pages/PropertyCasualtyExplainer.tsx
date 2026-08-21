@@ -47,6 +47,11 @@ interface DeadlineItem {
   computation_trace: { step: number; action: string; date: string | null; rule: string }[];
 }
 
+interface ClaimRegime {
+  regime: "pre" | "post" | "unknown";
+  guidance?: string;
+}
+
 interface ExplainResponse {
   sub_type_identified: string;
   what_this_is: string;
@@ -61,6 +66,8 @@ interface ExplainResponse {
   clarifying_questions: string[] | null;
   disclaimer: string;
   risk_analysis?: RiskAnalysis;
+  claim_regime?: ClaimRegime;              // I-2c — resolved from policy_inception_date
+  session_id?: string;                     // I-2c — Option A: explain flow creates/reuses a session
 }
 
 // ---------------------------------------------------------------------------
@@ -254,6 +261,16 @@ export default function PropertyCasualtyExplainer() {
   // (first-party only). Without it the backend cannot compute key_deadlines and
   // the "Key Deadlines" section never renders. Seeded from ?date_of_loss= if present.
   const [lossDate, setLossDate] = useState<string>(entities.date_of_loss || "");
+  // I-2c — policy inception date determines which claims-reform regime
+  // applies (SB 2-A cutoff 2022-12-16). "unknown" means the user picked
+  // "I don't know"; the backend escalates rather than guessing a regime.
+  // Option A (2026-08-20): captured via POST /facts against the session,
+  // never sent as an explain entity — see captureInceptionFact below.
+  const [inceptionDate, setInceptionDate] = useState<string>("");
+  const [inceptionUnknown, setInceptionUnknown] = useState(false);
+  // I-2c — session created/reused by the explain flow; reused for /facts
+  // capture and subsequent explain calls.
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [drag, setDrag] = useState(false);
   const [resp, setResp] = useState<Partial<ExplainResponse>>({});
   const [streaming, setStreaming] = useState(false);
@@ -268,18 +285,25 @@ export default function PropertyCasualtyExplainer() {
     const f = e.dataTransfer.files?.[0]; if (f) setFile(f);
   }, []);
 
-  const analyze = useCallback(async () => {
+  // Runs one explain call against the given session (or none, letting the
+  // backend create one) and returns the session_id the response carried.
+  const runExplain = useCallback(async (sid: string | null): Promise<string | null> => {
     setStreaming(true); setError(null); setRaw(""); setResp({});
     const base = (import.meta as any).env?.VITE_API_URL || "http://localhost:8001";
     // Merge lossDate into entities so the backend can parse date_of_loss and
     // run the deterministic deadline computation (first-party property only).
-    const effEntities = { ...entities, ...(lossDate ? { date_of_loss: lossDate } : {}) };
+    const effEntities = {
+      ...entities,
+      ...(lossDate ? { date_of_loss: lossDate } : {}),
+    };
     const fd = new FormData();
     fd.append("sub_type", subType);
     fd.append("entities_json", JSON.stringify(effEntities));
     fd.append("language", language);
     if (file) fd.append("file", file);
+    if (sid) fd.append("session_id", sid);
 
+    let returnedSessionId: string | null = null;
     try {
       const res = await fetch(`${base}/api/property-casualty/explain`, { method: "POST", body: fd });
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
@@ -308,14 +332,41 @@ export default function PropertyCasualtyExplainer() {
       }
       try {
         // Preserve risk_analysis and disclaimer from streaming updates
-        setResp(p => {
-          const parsed = JSON.parse(full);
-          return { ...parsed, risk_analysis: p.risk_analysis, disclaimer: p.disclaimer ?? parsed.disclaimer };
-        });
+        const parsed = JSON.parse(full);
+        returnedSessionId = parsed.session_id ?? null;
+        setResp(p => ({ ...parsed, risk_analysis: p.risk_analysis, disclaimer: p.disclaimer ?? parsed.disclaimer }));
       } catch { if (!full.trim()) setError("Could not parse explanation."); }
     } catch (e: any) { setError(e.message); }
     finally { setStreaming(false); }
+    return returnedSessionId;
   }, [subType, entities, lossDate, language, file]);
+
+  // I-2c / Option A — the policy inception date is captured against the
+  // session via POST /facts, never sent as an explain entity.
+  const captureInceptionFact = useCallback(async (sid: string) => {
+    const base = (import.meta as any).env?.VITE_API_URL || "http://localhost:8001";
+    await fetch(`${base}/api/property-casualty/facts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        session_id: sid,
+        policy_inception_date: inceptionUnknown ? null : (inceptionDate || null),
+      }),
+    });
+  }, [inceptionDate, inceptionUnknown]);
+
+  const analyze = useCallback(async () => {
+    const sid = await runExplain(sessionId);
+    if (!sid) return;
+    if (sid !== sessionId) setSessionId(sid);
+    // First explain call for this session — if the user already answered
+    // the inception question, capture it now and recompute so the
+    // response reflects the resolved regime instead of "unknown".
+    if (!sessionId && (inceptionDate || inceptionUnknown)) {
+      await captureInceptionFact(sid);
+      await runExplain(sid);
+    }
+  }, [runExplain, sessionId, inceptionDate, inceptionUnknown, captureInceptionFact]);
 
   const toggleCheck = (i: number) => setChecked(p => {
     const n = new Set(p); n.has(i) ? n.delete(i) : n.add(i); return n;
@@ -381,6 +432,39 @@ export default function PropertyCasualtyExplainer() {
         </div>
       )}
 
+      {/* Policy inception date — I-2c: determines which claims-reform
+          regime applies. If the policy began on or after 2022-12-16, the
+          SB 2-A deadlines apply (7 days to acknowledge, 60 days to pay or
+          deny); if it began before, the older deadlines applied. This date
+          is on the declarations page. "I don't know" is a valid answer —
+          the explanation will say what to check instead of guessing. */}
+      {!resp.what_this_is && (
+        <div style={{ marginBottom: "var(--space-2)", display: "flex",
+          flexDirection: "column", gap: 6 }}>
+          <label htmlFor="pc-inception-date" style={{ fontSize: 14, fontWeight: 500 }}>
+            Policy inception date
+          </label>
+          <input id="pc-inception-date" type="date" value={inceptionDate}
+            disabled={inceptionUnknown}
+            onChange={e => setInceptionDate(e.target.value)}
+            style={{ padding: "10px 12px", fontSize: 16, minHeight: TOUCH_MIN,
+              border: "1px solid var(--border)", borderRadius: "var(--radius)",
+              background: inceptionUnknown ? "#F5F5F5" : "#fff", color: "var(--text)" }} />
+          <label style={{ display: "flex", alignItems: "center", gap: 8,
+            fontSize: 13, color: "var(--muted)", minHeight: TOUCH_MIN }}>
+            <input type="checkbox" checked={inceptionUnknown}
+              onChange={e => { setInceptionUnknown(e.target.checked); if (e.target.checked) setInceptionDate(""); }} />
+            I don't know
+          </label>
+          <span style={{ fontSize: 12, color: "var(--muted)" }}>
+            If the policy began on or after 2022-12-16, the SB 2-A deadlines
+            apply — 7 days to acknowledge the claim, 60 days to pay or deny
+            it. If it began before, the older deadlines applied. This date
+            is on the declarations page.
+          </span>
+        </div>
+      )}
+
       {/* Analyze button — 48px touch target */}
       {!streaming && !resp.what_this_is && (
         <button style={S.btn} onClick={analyze}>Get Explanation</button>
@@ -402,8 +486,15 @@ export default function PropertyCasualtyExplainer() {
             <h2 style={S.sTitle}>What This Is</h2>
             <p style={S.body}>{resp.what_this_is}</p>
 
+            {/* ── I-2c: regime unknown — escalate, do not select regime content ── */}
+            {resp.claim_regime?.regime === "unknown" && (
+              <div style={S.clarify}>
+                <strong>Policy inception date needed.</strong> {resp.claim_regime.guidance}
+              </div>
+            )}
+
             {/* ── KEY DEADLINES — first-party only, backend-computed, rendered verbatim ── */}
-            {isFirstParty && resp.key_deadlines && resp.key_deadlines.length > 0 && (
+            {isFirstParty && resp.claim_regime?.regime !== "unknown" && resp.key_deadlines && resp.key_deadlines.length > 0 && (
               <>
                 <h2 style={S.sTitle}>Key Deadlines</h2>
                 <p style={{ fontSize: 12, color: "var(--muted)", margin: "0 0 12px" }}>

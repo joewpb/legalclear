@@ -413,6 +413,54 @@ class DatabaseManager:
             self.logger.error(f"upsert_document_service_fact failed: {e}")
             return False
 
+    # ── I-2c: claim_facts (one row per session, Option A ruling 2026-08-20) ──
+    # User-supplied policy_inception_date, mirroring B5-f3's split of
+    # user-supplied facts off any pipeline-owned table. The only caller of
+    # upsert_claim_fact is the POST /api/property-casualty/facts endpoint —
+    # see backend/tests/test_claim_facts.py for the mechanical no-write-path
+    # enforcement.
+
+    def get_claim_fact(self, session_id: str) -> dict | None:
+        """Return the claim_facts row for a session, or None if the user
+        has not supplied a policy inception date for it.
+        """
+        if self.client is None:
+            return None
+        try:
+            result = (self.client.table("claim_facts")
+                      .select("policy_inception_date,provenance")
+                      .eq("session_id", session_id)
+                      .limit(1)
+                      .execute())
+            if result.data and result.data[0].get("policy_inception_date"):
+                return result.data[0]
+            return None
+        except Exception as e:
+            self.logger.error(f"get_claim_fact failed: {e}")
+            return None
+
+    def upsert_claim_fact(self, session_id: str, policy_inception_date: str | None) -> bool:
+        """Upsert the single claim_facts row for a session.
+
+        Always sets provenance='user_supplied' — this is the only writer of
+        this table, and every write here originates from a user-supplied
+        value.
+        """
+        if self.client is None:
+            return False
+        try:
+            row = {
+                "session_id": session_id,
+                "policy_inception_date": policy_inception_date,
+                "provenance": "user_supplied",
+            }
+            self.client.table("claim_facts") \
+                .upsert(row, on_conflict="session_id").execute()
+            return True
+        except Exception as e:
+            self.logger.error(f"upsert_claim_fact failed: {e}")
+            return False
+
     def get_trigger_events_for_document(self, document_id: str) -> list[dict]:
         """Return all trigger_events rows for a document, newest first.
 
