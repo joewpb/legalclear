@@ -1,0 +1,68 @@
+name: Checks
+
+# Repo-level verification on every push to main and every PR:
+#   verify-docs        — doctrine/spec/STATUS.md consistency, including the
+#                        STATUS.md sync invariant (mechanical fields must be
+#                        regenerated or the check fails).
+#   verify-educational — educational-framing checker (7-violation baseline
+#                        allowed by the checker itself; it exits non-zero
+#                        only when violations EXCEED baseline or a gate rule
+#                        like check 6 is hit).
+# Running-and-visible, NOT required status checks (Joe 2026-08-21) — required
+# checks would block direct-to-main pushes; see the audit report for the
+# decision deferred here.
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  verify-docs:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install uv
+        run: pip install uv
+      - name: Install dependencies
+        run: uv sync
+      - name: Run verify-docs
+        working-directory: .
+        run: uv run --project backend python scripts/verify_docs.py
+
+  verify-educational:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install uv
+        run: pip install uv
+      - name: Install dependencies
+        run: uv sync
+      - name: Run verify-educational
+        working-directory: .
+        run: uv run --project backend python scripts/verify_educational.py
