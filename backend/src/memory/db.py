@@ -461,6 +461,53 @@ class DatabaseManager:
             self.logger.error(f"upsert_claim_fact failed: {e}")
             return False
 
+    # ── I-2d: claims (anonymous resumable claim codes) ──────────────────────
+    # The code itself is never persisted — only its sha256 hash. Lookups are
+    # always by hash so an unknown code and a known-but-wrong code produce
+    # identical "no row" behavior (no existence oracle).
+
+    def create_claim(self, code_hash: str, session_id: str | None) -> str | None:
+        """Create a claim row bound to a session and return its id."""
+        if self.client is None:
+            return None
+        try:
+            result = (self.client.table("claims")
+                      .insert({
+                          "code_hash": code_hash,
+                          "session_id": session_id,
+                      }).execute())
+            return result.data[0]["id"] if result.data else None
+        except Exception as e:
+            self.logger.error(f"create_claim failed: {e}")
+            return None
+
+    def get_claim_by_code_hash(self, code_hash: str) -> dict | None:
+        """Return the claim row matching this code hash, or None."""
+        if self.client is None:
+            return None
+        try:
+            result = (self.client.table("claims")
+                      .select("*")
+                      .eq("code_hash", code_hash)
+                      .limit(1)
+                      .execute())
+            return result.data[0] if result.data else None
+        except Exception as e:
+            self.logger.error(f"get_claim_by_code_hash failed: {e}")
+            return None
+
+    def touch_claim(self, claim_id: str):
+        """Bump last_seen_at for a claim on resume."""
+        if self.client is None:
+            return
+        try:
+            from datetime import datetime, timezone
+            self.client.table("claims").update(
+                {"last_seen_at": datetime.now(timezone.utc).isoformat()}
+            ).eq("id", claim_id).execute()
+        except Exception as e:
+            self.logger.error(f"touch_claim failed for {claim_id}: {e}")
+
     def get_trigger_events_for_document(self, document_id: str) -> list[dict]:
         """Return all trigger_events rows for a document, newest first.
 

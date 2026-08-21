@@ -271,6 +271,13 @@ export default function PropertyCasualtyExplainer() {
   // I-2c — session created/reused by the explain flow; reused for /facts
   // capture and subsequent explain calls.
   const [sessionId, setSessionId] = useState<string | null>(null);
+  // I-2d — anonymous resumable claim code. The code IS the credential:
+  // there is no account yet to recover it through, so losing it loses the
+  // claim. Persisted to localStorage so a returning browser can resume.
+  const [claimCode, setClaimCode] = useState<string | null>(
+    () => localStorage.getItem("lc_claim_code")
+  );
+  const [claimCodeError, setClaimCodeError] = useState<string | null>(null);
   const [drag, setDrag] = useState(false);
   const [resp, setResp] = useState<Partial<ExplainResponse>>({});
   const [streaming, setStreaming] = useState(false);
@@ -356,10 +363,30 @@ export default function PropertyCasualtyExplainer() {
     });
   }, [inceptionDate, inceptionUnknown]);
 
+  // I-2d — issue a claim code bound to this session, once, after the first
+  // explain completes. The code is the only way back to this claim.
+  const saveClaimCode = useCallback(async (sid: string) => {
+    const base = (import.meta as any).env?.VITE_API_URL || "http://localhost:8001";
+    try {
+      const res = await fetch(`${base}/api/claims`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sid }),
+      });
+      if (!res.ok) throw new Error(`Server returned ${res.status}`);
+      const { code } = await res.json();
+      localStorage.setItem("lc_claim_code", code);
+      setClaimCode(code);
+    } catch (e: any) {
+      setClaimCodeError(e.message || "Could not save a claim code.");
+    }
+  }, []);
+
   const analyze = useCallback(async () => {
     const sid = await runExplain(sessionId);
     if (!sid) return;
-    if (sid !== sessionId) setSessionId(sid);
+    const isNewSession = sid !== sessionId;
+    if (isNewSession) setSessionId(sid);
     // First explain call for this session — if the user already answered
     // the inception question, capture it now and recompute so the
     // response reflects the resolved regime instead of "unknown".
@@ -367,7 +394,8 @@ export default function PropertyCasualtyExplainer() {
       await captureInceptionFact(sid);
       await runExplain(sid);
     }
-  }, [runExplain, sessionId, inceptionDate, inceptionUnknown, captureInceptionFact]);
+    if (isNewSession && !claimCode) await saveClaimCode(sid);
+  }, [runExplain, sessionId, inceptionDate, inceptionUnknown, captureInceptionFact, claimCode, saveClaimCode]);
 
   const toggleCheck = (i: number) => setChecked(p => {
     const n = new Set(p); n.has(i) ? n.delete(i) : n.add(i); return n;
@@ -597,6 +625,29 @@ export default function PropertyCasualtyExplainer() {
           </>
         )}
       </div>
+
+      {/* I-2d — save my claim: the code is a credential, not an account.
+          Losing it loses the claim; there is nothing yet to recover it
+          through. */}
+      {resp.what_this_is && claimCode && (
+        <div style={{ background: "#FFF8E1", border: "1px solid #FFC107", borderRadius: "var(--radius)",
+          padding: "var(--space-2)", marginBottom: "var(--space-2)" }}>
+          <h2 style={{ ...S.sTitle, margin: "0 0 8px" }}>Save my claim</h2>
+          <p style={{ fontSize: 13, lineHeight: 1.6, margin: "0 0 10px" }}>
+            This code is the only way back to this claim. Save it somewhere
+            safe. If you lose it, the claim cannot be recovered — there's no
+            account to recover it with yet.
+          </p>
+          <div style={{ fontFamily: "var(--mono-font, monospace)", fontSize: 18, fontWeight: 600,
+            letterSpacing: "0.03em", background: "#fff", border: "1px solid var(--border)",
+            borderRadius: "var(--radius)", padding: "10px 12px", wordBreak: "break-all" }}>
+            {claimCode}
+          </div>
+        </div>
+      )}
+      {resp.what_this_is && claimCodeError && (
+        <p style={{ color: "var(--danger)", fontSize: 13 }}>{claimCodeError}</p>
+      )}
 
       <div style={S.disc}>
         {resp.disclaimer || "LegalClear provides legal information, not legal advice."}
