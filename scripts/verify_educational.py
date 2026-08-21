@@ -379,4 +379,14 @@ print(f"\n=== NOTES ({len(notes)}) ===")
 for n in notes:
     print(f"  {n}")
 print(f"\nBASELINE: {total} violation(s) across 6 checks.")
-sys.exit(1 if total else 0)
+
+# ── Exit policy (Joe 2026-08-21, CI-wiring decision) ─────────────────────
+# The 7 check-4 violations are the RECORDED frontend-disclaimer debt
+# (FOLLOW_UPS.md "Checker check-4 debt"). CI treats the checker as failed
+# only when violations EXCEED this recorded debt, or when the citation
+# gate (check 6) is non-zero — the gate can never be inside the debt.
+# When the debt is fixed, lower _DEBT_BASELINE to 0.
+_DEBT_BASELINE = 7
+gate_failures = len(violations["check6"])
+over_budget = total > _DEBT_BASELINE
+sys.exit(1 if (gate_failures or over_budget) else 0)
