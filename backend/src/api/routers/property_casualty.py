@@ -91,14 +91,25 @@ async def explain_property_casualty(
         filename = file.filename
 
     if not session_id:
+        # sessions.user_id is a UUID FK (nullable) — a non-UUID placeholder
+        # like "anon" fails the insert, which create_session would swallow as
+        # None. Anonymous P&C sessions store NULL instead (Option A ruling).
+        session_user_id = user_id if user_id and user_id != "anon" else None
         session_id = _db.create_session(
-            user_id=user_id,
+            user_id=session_user_id,
             filename=filename or "property-casualty-session",
             token_count=0,
             price_tier="free",
             price_usd=0.0,
             payment_type="free",
         )
+        if not session_id:
+            # The session is structural for /facts and regime resolution —
+            # never degrade to a null-keyed explain (S3 silent-failure class).
+            raise HTTPException(
+                status_code=500,
+                detail="Could not create a session for this explain request.",
+            )
 
     async def _stream():
         async for chunk in _explainer.explain_stream(

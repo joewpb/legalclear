@@ -157,3 +157,57 @@ def test_no_write_path_grep_is_precise():
         for p in result.stdout.splitlines()
     }
     assert _CAPTURE_FILES <= hits, hits
+
+
+def test_explain_normalizes_anon_user_id_to_none():
+    """The explain flow must never pass a non-UUID placeholder ('anon') into
+    sessions.user_id (UUID FK) — create_session swallows insert failures and
+    would return None, silently degrading the session the facts table keys
+    on (S3 silent-failure class)."""
+    import asyncio
+    from unittest.mock import AsyncMock, MagicMock, patch
+
+    from starlette.requests import Request
+
+    from src.api.routers import property_casualty as pc
+
+    captured = {}
+
+    async def _run():
+        scope = {
+            "type": "http", "method": "POST", "path": "/api/property-casualty/explain",
+            "raw_path": b"/api/property-casualty/explain", "headers": [],
+            "query_string": b"", "client": ("127.0.0.1", 50000),
+            "server": ("testserver", 80), "scheme": "http", "state": {},
+        }
+
+        async def _receive():
+            return {"type": "http.request", "body": b"", "more_body": False}
+
+        with (
+            patch.object(pc, "_db") as mock_db,
+            patch.object(pc, "_explainer") as mock_explainer,
+        ):
+            mock_db.create_session = MagicMock(
+                side_effect=lambda **kw: captured.update(kw) or "sess-1"
+            )
+            mock_explainer.explain_stream = MagicMock()
+
+            async def _gen():
+                if False:
+                    yield ""
+
+            mock_explainer.explain_stream.return_value = _gen()
+            resp = await pc.explain_property_casualty(
+                request=Request(scope, receive=_receive),
+                sub_type="first_party_property",
+                entities_json="{}",
+                language="en",
+                file=None,
+                session_id=None,
+                user_id="anon",
+            )
+            assert resp is not None
+
+    asyncio.run(_run())
+    assert captured.get("user_id") is None, captured
