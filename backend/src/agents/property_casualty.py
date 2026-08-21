@@ -346,6 +346,7 @@ class PropertyCasualtyExplainer:
         lang_label: str,
         doc_text: str | None = None,
         deadlines: list[dict] | None = None,
+        claim_regime: dict | None = None,
     ) -> str:
         """Assemble the main user prompt text."""
         parts: list[str] = []
@@ -353,7 +354,19 @@ class PropertyCasualtyExplainer:
         parts.append(f"Sub-type: {sub_type}.")
         parts.append(self._build_entities_text(entities))
 
-        if deadlines:
+        if claim_regime and claim_regime.get("regime") == "unknown":
+            # I-2c live-gate finding: with the policy inception date unknown,
+            # the model must NOT produce deadline framework content — which
+            # regime's clocks apply is exactly the unknown. Escalate instead.
+            parts.append(
+                "IMPORTANT: the policy inception date is unknown. Do NOT "
+                "include a key_deadlines field and do NOT present any "
+                "deadline labels or windows. Instead explain only that the "
+                "applicable deadlines depend on when the policy began, and "
+                "direct the user to the declarations page of the policy for "
+                "that date."
+            )
+        elif deadlines:
             parts.append(self._build_deadline_context(deadlines))
 
         if doc_text:
@@ -423,7 +436,7 @@ class PropertyCasualtyExplainer:
 
         # ── text portion ──────────────────────────────────────────────
         system_prompt = self._select_system_prompt(sub_type)
-        user_text = self._build_user_text(sub_type, entities, lang_label, doc_text, computed_deadlines)
+        user_text = self._build_user_text(sub_type, entities, lang_label, doc_text, computed_deadlines, claim_regime)
         user_content.append({"type": "text", "text": user_text})
 
         # ── leading metadata chunk ────────────────────────────────────
@@ -465,6 +478,10 @@ class PropertyCasualtyExplainer:
                 parsed = _filter_citation_json_strings(parsed, "property_casualty")
                 if is_first_party and computed_deadlines:
                     parsed["key_deadlines"] = computed_deadlines
+                if claim_regime and claim_regime.get("regime") == "unknown":
+                    # Deterministic boundary: regime unknown means no
+                    # deadline content survives, whatever the model emitted.
+                    parsed.pop("key_deadlines", None)
                 if claim_regime:
                     parsed["claim_regime"] = claim_regime
                 if session_id:
@@ -531,7 +548,7 @@ class PropertyCasualtyExplainer:
                 doc_text = extraction.get("raw_text", "")
 
         system_prompt = self._select_system_prompt(sub_type)
-        user_text = self._build_user_text(sub_type, entities, lang_label, doc_text, computed_deadlines)
+        user_text = self._build_user_text(sub_type, entities, lang_label, doc_text, computed_deadlines, claim_regime)
         user_content.append({"type": "text", "text": user_text})
 
         try:
@@ -546,6 +563,8 @@ class PropertyCasualtyExplainer:
             # ── Inject computed deadlines ──
             if is_first_party and computed_deadlines:
                 parsed["key_deadlines"] = computed_deadlines
+            if claim_regime and claim_regime.get("regime") == "unknown":
+                parsed.pop("key_deadlines", None)
             if claim_regime:
                 parsed["claim_regime"] = claim_regime
             if session_id:
