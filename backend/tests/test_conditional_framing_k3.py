@@ -97,13 +97,13 @@ def test_property_casualty_deadline_payload_fields_untouched():
     """Deterministic key_deadlines schema/consumption is unchanged by prompt edits."""
     assert "governing_rule" in property_casualty._FIRST_PARTY_SYSTEM_PROMPT
     assert "computation_trace" in property_casualty._FIRST_PARTY_SYSTEM_PROMPT
-    assert property_casualty._PC_DEADLINE_RULES == [
-        "pc_report_claim",
-        "pc_supplemental_claim",
-        "pc_file_suit",
-        "pc_pay_or_deny",
-        "pc_notice_of_intent",
-    ]
+    # I-3a: the module no longer hardcodes the clock list — the deadline keys
+    # are derived from RULES via pc_rule_keys_for_regime. The mechanism, not
+    # a frozen 5-key list, is the invariant.
+    from deadline.rules import RULES, pc_rule_keys_for_regime
+    assert set(pc_rule_keys_for_regime(None)) == {
+        key for key in RULES if key.startswith("pc_")
+    }
 
 
 # ---------------------------------------------------------------------------
