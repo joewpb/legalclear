@@ -168,6 +168,19 @@ def compute_deadline_for_event(
             escalation_reasons=[f"Unknown rule key: {rule_key!r}"],
         )
 
+    # Counting-regime declaration (Job 2, 2026-08-22): every rule declares
+    # "court" (2.514 mechanics) or "statutory" (literal arithmetic).
+    # Undeclared fails loudly — never guess counting mechanics.
+    if rule.get("counting_regime") is None:
+        return DeadlineComputationResult(
+            deadlines=[],
+            escalation_needed=True,
+            escalation_reasons=[
+                f"Rule {rule_key!r} does not declare counting_regime "
+                f"('court' or 'statutory') — refusing to guess counting mechanics"
+            ],
+        )
+
     # Non-computable rules: the date is set by the court (e.g. printed on the
     # summons), so it cannot be derived from a rule period. Surface it as an
     # escalated deadline pointing the user to the document rather than dropping
@@ -319,9 +332,12 @@ def _compute_single(
 
     _t(f"Trigger event date: {event_date}", event_date, rule["governing_rule"])
 
-    # Mail service extension — applied BEFORE counting the period
+    counting_regime = rule.get("counting_regime")
+
+    # Mail service extension — 2.514(c), COURT rules only. Statutory periods
+    # are never extended by a court-rules mail extension.
     adjusted_start = event_date
-    if service_method == SERVICE_MAIL:
+    if counting_regime == "court" and service_method == SERVICE_MAIL:
         adjusted_start = event_date + timedelta(days=MAIL_EXTENSION_DAYS)
         _t(
             f"Mail service: add {MAIL_EXTENSION_DAYS} days to start date",
@@ -329,12 +345,14 @@ def _compute_single(
             RULE_2514_C,
         )
 
-    # Exclude the trigger/start day (day 0 is not counted)
-    _t(
-        "Exclude trigger day — counting begins the following day",
-        adjusted_start + timedelta(days=1),
-        RULE_2514_A,
-    )
+    # Trigger-day exclusion — 2.514(a), COURT rules only. Statutory periods
+    # include the trigger day per the statute's literal text.
+    if counting_regime == "court":
+        _t(
+            "Exclude trigger day — counting begins the following day",
+            adjusted_start + timedelta(days=1),
+            RULE_2514_A,
+        )
 
     response_days: int | None = rule.get("response_days")
     response_years: int | None = rule.get("response_years")
@@ -369,38 +387,62 @@ def _compute_single(
             rule["governing_rule"],
         )
     elif response_days is not None:
-        use_business_days = explicitly_business or response_days < 7
-
-        if use_business_days:
-            rule_ref = (
-                RULE_2514_B1 if not explicitly_business
-                else f"{rule['governing_rule']} (explicitly business days)"
-            )
-            raw_due = _add_business_days(adjusted_start, response_days, closure_dates)
-            _t(
-                f"Count {response_days} business days (weekends/holidays excluded)",
-                raw_due,
-                rule_ref,
-            )
+        if counting_regime == "statutory":
+            # Literal arithmetic per the statute's own text (Job 2,
+            # 2026-08-22). Business-day unit (e.g. § 627.70152 "10 business
+            # days") counts business days from the anchor; calendar-day rules
+            # add N days to the anchor with the trigger day INCLUDED and NO
+            # weekend/holiday roll-forward. § 627.70131(1)(a) "7 calendar
+            # days" from April 1 is April 8, even though it is a Saturday.
+            if explicitly_business:
+                raw_due = _add_business_days(adjusted_start, response_days, closure_dates)
+                _t(
+                    f"Count {response_days} business days per the statute's own unit",
+                    raw_due,
+                    f"{rule['governing_rule']} (statutory business days)",
+                )
+            else:
+                raw_due = event_date + timedelta(days=response_days)
+                _t(
+                    f"Statutory literal: add {response_days} calendar days "
+                    f"(trigger day included, no roll-forward)",
+                    raw_due,
+                    rule["governing_rule"],
+                )
+            final_due = raw_due
         else:
-            raw_due = _add_calendar_days(adjusted_start + timedelta(days=1), response_days - 1)
-            _t(
-                f"Count {response_days} calendar days",
-                raw_due,
-                RULE_2514_B2,
-            )
+            use_business_days = explicitly_business or response_days < 7
 
-        # Roll forward if endpoint is weekend or holiday
-        final_due = _next_business_day(raw_due, closure_dates)
-        if final_due != raw_due:
-            _t(
-                f"Raw due date {raw_due} falls on {'weekend' if _is_weekend(raw_due) else 'holiday'}; "
-                f"rolling forward to next business day",
-                final_due,
-                RULE_2514_ROLL,
-            )
-        else:
-            _t("Due date falls on a business day — no roll-forward needed", final_due, RULE_2514)
+            if use_business_days:
+                rule_ref = (
+                    RULE_2514_B1 if not explicitly_business
+                    else f"{rule['governing_rule']} (explicitly business days)"
+                )
+                raw_due = _add_business_days(adjusted_start, response_days, closure_dates)
+                _t(
+                    f"Count {response_days} business days (weekends/holidays excluded)",
+                    raw_due,
+                    rule_ref,
+                )
+            else:
+                raw_due = _add_calendar_days(adjusted_start + timedelta(days=1), response_days - 1)
+                _t(
+                    f"Count {response_days} calendar days",
+                    raw_due,
+                    RULE_2514_B2,
+                )
+
+            # Roll forward if endpoint is weekend or holiday
+            final_due = _next_business_day(raw_due, closure_dates)
+            if final_due != raw_due:
+                _t(
+                    f"Raw due date {raw_due} falls on {'weekend' if _is_weekend(raw_due) else 'holiday'}; "
+                    f"rolling forward to next business day",
+                    final_due,
+                    RULE_2514_ROLL,
+                )
+            else:
+                _t("Due date falls on a business day — no roll-forward needed", final_due, RULE_2514)
     else:
         # Should not reach here — caught by non-computable check above
         _t("ERROR: no computable period (days, years, or months)", None, "N/A")

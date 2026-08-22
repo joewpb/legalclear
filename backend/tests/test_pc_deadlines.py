@@ -150,13 +150,17 @@ def test_pc_supplemental_mar31_plus_18mo():
 
 def test_pc_pay_or_deny_still_60_calendar_days():
     """pc_pay_or_deny: 60-day insurer deadline, not a calendar-year period.
-    Must still compute 60 calendar days from date of loss."""
+    Must compute 60 literal calendar days from date of loss (Job 2,
+    2026-08-22: statutory counting regime — no 2.514 mechanics)."""
     dl = _deadline("pc_pay_or_deny", date(2023, 3, 1))
-    # 60 calendar days from March 1. March 1 (event), exclude trigger → start
-    # March 2. _add_calendar_days(March 2, 59) = April 30 (Sunday).
-    # 2.514 roll-forward → Monday May 1. This is correct for day-count rules.
-    assert dl.due_date == date(2023, 5, 1), (
-        f"Expected 2023-05-01 (60 calendar days, roll-forward from Sun Apr 30), "
+    # 60 calendar days from March 1 = April 30 (Sunday). The statutory date
+    # IS April 30 — § 627.70131(7)(a) says "60 days", not "60 days or the
+    # next business day". The previous version of this test asserted
+    # 2023-05-01 (2.514 roll-forward) and its comment endorsed that roll as
+    # "correct for day-count rules" — that assertion was INCORRECT and is
+    # fixed here.
+    assert dl.due_date == date(2023, 4, 30), (
+        f"Expected 2023-04-30 (60 literal calendar days, no roll-forward), "
         f"got {dl.due_date}"
     )
     assert dl.governing_rule == "Fla. Stat. § 627.70131(7)(a)"

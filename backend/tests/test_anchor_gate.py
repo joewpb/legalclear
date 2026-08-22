@@ -129,6 +129,19 @@ def test_every_rule_declares_required_anchors():
         ), f"{key} anchor malformed: {anchors!r}"
 
 
+def test_every_rule_declares_counting_regime():
+    """Job 2 (2026-08-22): every rule must declare which counting mechanics
+    apply — "court" (Fla. R. Gen. Prac. & Jud. Admin. 2.514) or "statutory"
+    (literal arithmetic per the statute's own text). An undeclared rule must
+    never silently inherit one regime from the other — compute.py refuses
+    undeclared rules loudly, and this gate prevents them from existing."""
+    for key, rule in RULES.items():
+        regime = rule.get("counting_regime")
+        assert regime in ("court", "statutory"), (
+            f"{key} does not declare a valid counting_regime: {regime!r}"
+        )
+
+
 def test_sanitize_preserves_valid_event_type_labels():
     """The extractor must pass through date-kind labels the model returns."""
     text = "Hearing set for August 14, 2026."

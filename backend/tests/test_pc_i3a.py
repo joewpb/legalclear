@@ -145,7 +145,11 @@ def test_estimate_delivery_computes_when_anchor_supplied():
     results = _compute(date(2023, 3, 1), estimate_generated_date=date(2023, 4, 1))
     matches = [r for r in results if r["governing_rule"] == "Fla. Stat. § 627.70131(3)(e)"]
     assert len(matches) == 1
-    assert matches[0]["due_date"] == "2023-04-10"  # Apr 8 is a Saturday — rolls to Monday
+    # Statutory literal: Apr 1 + 7 calendar days = Apr 8, even though it is a
+    # Saturday. The previous version of this test asserted 2023-04-10
+    # ("rolls to Monday") — that assertion was INCORRECT (2.514 roll-forward
+    # applied to a statutory calendar deadline) and is fixed here.
+    assert matches[0]["due_date"] == "2023-04-08"
 
 
 def test_acknowledge_claim_computes_from_loss_date_like_its_siblings():

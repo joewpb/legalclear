@@ -134,8 +134,12 @@ def test_first_party_output_includes_key_deadlines():
     assert dates["File Suit — Breach of Property Insurance Contract"] == "2028-03-01", (
         f"Suit deadline must be 2028-03-01, got {dates.get('File Suit — Breach of Property Insurance Contract')}"
     )
-    assert dates["Insurer Pay-or-Deny Deadline"] == "2023-05-01", (
-        f"Pay-or-deny must be 2023-05-01 (Apr 30 is Sun → roll-forward), "
+    # Statutory literal (Job 2, 2026-08-22): 60 calendar days from 2023-03-01
+    # = 2023-04-30 (Sunday). The statutory date IS April 30 — no 2.514
+    # roll-forward. The previous version of this test asserted 2023-05-01
+    # ("Apr 30 is Sun → roll-forward") — that assertion was INCORRECT.
+    assert dates["Insurer Pay-or-Deny Deadline"] == "2023-04-30", (
+        f"Pay-or-deny must be 2023-04-30 (60 literal calendar days, no roll-forward), "
         f"got {dates.get('Insurer Pay-or-Deny Deadline')}"
     )
 

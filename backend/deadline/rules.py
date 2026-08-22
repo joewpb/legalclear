@@ -13,7 +13,7 @@ from __future__ import annotations
 from datetime import date, timedelta
 from typing import Literal, TypedDict
 
-RULES_VERSION = "2026-08-21-v4"
+RULES_VERSION = "2026-08-22-v5"
 
 Severity = Literal["fatal", "high", "medium", "low"]
 DayCounting = Literal["calendar", "business"]
@@ -35,6 +35,14 @@ class DeadlineRule(TypedDict):
     # issuance date standing in for service of process (S2-7) can produce a
     # default judgment.
     required_anchors: tuple[str, ...] | None
+    # Which counting mechanics apply (Job 2, 2026-08-22): "court" → Fla. R.
+    # Gen. Prac. & Jud. Admin. 2.514 (trigger-day exclusion, weekend/holiday
+    # roll-forward, mail extension). "statutory" → literal arithmetic per the
+    # statute's own text: calendar-day rules add N days to the anchor with the
+    # trigger day INCLUDED and NO roll-forward; business-day rules count
+    # business days per the statute's own unit. Undeclared fails loudly at
+    # compute — never guess.
+    counting_regime: Literal["court", "statutory"] | None
     governing_rule: str
     severity: Severity
     consequence: str
@@ -52,6 +60,7 @@ RULES: dict[str, DeadlineRule] = {
 
     "civil_summons": {
         "label":                    "Answer to Civil Summons",
+        "counting_regime":         "court",   # 2.514 — court-proceeding clock
         "response_days":            20,
         "day_counting":             "calendar",   # ≥7 days → calendar per 2.514
         "explicitly_business_days": False,
@@ -67,6 +76,7 @@ RULES: dict[str, DeadlineRule] = {
 
     "eviction_complaint": {
         "label":                    "Answer to Residential Eviction Complaint",
+        "counting_regime":         "court",   # 2.514 — eviction answer is a court proceeding
         "response_days":            5,
         "day_counting":             "business",   # statute says "5 business days"
         "explicitly_business_days": True,
@@ -82,6 +92,7 @@ RULES: dict[str, DeadlineRule] = {
 
     "foreclosure_complaint": {
         "label":                    "Answer to Foreclosure Complaint",
+        "counting_regime":         "court",   # 2.514 — court-proceeding clock
         "response_days":            20,
         "day_counting":             "calendar",
         "explicitly_business_days": False,
@@ -97,6 +108,7 @@ RULES: dict[str, DeadlineRule] = {
 
     "family_law_petition": {
         "label":                    "Answer to Family Law Petition",
+        "counting_regime":         "court",   # 2.514 — court-proceeding clock
         "response_days":            20,
         "day_counting":             "calendar",
         "explicitly_business_days": False,
@@ -112,6 +124,7 @@ RULES: dict[str, DeadlineRule] = {
 
     "small_claims_summons": {
         "label":                    "Small Claims Pretrial Conference",
+        "counting_regime":         "court",   # 2.514 — date set by clerk, never computed
         "response_days":            None,          # date is on the summons, set by clerk
         "day_counting":             None,
         "explicitly_business_days": False,
@@ -131,6 +144,7 @@ RULES: dict[str, DeadlineRule] = {
 
     "notice_of_appeal": {
         "label":                    "Notice of Appeal",
+        "counting_regime":         "court",   # 2.514 — court-proceeding clock
         "response_days":            30,
         "day_counting":             "calendar",
         "explicitly_business_days": False,
@@ -149,6 +163,7 @@ RULES: dict[str, DeadlineRule] = {
 
     "motion_for_rehearing": {
         "label":                    "Motion for Rehearing",
+        "counting_regime":         "court",   # 2.514 — court-proceeding clock
         "response_days":            15,
         "day_counting":             "calendar",
         "explicitly_business_days": False,
@@ -164,6 +179,7 @@ RULES: dict[str, DeadlineRule] = {
 
     "discovery_request": {
         "label":                    "Response to Discovery Request",
+        "counting_regime":         "court",   # 2.514 — court-proceeding clock
         "response_days":            30,
         "day_counting":             "calendar",
         "explicitly_business_days": False,
@@ -183,6 +199,7 @@ RULES: dict[str, DeadlineRule] = {
 
     "pc_report_claim": {
         "label":                    "Report Property Insurance Claim",
+        "counting_regime":         "statutory",   # literal — § 627.70132 SOL
         "response_days":            None,
         "response_years":           1,
         "response_months":          None,
@@ -202,6 +219,7 @@ RULES: dict[str, DeadlineRule] = {
 
     "pc_supplemental_claim": {
         "label":                    "Report Supplemental Property Claim",
+        "counting_regime":         "statutory",   # literal — § 627.70132 SOL
         "response_days":            None,
         "response_years":           None,
         "response_months":          18,
@@ -221,6 +239,7 @@ RULES: dict[str, DeadlineRule] = {
 
     "pc_file_suit": {
         "label":                    "File Suit — Breach of Property Insurance Contract",
+        "counting_regime":         "statutory",   # literal — § 95.11(2)(e) SOL
         "response_days":            None,
         "response_years":           5,
         "response_months":          None,
@@ -245,6 +264,7 @@ RULES: dict[str, DeadlineRule] = {
 
     "pc_pay_or_deny": {
         "label":                    "Insurer Pay-or-Deny Deadline",
+        "counting_regime":         "statutory",   # literal — § 627.70131(7)(a)
         "response_days":            60,
         "response_years":           None,
         "response_months":          None,
@@ -268,6 +288,7 @@ RULES: dict[str, DeadlineRule] = {
 
     "pc_notice_of_intent": {
         "label":                    "Pre-Suit Notice of Intent to Initiate Litigation",
+        "counting_regime":         "statutory",   # business-day unit per the statute's own text
         "response_days":            10,
         "response_years":           None,
         "response_months":          None,
@@ -292,6 +313,7 @@ RULES: dict[str, DeadlineRule] = {
 
     "pc_acknowledge_claim": {
         "label":                    "Insurer Acknowledgment of Claim",
+        "counting_regime":         "statutory",   # literal — § 627.70131(1)(a)
         "response_days":            7,
         "response_years":           None,
         "response_months":          None,
@@ -319,6 +341,7 @@ RULES: dict[str, DeadlineRule] = {
 
     "pc_estimate_delivery": {
         "label":                    "Insurer Delivery of Damage Estimate",
+        "counting_regime":         "statutory",   # literal — § 627.70131(3)(e)
         "response_days":            7,
         "response_years":           None,
         "response_months":          None,
