@@ -122,6 +122,132 @@ def _add_calendar_period(
     return date(target_year, target_month, target_day)
 
 
+def _compute_later_of(
+    rule_key: str,
+    rule: dict,
+    event_date: date,
+    extra_dates: dict[str, date],
+    today: date,
+) -> DeadlineComputationResult:
+    """Later-of statutory deadline (I-3b — § 627.70132(4)(a) pattern).
+
+    Each candidate window runs from its declared anchor with literal
+    statutory arithmetic (trigger day included, no roll-forward). The due
+    date is the latest candidate; an outer_bound caps the result — a due
+    date exceeding the outer bound means the claim is barred: escalate,
+    emit no date. A missing secondary anchor escalates; it is never
+    substituted with another date (B1 anchor doctrine).
+    """
+
+    def _anchor_date(name: str) -> date | None:
+        if name == "date_of_loss":
+            return event_date
+        return extra_dates.get(name)
+
+    def _add_period(start: date, spec: dict[str, int]) -> date:
+        if "years" in spec:
+            return _add_calendar_period(start, years=spec["years"])
+        if "months" in spec:
+            return _add_calendar_period(start, months=spec["months"])
+        if "days" in spec:
+            return start + timedelta(days=spec["days"])
+        raise ValueError(
+            f"later_of period spec must name years, months, or days: {spec!r}"
+        )
+
+    trace: list[dict[str, Any]] = []
+    step = 1
+
+    def _t(action: str, d: date | None, rule_ref: str) -> None:
+        nonlocal step
+        trace.append({
+            "step": step,
+            "action": action,
+            "date": d.isoformat() if d else None,
+            "rule": rule_ref,
+        })
+        step += 1
+
+    candidates: list[date] = []
+    missing: list[str] = []
+    for anchor_name, spec in rule["later_of"]:
+        anchor = _anchor_date(anchor_name)
+        if anchor is None:
+            missing.append(anchor_name)
+            continue
+        cand = _add_period(anchor, spec)
+        candidates.append(cand)
+        _t(
+            f"Candidate from {anchor_name}: {anchor} + {spec} = {cand}",
+            cand,
+            rule["governing_rule"],
+        )
+
+    if missing:
+        return DeadlineComputationResult(
+            deadlines=[],
+            escalation_needed=True,
+            escalation_reasons=[
+                f"Rule {rule_key!r} requires anchor(s) {missing} that were not "
+                f"supplied — skip and escalate, never substitute another date"
+            ],
+        )
+
+    due = max(candidates)
+    _t(f"Later-of: latest candidate is {due}", due, rule["governing_rule"])
+
+    outer = rule.get("outer_bound")
+    if outer:
+        bound_anchor, bound_spec = outer
+        bound_anchor_date = _anchor_date(bound_anchor)
+        if bound_anchor_date is None:
+            return DeadlineComputationResult(
+                deadlines=[],
+                escalation_needed=True,
+                escalation_reasons=[
+                    f"Rule {rule_key!r}: outer-bound anchor {bound_anchor!r} "
+                    f"not supplied"
+                ],
+            )
+        bound = _add_period(bound_anchor_date, bound_spec)
+        _t(
+            f"Outer bound: {bound_anchor_date} + {bound_spec} = {bound}",
+            bound,
+            rule["governing_rule"],
+        )
+        if due > bound:
+            return DeadlineComputationResult(
+                deadlines=[],
+                escalation_needed=True,
+                escalation_reasons=[
+                    f"Rule {rule_key!r}: later-of due date {due} exceeds the "
+                    f"outer bound {bound} — the claim is barred under "
+                    f"{rule['governing_rule']}. No deadline emitted."
+                ],
+            )
+        _t(
+            f"Due date {due} is within the outer bound {bound}",
+            due,
+            rule["governing_rule"],
+        )
+
+    return DeadlineComputationResult(
+        deadlines=[ComputedDeadline(
+            due_date=due,
+            label=rule["label"],
+            governing_rule=rule["governing_rule"],
+            severity=rule["severity"],
+            consequence=rule["consequence"],
+            escalation_recommended=False,
+            computation_trace=trace,
+            assumption_disclosures=[],
+            is_past=due < today,
+        )],
+        escalation_needed=False,
+        escalation_reasons=[],
+    )
+
+
 def compute_deadline_for_event(
     rule_key: str,
     event_date: date,
@@ -131,6 +257,7 @@ def compute_deadline_for_event(
     has_local_closure_data: bool,     # False → escalate on fatal near unverified dates
     today: date | None = None,
     clerk_mailing_date: date | None = None,   # posted service (§ 48.183) only
+    extra_dates: dict[str, date] | None = None,   # later-of secondary anchors (I-3b)
 ) -> DeadlineComputationResult:
     """Compute all deadlines for one trigger event.
 
@@ -180,6 +307,12 @@ def compute_deadline_for_event(
                 f"('court' or 'statutory') — refusing to guess counting mechanics"
             ],
         )
+
+    # Later-of statutory computation (I-3b, e.g. § 627.70132(4)(a)): handled
+    # by its own path before the non-computable check — such rules have no
+    # response_days/years/months of their own.
+    if rule.get("later_of"):
+        return _compute_later_of(rule_key, rule, event_date, extra_dates or {}, today)
 
     # Non-computable rules: the date is set by the court (e.g. printed on the
     # summons), so it cannot be derived from a rule period. Surface it as an

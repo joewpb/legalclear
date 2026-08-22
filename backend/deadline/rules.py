@@ -43,6 +43,15 @@ class DeadlineRule(TypedDict):
     # business days per the statute's own unit. Undeclared fails loudly at
     # compute — never guess.
     counting_regime: Literal["court", "statutory"] | None
+    # I-3b — later-of computation (loss assessment, § 627.70132(4)(a)):
+    # secondary_anchor names the extra date kinds the rule can consume;
+    # later_of lists candidate windows as (anchor_name, period spec) with
+    # the deadline = the latest candidate; outer_bound caps the result and
+    # a candidate exceeding it means the claim is barred (escalate, emit no
+    # date). All None for ordinary period rules.
+    secondary_anchor: tuple[str, ...] | None
+    later_of: tuple[tuple[str, dict[str, int]], ...] | None
+    outer_bound: tuple[str, dict[str, int]] | None
     governing_rule: str
     severity: Severity
     consequence: str
@@ -364,6 +373,134 @@ RULES: dict[str, DeadlineRule] = {
             "until that date is known/supplied."
         ),
         "regimes":                  ("pre", "post"),
+    },
+
+    "pc_crn_cure": {
+        "label":                    "Civil Remedy Notice — 60-Day Cure Window",
+        "counting_regime":         "statutory",   # literal — § 624.155(3)(a)
+        "response_days":            60,
+        "response_years":           None,
+        "response_months":          None,
+        "deadline_type":            "pre_suit_gate",
+        "day_counting":             "calendar",
+        "explicitly_business_days": False,
+        "required_anchors":         ("crn_filed",),
+        "governing_rule":           "Fla. Stat. § 624.155(3)(a)",
+        "severity":                 "fatal",
+        "consequence": (
+            "A Civil Remedy Notice is a condition precedent to a bad-faith "
+            "action. The insurer has 60 days after receiving the notice to "
+            "pay the damages or correct the violation; no action may be "
+            "filed until that window runs."
+        ),
+        "note": (
+            "The 60 days run from the insurer's receipt of the notice "
+            "forwarded by the department — anchor on the date the CRN is "
+            "filed with the department. Statute-of-limitations tolling is "
+            "tracked separately under § 624.155(3)(e)."
+        ),
+        "regimes":                  ("pre", "post"),
+        "secondary_anchor":         None,
+        "later_of":                 None,
+        "outer_bound":              None,
+    },
+
+    "pc_loss_assessment": {
+        "label":                    "Notice of Loss-Assessment Claim",
+        "counting_regime":         "statutory",   # literal — § 627.70132(4)(a)
+        "response_days":            None,
+        "response_years":           None,
+        "response_months":          None,
+        "deadline_type":            "SOL",
+        "day_counting":             "calendar",
+        "explicitly_business_days": False,
+        "required_anchors":         ("date_of_loss",),
+        "governing_rule":           "Fla. Stat. § 627.70132(4)(a)",
+        "severity":                 "fatal",
+        "consequence": (
+            "Notice of a loss-assessment claim may not occur later than 3 "
+            "years after the date of loss, and must be given by the later "
+            "of 1 year after the date of loss or 90 days after the "
+            "association votes to levy the assessment. A barred notice "
+            "loses the claim."
+        ),
+        "note": (
+            "Later-of computation: the deadline is the LATER of loss+1yr "
+            "and vote+90d, capped by the 3-year outer bound from the date "
+            "of loss. Without the association vote date the later-of "
+            "cannot be computed — skip and escalate, never substitute."
+        ),
+        "regimes":                  ("pre", "post"),
+        "secondary_anchor":         ("association_vote",),
+        "later_of": (
+            ("date_of_loss", {"years": 1}),
+            ("association_vote", {"days": 90}),
+        ),
+        "outer_bound":              ("date_of_loss", {"years": 3}),
+    },
+
+    "pc_pa_contract_cancel": {
+        "label":                    "Cancel Public Adjuster Contract",
+        "counting_regime":         "statutory",   # literal — § 626.854(7)
+        "response_days":            10,
+        "response_years":           None,
+        "response_months":          None,
+        "deadline_type":            "contract_window",
+        "day_counting":             "calendar",
+        "explicitly_business_days": False,
+        "required_anchors":         ("pa_contract_executed",),
+        "governing_rule":           "Fla. Stat. § 626.854(7)",
+        "severity":                 "high",
+        "consequence": (
+            "An insured or claimant may cancel a public adjuster's contract "
+            "without penalty or obligation within 10 days after the date on "
+            "which the contract is executed. Miss the window and the PA fee "
+            "obligation stands."
+        ),
+        "note": (
+            "The statute says 10 days (calendar), not business days. A "
+            "state-of-emergency variant (later of 30 days after the date of "
+            "loss or 10 days after execution) is pc_pa_contract_cancel_emergency; "
+            "the 60-day no-estimate cancellation variant is recorded in "
+            "FOLLOW_UPS, not shipped."
+        ),
+        "regimes":                  ("pre", "post"),
+        "secondary_anchor":         None,
+        "later_of":                 None,
+        "outer_bound":              None,
+    },
+
+    "pc_pa_contract_cancel_emergency": {
+        "label":                    "Cancel PA Contract — State of Emergency",
+        "counting_regime":         "statutory",   # literal — § 626.854(7)
+        "response_days":            None,
+        "response_years":           None,
+        "response_months":          None,
+        "deadline_type":            "contract_window",
+        "day_counting":             "calendar",
+        "explicitly_business_days": False,
+        "required_anchors":         ("date_of_loss",),
+        "governing_rule":           "Fla. Stat. § 626.854(7)",
+        "severity":                 "high",
+        "consequence": (
+            "When the contract was entered into based on events subject to "
+            "a declared state of emergency, the insured may cancel without "
+            "penalty or obligation within 30 days after the date of loss or "
+            "10 days after the date the contract is executed, whichever is "
+            "longer."
+        ),
+        "note": (
+            "Later-of computation; applies only when the contract relates to "
+            "a state-of-emergency event. Requires both date_of_loss and the "
+            "PA contract execution date — missing either skips and escalates."
+        ),
+        "regimes":                  ("pre", "post"),
+        "secondary_anchor":         ("pa_contract_executed",),
+        "later_of": (
+            ("date_of_loss", {"days": 30}),
+            ("pa_contract_executed", {"days": 10}),
+        ),
+        "outer_bound":              None,
     },
 }
 # fmt: on

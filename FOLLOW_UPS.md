@@ -1,5 +1,8 @@
 # Follow-ups
 
+## PA 60-day no-estimate cancellation variant — named, not shipped (2026-08-22, I-3c)
+§ 626.854(7) also permits cancellation without penalty if the public adjuster fails to provide a written estimate within 60 days of contract execution. The 10-day and emergency later-of clocks shipped in I-3c; the 60-day variant interacts with the estimate-delivery tracking path and was left out of the I-3 scope. Named-not-shipped; add when estimate tracking exists.
+
 ## pc_notice_of_intent anchored on date_of_loss — proxy for a "before filing suit" gap (2026-08-22, I-3 Job 1 report)
 `pc_notice_of_intent` (§ 627.70152) is computed as date_of_loss + 10 business days, but the statute defines it as a minimum gap BEFORE filing suit — the true deadline depends on the (unknown) suit-filing date, not the date of loss. The current computation is a conservative floor and is declared statutory-business under the counting-regime mechanism (Job 2, 2026-08-22), but the anchor is approximate by design. An approximate anchor on a user-facing deadline is the kind of thing that reads as precise to a user — recorded here so it stays visible. Recorded-not-scheduled (Joe, 2026-08-22).
 

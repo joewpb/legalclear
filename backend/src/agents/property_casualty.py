@@ -77,6 +77,10 @@ def _filter_citation_json_strings(obj, agent_name: str):
 # Anchored on the estimate-generation date, not date_of_loss — this clock
 # cannot be computed until that date is supplied (see _compute_deadlines).
 _ESTIMATE_ANCHORED_RULE = "pc_estimate_delivery"
+_CRN_ANCHORED_RULE = "pc_crn_cure"           # I-3b — § 624.155(3)(a)
+_LOSS_ASSESSMENT_RULE = "pc_loss_assessment" # I-3b — § 627.70132(4)(a) later-of
+_PA_CANCEL_RULE = "pc_pa_contract_cancel"    # I-3c — § 626.854(7)
+_PA_CANCEL_EMERGENCY_RULE = "pc_pa_contract_cancel_emergency"  # I-3c — § 626.854(7) later-of
 
 # ---------------------------------------------------------------------------
 # System prompts — bad_faith + premises_liability are FROZEN
@@ -291,6 +295,9 @@ class PropertyCasualtyExplainer:
         loss_date: date,
         regime: str | None = None,
         estimate_generated_date: date | None = None,
+        crn_filed_date: date | None = None,          # I-3b — pc_crn_cure
+        association_vote_date: date | None = None,   # I-3b — pc_loss_assessment
+        pa_contract_executed_date: date | None = None,   # I-3c — PA cancellation
     ) -> list[dict]:
         """Compute all P&C statutory deadlines from a date of loss.
 
@@ -300,7 +307,11 @@ class PropertyCasualtyExplainer:
         been resolved for this session); "unknown" computes none.
         `pc_estimate_delivery` is anchored on `estimate_generated_date`, not
         `loss_date` — it is skipped (never computed from date_of_loss) when
-        that date has not been supplied.
+        that date has not been supplied. Likewise `pc_crn_cure` needs
+        `crn_filed_date`, `pc_loss_assessment` needs `association_vote_date`
+        (I-3b), and the PA cancellation clocks need
+        `pa_contract_executed_date` (I-3c) — missing anchors skip and
+        escalate, never substitute.
         """
         from deadline.compute import compute_deadline_for_event
         from deadline.rules import RULES, pc_rule_keys_for_regime
@@ -309,10 +320,29 @@ class PropertyCasualtyExplainer:
         results: list[dict] = []
 
         for rule_key in pc_rule_keys_for_regime(regime):
+            extra_dates: dict[str, date] = {}
             if rule_key == _ESTIMATE_ANCHORED_RULE:
                 if estimate_generated_date is None:
                     continue
                 anchor_date = estimate_generated_date
+            elif rule_key == _CRN_ANCHORED_RULE:
+                if crn_filed_date is None:
+                    continue
+                anchor_date = crn_filed_date
+            elif rule_key == _LOSS_ASSESSMENT_RULE:
+                if association_vote_date is None:
+                    continue
+                anchor_date = loss_date
+                extra_dates = {"association_vote": association_vote_date}
+            elif rule_key == _PA_CANCEL_RULE:
+                if pa_contract_executed_date is None:
+                    continue
+                anchor_date = pa_contract_executed_date
+            elif rule_key == _PA_CANCEL_EMERGENCY_RULE:
+                if pa_contract_executed_date is None:
+                    continue
+                anchor_date = loss_date
+                extra_dates = {"pa_contract_executed": pa_contract_executed_date}
             else:
                 anchor_date = loss_date
             try:
@@ -324,6 +354,7 @@ class PropertyCasualtyExplainer:
                     closure_dates=closure_dates,
                     has_local_closure_data=True,
                     today=date.today(),  # noqa: DTZ011
+                    extra_dates=extra_dates or None,
                 )
                 for dl in result.deadlines:
                     results.append({
