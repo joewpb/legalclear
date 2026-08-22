@@ -6,6 +6,7 @@ import AmountStep from "../components/smallclaims/AmountStep";
 import DefendantStep from "../components/smallclaims/DefendantStep";
 import CountyStep from "../components/smallclaims/CountyStep";
 import ReviewStep from "../components/smallclaims/ReviewStep";
+import { DISCLAIMER_TEXT } from "../components/DisclaimerNote";
 
 function ActiveStep() {
   const { step } = useWizard();
@@ -43,10 +44,7 @@ export default function SmallClaimsFL() {
       </main>
       <footer className="page-disclaimer">
         <p>
-          LegalClear provides informational tools only. Nothing here is legal
-          advice. Using this site does not create an attorney-client
-          relationship. For your specific situation, consult a licensed Florida
-          attorney.
+          {DISCLAIMER_TEXT}
         </p>
       </footer>
     </WizardProvider>

@@ -381,12 +381,11 @@ for n in notes:
 print(f"\nBASELINE: {total} violation(s) across 6 checks.")
 
 # ── Exit policy (Joe 2026-08-21, CI-wiring decision) ─────────────────────
-# The 7 check-4 violations are the RECORDED frontend-disclaimer debt
-# (FOLLOW_UPS.md "Checker check-4 debt"). CI treats the checker as failed
-# only when violations EXCEED this recorded debt, or when the citation
-# gate (check 6) is non-zero — the gate can never be inside the debt.
-# When the debt is fixed, lower _DEBT_BASELINE to 0.
-_DEBT_BASELINE = 7
+# Debt retired 2026-08-22: the 7 check-4 frontend-disclaimer duplicates now
+# import the canonical DisclaimerNote (Decision 15 job). CI treats the
+# checker as failed when ANY violation exists — green because nothing is
+# wrong, not because it expects violations.
+_DEBT_BASELINE = 0
 gate_failures = len(violations["check6"])
 over_budget = total > _DEBT_BASELINE
 sys.exit(1 if (gate_failures or over_budget) else 0)

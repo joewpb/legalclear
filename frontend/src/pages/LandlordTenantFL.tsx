@@ -5,6 +5,7 @@ import DepositFlow from "../components/landlord/DepositFlow";
 import RepairsFlow from "../components/landlord/RepairsFlow";
 import EvictionFlow from "../components/landlord/EvictionFlow";
 import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
+import { DISCLAIMER_TEXT } from "../components/DisclaimerNote";
 
 const SUB_FLOWS = [
   {
@@ -111,10 +112,7 @@ export default function LandlordTenantFL() {
       </Routes>
       <footer className="page-disclaimer">
         <p>
-          LegalClear provides informational tools only. Nothing here is legal
-          advice. Using this site does not create an attorney-client
-          relationship. For your specific situation, consult a licensed Florida
-          attorney.
+          {DISCLAIMER_TEXT}
         </p>
       </footer>
 

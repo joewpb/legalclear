@@ -12,6 +12,7 @@ import { useState, useRef, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
 import { readSSE } from "../lib/sse";
+import { DISCLAIMER_TEXT } from "../components/DisclaimerNote";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -443,8 +444,7 @@ export default function SmallClaimsExplainer() {
 
       {/* Disclaimer — always visible: below the submit button, above any LLM output */}
       <div style={css.disclaimer}>
-        {response.disclaimer ||
-          "LegalClear provides legal information, not legal advice."}
+        {response.disclaimer || DISCLAIMER_TEXT}
       </div>
 
       {/* Results — streaming response, only after explicit submit */}

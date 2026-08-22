@@ -4,6 +4,7 @@ import CitationTypeStep from "../components/traffic/CitationTypeStep";
 import OptionsStep from "../components/traffic/OptionsStep";
 import GenerateStep from "../components/traffic/GenerateStep";
 import type { TrafficForm } from "../components/traffic/types";
+import { DISCLAIMER_TEXT } from "../components/DisclaimerNote";
 
 const INITIAL: TrafficForm = {
   citation_type: "",
@@ -54,9 +55,7 @@ export default function TrafficFL() {
 
       <footer className="page-disclaimer">
         <p>
-          LegalClear provides informational tools only. Nothing here is legal
-          advice. For DUI or any criminal charge, consult a licensed Florida
-          attorney.
+          {DISCLAIMER_TEXT}
         </p>
       </footer>
     </>

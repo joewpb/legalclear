@@ -16,6 +16,7 @@ import { applySseEvent } from "../components/policereport/sseMerge";
 import type { CaseContext, RelevantOpinion } from "../components/policereport/types";
 import CaseContextBanner from "../components/policereport/CaseContextBanner";
 import { readSSE } from "../lib/sse";
+import { DISCLAIMER_TEXT } from "../components/DisclaimerNote";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -988,8 +989,7 @@ export default function PoliceReportAnalyzer() {
 
       {/* Disclaimer */}
       <div style={css.disclaimer}>
-        {response.disclaimer ||
-          "LegalClear provides legal information, not legal advice. Nothing here creates an attorney-client relationship. Consult a licensed Florida attorney for your specific situation."}
+        {response.disclaimer || DISCLAIMER_TEXT}
       </div>
 
       <ChatButton module="police_report" onClick={() => setChatOpen(true)} />

@@ -12,6 +12,7 @@ import { useState, useRef, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
 import { readSSE } from "../lib/sse";
+import { DISCLAIMER_TEXT } from "../components/DisclaimerNote";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -611,8 +612,7 @@ export default function WillsTrustsExplainer() {
 
       {/* Disclaimer */}
       <div style={S.disc}>
-        {response.disclaimer ||
-          "LegalClear provides legal information, not legal advice. Nothing here creates an attorney-client relationship. Consult a licensed Florida attorney for your specific situation."}
+        {response.disclaimer || DISCLAIMER_TEXT}
       </div>
 
       {/* Chat system */}

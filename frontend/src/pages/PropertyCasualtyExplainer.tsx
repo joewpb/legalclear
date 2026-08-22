@@ -14,6 +14,7 @@ import { useState, useRef, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
 import { readSSE } from "../lib/sse";
+import { DISCLAIMER_TEXT } from "../components/DisclaimerNote";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -650,7 +651,7 @@ export default function PropertyCasualtyExplainer() {
       )}
 
       <div style={S.disc}>
-        {resp.disclaimer || "LegalClear provides legal information, not legal advice."}
+        {resp.disclaimer || DISCLAIMER_TEXT}
       </div>
 
       <ChatButton module="property_casualty" onClick={() => setChatOpen(true)} />
