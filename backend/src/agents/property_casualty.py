@@ -69,16 +69,14 @@ def _filter_citation_json_strings(obj, agent_name: str):
     return obj
 
 # ---------------------------------------------------------------------------
-# P&C deadline rule keys — consumed by the deterministic engine
+# P&C deadline rule keys — I-3a: which clocks run and under which regime is
+# now data-declared in deadline/rules.py (`regimes` field) and resolved via
+# `pc_rule_keys_for_regime`; this module no longer hardcodes the rule list.
 # ---------------------------------------------------------------------------
 
-_PC_DEADLINE_RULES = [
-    "pc_report_claim",
-    "pc_supplemental_claim",
-    "pc_file_suit",
-    "pc_pay_or_deny",
-    "pc_notice_of_intent",
-]
+# Anchored on the estimate-generation date, not date_of_loss — this clock
+# cannot be computed until that date is supplied (see _compute_deadlines).
+_ESTIMATE_ANCHORED_RULE = "pc_estimate_delivery"
 
 # ---------------------------------------------------------------------------
 # System prompts — bad_faith + premises_liability are FROZEN
@@ -261,6 +259,24 @@ class PropertyCasualtyExplainer:
         already parsed upstream. No computation, no derivation.
         """
         raw = entities.get("date_of_loss") or entities.get("date_of_loss_str")
+        return PropertyCasualtyExplainer._parse_date(raw)
+
+    @staticmethod
+    def _parse_estimate_generated_date(entities: dict) -> date | None:
+        """Extract estimate_generated_date from entities dict (I-3a). Returns
+        None if absent/unparseable — the § 627.70131(3)(e) estimate-delivery
+        clock runs from the date the insurer's adjuster generates the
+        estimate, not from date_of_loss, and that date is not otherwise
+        available anywhere in the current data flow. The caller (a future
+        API consumer or UI) supplies it the same free-form way as
+        date_of_loss; until supplied, pc_estimate_delivery is not computed
+        rather than guessed from an unrelated anchor.
+        """
+        raw = entities.get("estimate_generated_date") or entities.get("estimate_generated_date_str")
+        return PropertyCasualtyExplainer._parse_date(raw)
+
+    @staticmethod
+    def _parse_date(raw) -> date | None:
         if not raw or not isinstance(raw, str):
             return None
         for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%m/%d/%y", "%B %d, %Y", "%b %d, %Y"):
@@ -270,22 +286,39 @@ class PropertyCasualtyExplainer:
                 continue
         return None
 
-    def _compute_deadlines(self, loss_date: date) -> list[dict]:
+    def _compute_deadlines(
+        self,
+        loss_date: date,
+        regime: str | None = None,
+        estimate_generated_date: date | None = None,
+    ) -> list[dict]:
         """Compute all P&C statutory deadlines from a date of loss.
 
         Routes through the deterministic deadline engine — ZERO date math here.
+        `regime` selects which declared P&C clocks apply (I-3a) — None
+        computes every declared clock (pre-I-3a behavior when no regime has
+        been resolved for this session); "unknown" computes none.
+        `pc_estimate_delivery` is anchored on `estimate_generated_date`, not
+        `loss_date` — it is skipped (never computed from date_of_loss) when
+        that date has not been supplied.
         """
         from deadline.compute import compute_deadline_for_event
-        from deadline.rules import RULES
+        from deadline.rules import RULES, pc_rule_keys_for_regime
 
         closure_dates: frozenset[date] = frozenset()
         results: list[dict] = []
 
-        for rule_key in _PC_DEADLINE_RULES:
+        for rule_key in pc_rule_keys_for_regime(regime):
+            if rule_key == _ESTIMATE_ANCHORED_RULE:
+                if estimate_generated_date is None:
+                    continue
+                anchor_date = estimate_generated_date
+            else:
+                anchor_date = loss_date
             try:
                 result = compute_deadline_for_event(
                     rule_key=rule_key,
-                    event_date=loss_date,
+                    event_date=anchor_date,
                     service_method="personal",  # statutory, not court-service
                     circuit=None,
                     closure_dates=closure_dates,
@@ -408,7 +441,11 @@ class PropertyCasualtyExplainer:
         if is_first_party and not (claim_regime and claim_regime["regime"] == "unknown"):
             loss_date = self._parse_date_of_loss(entities)
             if loss_date:
-                computed_deadlines = self._compute_deadlines(loss_date)
+                computed_deadlines = self._compute_deadlines(
+                    loss_date,
+                    regime=claim_regime.get("regime") if claim_regime else None,
+                    estimate_generated_date=self._parse_estimate_generated_date(entities),
+                )
 
         # ── optional file ────────────────────────────────────────────
         if file_bytes and filename:
@@ -530,7 +567,11 @@ class PropertyCasualtyExplainer:
         if is_first_party and not (claim_regime and claim_regime["regime"] == "unknown"):
             loss_date = self._parse_date_of_loss(entities)
             if loss_date:
-                computed_deadlines = self._compute_deadlines(loss_date)
+                computed_deadlines = self._compute_deadlines(
+                    loss_date,
+                    regime=claim_regime.get("regime") if claim_regime else None,
+                    estimate_generated_date=self._parse_estimate_generated_date(entities),
+                )
 
         if file_bytes and filename:
             if self._is_image(filename):

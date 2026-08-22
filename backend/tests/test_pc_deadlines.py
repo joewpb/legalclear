@@ -214,9 +214,39 @@ def test_all_pc_deadlines_have_computation_trace():
     for rule_key in [
         "pc_report_claim", "pc_supplemental_claim", "pc_file_suit",
         "pc_pay_or_deny", "pc_notice_of_intent",
+        "pc_acknowledge_claim", "pc_estimate_delivery",
     ]:
         dl = _deadline(rule_key, date(2023, 3, 1))
         assert dl.computation_trace, f"{rule_key} has no computation_trace"
         assert len(dl.computation_trace) >= 2, (
             f"{rule_key} trace too short: {len(dl.computation_trace)} steps"
         )
+
+
+# ══════════════════════════════════════════════════════════════════════
+# I-3a — pc_acknowledge_claim / pc_estimate_delivery (7 calendar days)
+# ══════════════════════════════════════════════════════════════════════
+
+def test_pc_acknowledge_claim_7_calendar_days():
+    """Fla. Stat. § 627.70131(1)(a): 7 calendar days after the insurer
+    receives a claim communication. 2023-03-01 (Wed) + 7 = 2023-03-08 (Wed),
+    a business day — no roll-forward."""
+    dl = _deadline("pc_acknowledge_claim", date(2023, 3, 1))
+    assert dl.due_date == date(2023, 3, 8), (
+        f"Expected 2023-03-08, got {dl.due_date}"
+    )
+    assert dl.governing_rule == "Fla. Stat. § 627.70131(1)(a)"
+    assert dl.severity == "medium"
+
+
+def test_pc_estimate_delivery_7_calendar_days():
+    """Fla. Stat. § 627.70131(3)(e): 7 days after the adjuster generates the
+    estimate. Same day-count shape as pc_acknowledge_claim, different anchor
+    event (verified at the caller layer, not here — compute.py takes
+    whatever event_date it is given)."""
+    dl = _deadline("pc_estimate_delivery", date(2023, 3, 1))
+    assert dl.due_date == date(2023, 3, 8), (
+        f"Expected 2023-03-08, got {dl.due_date}"
+    )
+    assert dl.governing_rule == "Fla. Stat. § 627.70131(3)(e)"
+    assert dl.severity == "medium"
