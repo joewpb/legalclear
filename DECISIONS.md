@@ -268,3 +268,20 @@ Applied to all seven prose agent prompts (explainer, small_claims, criminal, dis
 ## Decision 14 — Parser agreement proves existence, not text fidelity (2026-08-20)
 
 Two independent parsers, same official PDFs, 82 shared rule rows: 0 byte-identical, 9 identical after whitespace normalization, 73 differing — each parser mangling a different ~half at page boundaries. Agreement between independent parsers proves citation EXISTENCE (the property the CitationFilter needs — it is keys-only), not text fidelity. Text fidelity requires ratio-checking against the source, per document — the same distinction as presence versus completeness (Decision 12). Consequence applied: per-rule best-side merge of the 82 shared rules with the official PDF as arbiter (36 rows updated from the Orin parse, 46 kept; pre-merge backup written). Also routed Orin's 30 harvested FORM rows into court_forms (22 inserted, 8 skipped on existing form_number, status='review' + review_reason marking harvested-not-curated) — this does NOT close the form_guide audit finding (form_guide still reads its hardcoded library, not the table).
+
+## Decision 15 — No PR flow: checks stay running-and-visible, not required (2026-08-22)
+
+Ruling on the required-status-checks question (Job 2 cost report, 2026-08-21):
+no PR flow. A solo developer with self-approval makes the gate ceremonial —
+approving one's own PRs is theater. Checks running and visibly red on every
+push capture most of the value at none of the cost (no per-dispatch approval
+latency, no STATUS-regen churn, no admin-bypass carve-out that quietly
+un-gates the gate).
+
+GitHub required status checks gate PR merges only — they do not block direct
+pushes, and `enforce_admins` is false, so with the current direct-to-main
+dispatch flow they would change nothing unless the whole flow moved to PRs.
+
+**Revisit when a second person commits to this repo.** Until then, the
+discipline rule holds: the orchestrator gates every dispatch on green CI
+before pushing to main.
