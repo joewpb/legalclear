@@ -13,6 +13,11 @@ Two flag classes:
 The financial-records special screen ships with the spec's authored text
 verbatim (see runs/phase-i-autonomous/LOG.md D3 — attorney review item in
 the final report).
+
+Disclaimer contract: this module emits no standalone user-facing prose —
+its escalation payload is wrapped by the canonical ``apply_disclaimer``
+(src/core/upl.py) at the claims router boundary, and the Claim Guide page
+renders the persistent disclaimer on every view.
 """
 
 from __future__ import annotations

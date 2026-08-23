@@ -4,6 +4,10 @@ No LLM. No legal deadline arithmetic (that stays in deadline/compute.py —
 this module only classifies phase status from observed trigger events and
 computes UI progress metadata from event timestamps).
 
+Disclaimer contract: this module emits no standalone user-facing prose —
+its output is wrapped by the canonical ``apply_disclaimer``
+(src/core/upl.py) at the claims router boundary.
+
 Data-driven: phase topology (entry/exit triggers, typical windows, sequence)
 comes from the content layer (content.loader) — never hardcoded here. The
 trigger vocabulary is therefore the union of the content records' triggers,

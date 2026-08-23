@@ -1,6 +1,7 @@
 import { UploadCloud, File, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { DISCLAIMER_TEXT } from '../components/DisclaimerNote';
 
 // Master payment switch (baked at build). When off, the upload flow never
 // redirects to the paywall — analysis is free.
@@ -182,7 +183,7 @@ export default function UploadFlow() {
 
         <div className="mt-8 flex items-start gap-3 p-4 bg-yellow-500/10 rounded-xl border border-yellow-500/20 text-sm text-gray-300">
           <AlertCircle className="w-5 h-5 text-yellow-500 shrink-0" />
-          <p>LegalClear provides AI-generated explanations and risk scans. It does not constitute formal legal advice. Always consult with a qualified attorney for serious legal matters.</p>
+          <p>{DISCLAIMER_TEXT}</p>
         </div>
 
       </div>

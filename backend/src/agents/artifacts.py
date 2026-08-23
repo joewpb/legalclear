@@ -6,6 +6,13 @@ performs themselves — never negotiation on their behalf). No LLM anywhere
 in this module. Citations in letter bodies come ONLY from the P&C curated
 set (agents.pc_citations).
 
+Disclaimer contract: this module emits no standalone user-facing prose —
+every API response that carries its output is wrapped by the canonical
+``apply_disclaimer`` (src/core/upl.py) at the claims router boundary
+(/api/claims/{code}/guide, /{code}, /{code}/artifacts), and the Claim
+Guide page renders the persistent disclaimer on every view. The draft note
+on letter PDFs is a document-preparation marker, not the legal disclaimer.
+
 Artifact catalog — spec §6, both batches:
 
   Batch A (early claim): claim_log, policy_request_letter, vacancy_notice,
@@ -226,7 +233,7 @@ def _contents_inventory_csv(details: dict) -> bytes:
     writer.writerow(_INVENTORY_COLUMNS)
     writer.writerow(["example: kitchen", "toaster", "Cuisinart", "CPT-122",
                      "12345XYZ", "1", "3", "45.00", "good", "59.99",
-                     "amazon.com"])
+                     "online order history"])
     return buf.getvalue().encode("utf-8")
 
 
@@ -325,8 +332,8 @@ def _dfs_mediation_prefill_html(details: dict) -> str:
 <p>This sheet gathers the information the Department of Financial Services
 mediation request will ask for. Attach it to the current DFS mediation
 request form, available from the Florida Department of Financial Services
-website (myfloridacfo.com). Residential mediation is non-binding and
-confidential, and the insurer pays for it (Fla. Stat. &sect; 627.7015).</p>
+website. Residential mediation is non-binding and confidential, and the
+insurer pays for it (Fla. Stat. &sect; 627.7015).</p>
 <p>Insured: {_d(details, "insured_name", "[your name]")}<br>
 Property: {_d(details, "property_address", "[property address]")}<br>
 Insurer: {insurer}<br>

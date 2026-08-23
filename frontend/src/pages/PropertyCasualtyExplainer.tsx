@@ -410,6 +410,10 @@ export default function PropertyCasualtyExplainer() {
         <Link to="/" style={S.back}>← Back to LegalClear</Link>
         <h1 style={S.h1}>Property & Casualty</h1>
         <p style={S.sub}>Florida property insurance claims explained</p>
+        <Link to="/claim-guide" style={{ display: "inline-block", marginTop: 10,
+          fontSize: 14, textDecoration: "underline", color: "var(--accent)" }}>
+          Track your claim with the Claim Guide →
+        </Link>
       </header>
 
       {/* Sub-type badge */}

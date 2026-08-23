@@ -13,6 +13,7 @@ import SmallClaimsExplainer from "./pages/SmallClaimsExplainer"; // Module 1 (v3
 import CriminalProcedureExplainer from "./pages/CriminalProcedureExplainer"; // Module 2 (v3 explainer)
 import DiscoveryMotionAnalyzer from "./pages/DiscoveryMotionAnalyzer"; // Module 4 (v3 explainer)
 import PropertyCasualtyExplainer from "./pages/PropertyCasualtyExplainer"; // Module 5 (v3 explainer)
+import ClaimGuide from "./pages/ClaimGuide"; // Module 5 (I-5 claim state machine UI)
 import WillsTrustsExplainer from "./pages/WillsTrustsExplainer"; // Module 6 (v3 explainer)
 import ExpungementFL from "./pages/ExpungementFL"; // Phase 17
 import LandlordTenantFL from "./pages/LandlordTenantFL"; // Phase 18
@@ -71,6 +72,7 @@ export default function App() {
 
         {/* v3 Module 5 — Property & Casualty Explainer */}
         <Route path="/property-casualty" element={<PropertyCasualtyExplainer />} />
+        <Route path="/claim-guide" element={<ClaimGuide />} />
 
         {/* v3 Module 6 — Wills & Trusts Explainer */}
         <Route path="/wills-trusts" element={<WillsTrustsExplainer />} />

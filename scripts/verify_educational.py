@@ -267,7 +267,7 @@ else:
                 text = path.read_text()
             except Exception:
                 continue
-            for m in re.finditer(r"(LegalClear provides informational tools only|is not legal advice|not legal advice)", text, re.IGNORECASE):
+            for m in re.finditer(r"(LegalClear provides informational tools only|is not legal advice|not legal advice|constitute[s]? formal legal advice|does not constitute legal advice)", text, re.IGNORECASE):
                 line = text[:m.start()].count("\n") + 1
                 add(4, f"{rel}:{line}: frontend hardcodes a disclaimer string (duplicate of canonical)")
 

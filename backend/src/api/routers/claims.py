@@ -33,6 +33,7 @@ from src.agents.artifacts import ARTIFACT_CATALOG, build_artifact, missing_field
 from src.agents.claim_state import compute_state, trigger_vocabulary
 from src.agents.property_casualty import PropertyCasualtyExplainer
 from src.agents.red_flags import (
+    USER_DECLARED_FLAGS,
     USER_DECLARED_FLAG_NAMES,
     active_flags,
     escalation,
@@ -103,8 +104,28 @@ async def create_claim(request: Request, body: CreateClaimRequest):
     loss_date = _parse_loss_date(body.date_of_loss)
 
     code, code_hash = issue_claim_code()
+    if not body.session_id:
+        # I-9 (2026-08-23): a claim must be able to carry claim_facts
+        # (policy inception date -> regime), and claim_facts is keyed by
+        # session. Anonymous claims therefore get their own session at
+        # creation — the same pattern as the explain flow. user_id NULL
+        # (never a non-UUID placeholder).
+        try:
+            session_id = _db.create_session(
+                user_id=None,
+                filename="claim-guide",
+                token_count=0,
+                price_tier="free",
+                price_usd=0.0,
+                payment_type="free",
+            )
+        except DBWriteError as e:
+            raise HTTPException(status_code=503, detail="Could not create a session for this claim.") from e
+    else:
+        session_id = body.session_id
+
     try:
-        claim_id = _db.create_claim(code_hash, body.session_id)
+        claim_id = _db.create_claim(code_hash, session_id)
     except DBWriteError as e:
         raise HTTPException(status_code=503, detail="Could not create a claim code.") from e
 
@@ -121,6 +142,7 @@ async def create_claim(request: Request, body: CreateClaimRequest):
         "phase": "fire.p0.immediate",
         "peril": peril,
         "date_of_loss": loss_date.isoformat() if loss_date else None,
+        "session_id": session_id,
     }
 
 
@@ -193,10 +215,10 @@ async def list_artifacts(request: Request, code: str):
     if claim.get("date_of_loss"):
         details["date_of_loss"] = claim["date_of_loss"]
     missing = missing_fields(details)
-    return {
+    return apply_disclaimer({
         "artifacts": ARTIFACT_CATALOG,
         "missing_fields": missing,
-    }
+    }, lang="en")
 
 
 @router.get("/{code}/artifacts/{artifact_id}")
@@ -313,6 +335,7 @@ async def get_claim_guide(request: Request, code: str):
         "due_this_week": due_this_week,
         "claim_regime": {"regime": regime},
         "red_flags": flags,
+        "red_flag_catalog": USER_DECLARED_FLAGS,
         "escalation": esc,
         "details": claim.get("details") or {},
     }
