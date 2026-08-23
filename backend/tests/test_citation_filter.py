@@ -8,14 +8,28 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from src.agents.eviction_citations import EVICTION_CURATED_CITATIONS
+from src.agents.pc_citations import PC_CURATED_CITATIONS
 from src.agents.property_casualty import _filter_citation_json_strings
+from src.agents.small_claims_citations import SMALL_CLAIMS_CURATED_CITATIONS
 from src.core.citation_filter import (
     StreamingCitationFilter,
     filter_citations_text,
+    register_agent_curated_set,
     register_rule_citations,
 )
 
 AGENT = "test-agent"
+
+# 2026-08-23 ruling: every agent name must declare its curated set
+# explicitly — no implicit union, no fallthrough. This test agent declares
+# the legacy full union (the pre-ruling behavior it was written against).
+register_agent_curated_set(
+    AGENT,
+    set(SMALL_CLAIMS_CURATED_CITATIONS)
+    | set(EVICTION_CURATED_CITATIONS)
+    | set(PC_CURATED_CITATIONS),
+)
 
 
 def test_curated_citation_survives_verbatim():
@@ -219,3 +233,48 @@ def test_small_claims_structured_helper_strips_fabricated_citation():
     assert "83.999" not in cleaned["watch_out_for"][0]
     assert "Small claims court handles disputes up to $8,000." == cleaned["what_this_is"]
 
+
+
+# ── per-agent registry gate (2026-08-23, Joe ruling) ─────────────────────
+
+
+def test_unregistered_agent_raises_loudly():
+    """An agent name the guard does not know must FAIL, not silently emit
+    unfiltered prose — the generalized form of the pc_llm_tap bug."""
+    import pytest
+
+    from src.core.citation_filter import _ensure_registry
+    _ensure_registry()
+    with pytest.raises(RuntimeError, match="has no curated-set registry entry"):
+        filter_citations_text("See Fla. Stat. § 83.999.", "agent_never_registered")
+
+
+def test_census_of_known_agents_all_registered():
+    """Every agent name in production code must be in the registry."""
+    from src.core.citation_filter import _ensure_registry
+    _ensure_registry()
+    census = [
+        "explainer", "property_casualty", "small_claims",
+        "criminal_procedure", "discovery_motion", "wills_trusts",
+        "pc_llm_tap",
+        "chat_expert:small_claims", "chat_expert:criminal_procedure",
+        "chat_expert:police_report", "chat_expert:discovery_motion",
+        "chat_expert:property_casualty", "chat_expert:wills_trusts",
+        "chat_expert:landlord_tenant",
+    ]
+    for name in census:
+        result = filter_citations_text("Ordinary prose with no citations.", name)
+        assert result == "Ordinary prose with no citations.", name
+
+
+def test_pc_llm_tap_is_pc_only_not_legacy_union():
+    """pc_llm_tap declares the P&C set ONLY — an eviction citation that the
+    legacy union would keep must be stripped for the tap, while a P&C
+    citation survives."""
+    from src.core.citation_filter import _ensure_registry
+    _ensure_registry()
+    eviction_cite = "See Fla. Stat. § 83.60 about the 5-day window."
+    assert "83.60" in filter_citations_text(eviction_cite, "explainer")  # legacy union keeps it
+    assert "83.60" not in filter_citations_text(eviction_cite, "pc_llm_tap")  # tap strips it
+    pc_cite = "See Fla. Stat. § 627.70131 for the acknowledgment window."
+    assert "627.70131" in filter_citations_text(pc_cite, "pc_llm_tap")

@@ -109,6 +109,7 @@ from src.api.routers.property_casualty import (
     router as property_casualty_router,
 )
 from src.api.routers.claims import router as claims_router
+from src.api.routers.pc_llm_tap import router as pc_llm_tap_router
 from src.api.routers.reminders import router as reminders_router
 from src.api.routers.small_claims import router as small_claims_router
 from src.api.routers.traffic import router as traffic_router
@@ -119,6 +120,7 @@ app.include_router(small_claims_router)
 app.include_router(criminal_router)
 app.include_router(discovery_router)
 app.include_router(property_casualty_router)
+app.include_router(pc_llm_tap_router)
 app.include_router(claims_router)
 app.include_router(expungement_router)
 app.include_router(landlord_router)

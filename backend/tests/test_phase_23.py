@@ -90,6 +90,11 @@ def test_pdfa_metadata():
 
 
 def test_spanish():
+    import pytest
+    # Decision 16 (2026-08-23): English first — Spanish deferred by
+    # DECISION, not because this test is environment-broken. Re-enable when
+    # the ES product scope reopens.
+    pytest.skip("Decision 16: Spanish deferred until English is complete and live")
     r = httpx.post(
         f"{BACKEND}/api/packet/build",
         json={

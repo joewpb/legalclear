@@ -1,5 +1,8 @@
 # Follow-ups
 
+## ES i18n audit — recorded-not-scheduled (2026-08-23, Decision 16)
+The Spanish-language i18n audit item is deferred by Decision 16: English first; Spanish stays out of scope until the English product is complete and live. The language parameter remains wired end-to-end (AGENTS.md §7 — no re-architecture required); this is deferral, not removal. Re-open with Decision 16.
+
 ## PA 60-day no-estimate cancellation variant — named, not shipped (2026-08-22, I-3c)
 § 626.854(7) also permits cancellation without penalty if the public adjuster fails to provide a written estimate within 60 days of contract execution. The 10-day and emergency later-of clocks shipped in I-3c; the 60-day variant interacts with the estimate-delivery tracking path and was left out of the I-3 scope. Named-not-shipped; add when estimate tracking exists.
 

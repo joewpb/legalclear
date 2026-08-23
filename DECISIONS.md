@@ -285,3 +285,15 @@ dispatch flow they would change nothing unless the whole flow moved to PRs.
 **Revisit when a second person commits to this repo.** Until then, the
 discipline rule holds: the orchestrator gates every dispatch on green CI
 before pushing to main.
+
+## Decision 16 — English first; Spanish deferred until the English product is complete and live (2026-08-23)
+
+Scope ruling (Joe, Phase I finale): Spanish is out of scope until English is
+fully working. Consequences applied:
+- test_spanish (test_phase_23.py) stays skipped — deferred-by-decision, NOT
+  environment-broken.
+- The ES i18n audit item moves to recorded-not-scheduled in FOLLOW_UPS.md
+  with this ruling as the reason.
+- No Spanish path is built, tested, or verified in the remaining Phase I
+  slices. The language parameter remains wired end-to-end (AGENTS.md §7:
+  no re-architecture required) — this is deferral, not removal.

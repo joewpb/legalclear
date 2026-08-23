@@ -39,31 +39,78 @@ from src.core.citation_resolver import normalize_citation
 
 logger = logging.getLogger("legalclear.citation_filter")
 
-_STATUTE_CURATED_KEYS: frozenset[str] | None = None
+# ── per-agent curated-set registry (2026-08-23, Joe ruling) ─────────────
+# Every agent name that reaches the filter MUST have an explicit registry
+# entry — the way every deadline rule declares its counting_regime. No
+# inheritance between agents, no fallthrough to a shared union. An
+# unregistered agent name RAISES: a new agent the guard does not know
+# about must fail loudly, not silently emit unfiltered prose.
+#
+# The one shared supplement is _REGISTERED_RULE_KEYS: the owned court_rules
+# corpus loaded once from the DB at startup. That is a single owned
+# dataset, not one agent inheriting from another.
+
+_AGENT_CURATED_SETS: dict[str, frozenset[str]] = {}
+_REGISTRY_INITIALIZED = False
 _REGISTERED_RULE_KEYS: set[str] = set()
 
 
-def _statute_curated_keys() -> frozenset[str]:
-    """Lazy union of every module's curated statute base-citation set.
+def register_agent_curated_set(agent_name: str, citations: Iterable[str]) -> None:
+    """Explicitly declare one agent's curated citation set."""
+    _AGENT_CURATED_SETS[agent_name] = frozenset(
+        normalize_citation(c) for c in citations
+    )
 
-    Lazy on purpose: agents/__init__ imports explainer, and explainer imports
-    this module — an eager import of the agents package here creates a cycle
-    (citation_filter -> agents -> explainer -> citation_filter). The curated
-    sets are agent-module constants, so they load at first filter use, by
-    which time the package graph is fully initialized.
-    """
-    global _STATUTE_CURATED_KEYS
-    if _STATUTE_CURATED_KEYS is None:
-        from src.agents.eviction_citations import EVICTION_CURATED_CITATIONS
-        from src.agents.pc_citations import PC_CURATED_CITATIONS
-        from src.agents.small_claims_citations import SMALL_CLAIMS_CURATED_CITATIONS
 
-        _STATUTE_CURATED_KEYS = frozenset(
-            set(SMALL_CLAIMS_CURATED_CITATIONS)
-            | set(EVICTION_CURATED_CITATIONS)
-            | set(PC_CURATED_CITATIONS)
+def _agent_curated_keys(agent_name: str) -> frozenset[str]:
+    entry = _AGENT_CURATED_SETS.get(agent_name)
+    if entry is None:
+        raise RuntimeError(
+            f"citation_filter: agent {agent_name!r} has no curated-set "
+            f"registry entry. Every agent name that emits filtered text "
+            f"must be registered via register_agent_curated_set — no "
+            f"fallthrough, no implicit union."
         )
-    return _STATUTE_CURATED_KEYS
+    return entry
+
+
+def _ensure_registry() -> None:
+    """Lazy one-time registration of every known agent name.
+
+    Lazy on purpose: agents/__init__ imports explainer, and explainer
+    imports this module — an eager import of the agents package here
+    creates a cycle. Curated sets are agent-module constants, so they load
+    at first filter use, by which time the package graph is initialized.
+    """
+    global _REGISTRY_INITIALIZED
+    if _REGISTRY_INITIALIZED:
+        return
+
+    from src.agents.eviction_citations import EVICTION_CURATED_CITATIONS
+    from src.agents.pc_citations import PC_CURATED_CITATIONS
+    from src.agents.small_claims_citations import SMALL_CLAIMS_CURATED_CITATIONS
+
+    pc = set(PC_CURATED_CITATIONS)
+    # Legacy agents historically resolved against the union of all three
+    # curated modules (the pre-2026-08-23 behavior). That union is now
+    # their EXPLICIT declaration — same coverage, now opt-in and auditable.
+    full_union = set(SMALL_CLAIMS_CURATED_CITATIONS) | set(EVICTION_CURATED_CITATIONS) | pc
+
+    for name in (
+        "explainer", "property_casualty", "small_claims",
+        "criminal_procedure", "discovery_motion", "wills_trusts",
+        "chat_expert:small_claims", "chat_expert:criminal_procedure",
+        "chat_expert:police_report", "chat_expert:discovery_motion",
+        "chat_expert:property_casualty", "chat_expert:wills_trusts",
+        "chat_expert:landlord_tenant",
+    ):
+        register_agent_curated_set(name, full_union)
+
+    # I-8 taps cite P&C only — a deliberately narrower set than the
+    # property_casualty explainer's legacy union.
+    register_agent_curated_set("pc_llm_tap", pc)
+
+    _REGISTRY_INITIALIZED = True
 
 
 def register_rule_citations(citations: Iterable[str]) -> None:
@@ -101,8 +148,11 @@ def load_rule_citations_from_db(db) -> None:
         logger.error("citation_filter: rule-citation load failed: %s", e)
 
 
-def _curated_keys() -> frozenset[str]:
-    return frozenset(_statute_curated_keys() | _REGISTERED_RULE_KEYS)
+def _resolves(matched_value: str, agent_name: str) -> bool:
+    base = _base_citation(matched_value)
+    return normalize_citation(base) in (
+        _agent_curated_keys(agent_name) | _REGISTERED_RULE_KEYS
+    )
 
 # Citation-shaped token patterns. Conservative by design: every alternative
 # requires an explicit citation marker ("Fla. Stat.", "Fla. Stats.",
@@ -198,11 +248,6 @@ def _base_citation(matched_value: str) -> str:
     return _canonicalize_statute_alias(stripped)
 
 
-def _resolves(matched_value: str) -> bool:
-    base = _base_citation(matched_value)
-    return normalize_citation(base) in _curated_keys()
-
-
 def _bare_number_tokens(text: str, consumed: list[tuple[int, int]]) -> list[tuple[int, int, str]]:
     """Find bare "N.NNN" numbers that sit within ``_BARE_NUM_CONTEXT_WINDOW``
     characters of statute language, skipping spans already claimed by the
@@ -225,13 +270,18 @@ def filter_citations_text(text: str, agent_name: str) -> str:
     """One-shot citation filter for a complete (non-streamed) string.
 
     Every citation-shaped token whose base citation resolves against the
-    curated union map is kept verbatim; every other citation-shaped token is
+    calling agent's REGISTERED curated set (plus the owned court_rules
+    registry) is kept verbatim; every other citation-shaped token is
     removed and logged. Ordinary prose containing "§" or "Fla." with no
     trailing numeric section is left untouched.
+
+    An agent name with no registry entry RAISES — see
+    register_agent_curated_set.
     """
     if not text:
         return text
 
+    _ensure_registry()
     main_matches = [(m.start(), m.end(), m.group(0)) for m in _CITATION_TOKEN_RE.finditer(text)]
     bare_matches = _bare_number_tokens(text, [(s, e) for s, e, _ in main_matches])
     all_matches = sorted(main_matches + bare_matches, key=lambda t: t[0])
@@ -241,7 +291,7 @@ def filter_citations_text(text: str, agent_name: str) -> str:
     for start, end, value in all_matches:
         if start < last_end:
             continue
-        if _resolves(value):
+        if _resolves(value, agent_name):
             continue
         ctx_start = max(0, start - 60)
         ctx_end = min(len(text), end + 60)
