@@ -63,6 +63,24 @@ _CREATE_TABLE_RE = re.compile(
     re.IGNORECASE,
 )
 
+# ALTER TABLE ... ADD COLUMN — captures the column name and the type
+# tokens that follow (bounded by a comma, semicolon, or end of string; the
+# caller stops at constraint keywords). The table name is OPTIONAL so
+# multi-column lists (one ALTER TABLE, several ADD COLUMN clauses) resolve
+# each clause against the most recently seen table.
+_ALTER_ADD_COLUMN_RE = re.compile(
+    r"(?:alter\s+table\s+(?:if\s+exists\s+)?(?P<name>[a-zA-Z0-9_.\"]+)\s+)?"
+    r"add\s+column\s+(?:if\s+not\s+exists\s+)?"
+    r"(?P<col>[a-zA-Z0-9_\"]+)\s+(?P<type>[^,;]+)",
+    re.IGNORECASE,
+)
+
+_ALTER_DROP_COLUMN_RE = re.compile(
+    r"alter\s+table\s+(?:if\s+exists\s+)?(?P<name>[a-zA-Z0-9_.\"]+)\s+"
+    r"drop\s+column\s+(?:if\s+exists\s+)?(?P<col>[a-zA-Z0-9_\"]+)",
+    re.IGNORECASE,
+)
+
 
 def _strip_schema_prefix(table_name: str) -> str:
     name = table_name.replace('"', "")
@@ -142,14 +160,16 @@ def _strip_line_comments(sql: str) -> str:
 
 
 def parse_migration_sql(sql: str) -> dict[str, dict[str, str]]:
-    """Parse CREATE TABLE stanzas out of one migration file's SQL text.
+    """Parse CREATE TABLE and ALTER TABLE stanzas out of one migration
+    file's SQL text.
 
     Returns {table_name: {column_name: column_type}}.
 
     Limits (documented, not fixed — this is a plain-text parser, not a
     SQL parser):
-      - Only understands `CREATE TABLE [IF NOT EXISTS] name (...)`.
-        ALTER TABLE (ADD COLUMN, DROP COLUMN, etc.) is not tracked.
+      - Understands `CREATE TABLE [IF NOT EXISTS] name (...)` and
+        `ALTER TABLE [IF EXISTS] name ADD|DROP COLUMN ...` stanzas. Other
+        ALTER forms (constraints, defaults, renames) are not tracked.
       - Column type is taken as everything after the column name up to
         the first recognized constraint keyword (PRIMARY KEY, REFERENCES,
         NOT NULL, DEFAULT, UNIQUE, CHECK) — good enough for a base-type
@@ -194,6 +214,31 @@ def parse_migration_sql(sql: str) -> dict[str, dict[str, str]]:
                 type_tokens.append(tok)
             columns[col_name] = " ".join(type_tokens).upper()
         tables.setdefault(table_name, {}).update(columns)
+
+    # ── ALTER TABLE ADD/DROP COLUMN (2026-08-23) ─────────────────────
+    # Previously untracked: columns added by ALTER were invisible to the
+    # expected schema, so prod came back as having "extra" columns after
+    # an ALTER-based migration (the I-4 claim_events migration fired this
+    # exact false positive). Apply adds and drops in textual order.
+    current_alter_table: str | None = None
+    for match in _ALTER_ADD_COLUMN_RE.finditer(sql):
+        if match.group("name"):
+            current_alter_table = _strip_schema_prefix(match.group("name"))
+        if current_alter_table is None:
+            continue
+        col_name = match.group("col").replace('"', "")
+        type_tokens: list[str] = []
+        for tok in match.group("type").split():
+            if tok.lower() in {"primary", "references", "not", "default",
+                               "unique", "check", "constraint", "generated"}:
+                break
+            type_tokens.append(tok)
+        tables.setdefault(current_alter_table, {})[col_name] = " ".join(type_tokens).upper()
+    for match in _ALTER_DROP_COLUMN_RE.finditer(sql):
+        table_name = _strip_schema_prefix(match.group("name"))
+        col_name = match.group("col").replace('"', "")
+        tables.setdefault(table_name, {}).pop(col_name, None)
+
     return tables
 
 

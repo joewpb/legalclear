@@ -63,6 +63,16 @@ jobs:
             # error body. No blind retries.
             code=$(jq -Rs '{query: .}' < "$f" | run_query /tmp/resp.json || echo 000)
             if [ "$code" -ge 200 ] && [ "$code" -lt 300 ]; then
+              # 2026-08-23 hardening: a 2xx is not proof the SQL ran. The
+              # B5 migrations were ledger-recorded with 2xx while their DDL
+              # never landed in prod (schema drift caught by parity). Check
+              # the response body for error markers before recording OK.
+              if grep -qiE '"error"|"message"\s*:\s*"[^"]*(error|failed)' /tmp/resp.json; then
+                echo "FAIL $name (2xx but error body)"
+                cat /tmp/resp.json
+                FAILED=1
+                break
+              fi
               jq -Rn --arg n "$name" \
                 '{query: ("insert into public.schema_migrations(filename) values (" + ($n|@sh) + ") on conflict (filename) do nothing")}' \
                 | run_query /tmp/rec.json > /dev/null
