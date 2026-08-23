@@ -2,7 +2,7 @@
 
 AGENTS.md invariant: LLMs generate, deterministic code guarantees. Prompt
 edits cannot reliably stop a model from emitting URLs it has seen in
-training data (clsmf.org, myflcourtaccess.com, invented domains like
+training data (clsmf.org, the e-filing portal domain, invented domains like
 floridalegalhelpdesk.org) — so this module strips them at the output
 boundary instead of trusting the prompt. It only ever runs on text an
 agent is about to emit, never on prompt/input text.

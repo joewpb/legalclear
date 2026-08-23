@@ -18,7 +18,7 @@ from pydantic import BaseModel
 from src.agents.property_casualty import PropertyCasualtyExplainer
 from src.api.limiter import limiter
 from src.core.claim_regime import resolve_regime
-from src.memory.db import DatabaseManager
+from src.memory.db import DBWriteError, DatabaseManager
 
 router = APIRouter(prefix="/api/property-casualty")
 _explainer = PropertyCasualtyExplainer()
@@ -44,12 +44,13 @@ async def capture_claim_facts(body: ClaimFactsRequest):
     as-is — it is not defaulted to a regime, it escalates when the explain
     flow reads it back (see PropertyCasualtyExplainer._resolve_claim_regime).
     """
-    ok = _db.upsert_claim_fact(
-        body.session_id,
-        body.policy_inception_date.isoformat() if body.policy_inception_date else None,
-    )
-    if not ok:
-        raise HTTPException(status_code=503, detail="Could not save policy inception date.")
+    try:
+        _db.upsert_claim_fact(
+            body.session_id,
+            body.policy_inception_date.isoformat() if body.policy_inception_date else None,
+        )
+    except DBWriteError as e:
+        raise HTTPException(status_code=503, detail="Could not save policy inception date.") from e
     return {
         "session_id": body.session_id,
         "policy_inception_date": body.policy_inception_date,
@@ -95,21 +96,22 @@ async def explain_property_casualty(
         # like "anon" fails the insert, which create_session would swallow as
         # None. Anonymous P&C sessions store NULL instead (Option A ruling).
         session_user_id = user_id if user_id and user_id != "anon" else None
-        session_id = _db.create_session(
-            user_id=session_user_id,
-            filename=filename or "property-casualty-session",
-            token_count=0,
-            price_tier="free",
-            price_usd=0.0,
-            payment_type="free",
-        )
-        if not session_id:
+        try:
+            session_id = _db.create_session(
+                user_id=session_user_id,
+                filename=filename or "property-casualty-session",
+                token_count=0,
+                price_tier="free",
+                price_usd=0.0,
+                payment_type="free",
+            )
+        except DBWriteError as e:
             # The session is structural for /facts and regime resolution —
             # never degrade to a null-keyed explain (S3 silent-failure class).
             raise HTTPException(
                 status_code=500,
                 detail="Could not create a session for this explain request.",
-            )
+            ) from e
 
     async def _stream():
         async for chunk in _explainer.explain_stream(

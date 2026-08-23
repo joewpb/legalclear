@@ -18,7 +18,7 @@ from pydantic import BaseModel
 from src.core.claim_codes import hash_code, issue_claim_code
 from src.core.claim_regime import resolve_regime
 from src.api.limiter import limiter
-from src.memory.db import DatabaseManager
+from src.memory.db import DBWriteError, DatabaseManager
 
 router = APIRouter(prefix="/api/claims")
 _db = DatabaseManager()
@@ -34,9 +34,10 @@ class CreateClaimRequest(BaseModel):
 @limiter.limit("10/minute")
 async def create_claim(request: Request, body: CreateClaimRequest):
     code, code_hash = issue_claim_code()
-    claim_id = _db.create_claim(code_hash, body.session_id)
-    if not claim_id:
-        raise HTTPException(status_code=503, detail="Could not create a claim code.")
+    try:
+        claim_id = _db.create_claim(code_hash, body.session_id)
+    except DBWriteError as e:
+        raise HTTPException(status_code=503, detail="Could not create a claim code.") from e
     return {"code": code, "phase": "fire.p0.immediate"}
 
 

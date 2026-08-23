@@ -1,3 +1,14 @@
+class DBWriteError(Exception):
+    """Raised by critical write helpers when a write cannot be verified.
+
+    Phase I sweep (2026-08-23): critical writes used to return None/False on
+    failure, and several call sites consumed those falsy values silently
+    (S3 silent-failure class) — e.g. the upload flow passing a None
+    session_id into create_document. Critical writes now RAISE; read paths
+    remain best-effort (a missing read escalates elsewhere).
+    """
+
+
 class DatabaseManager:
 
     def __init__(self):
@@ -86,7 +97,7 @@ class DatabaseManager:
             price_usd: float,
             payment_type: str) -> str:
         if self.client is None:
-            return None
+            raise DBWriteError("Supabase client not configured")
         try:
             result = (self.client.table("sessions")
                       .insert({
@@ -97,10 +108,12 @@ class DatabaseManager:
                           "price_paid_usd": price_usd,
                           "payment_type": payment_type
                       }).execute())
+            if not result.data:
+                raise DBWriteError("sessions insert returned no row")
             return result.data[0]["id"]
         except Exception as e:
             self.logger.error(f"create_session failed for {user_id}: {e}")
-            return None
+            raise DBWriteError(f"create_session failed: {e}") from e
 
     def update_payment_status(
             self, session_id: str, status: str,
@@ -135,7 +148,7 @@ class DatabaseManager:
             self, session_id: str,
             document_text: str = "") -> str:
         if self.client is None:
-            return None
+            raise DBWriteError("Supabase client not configured")
         try:
             result = (self.client.table("documents")
                       .insert({
@@ -143,10 +156,12 @@ class DatabaseManager:
                           "document_text": document_text,
                           "status": "processing"
                       }).execute())
+            if not result.data:
+                raise DBWriteError("documents insert returned no row")
             return result.data[0]["id"]
         except Exception as e:
             self.logger.error(f"create_document failed for session {session_id}: {e}")
-            return None
+            raise DBWriteError(f"create_document failed: {e}") from e
 
     def save_results(
             self, document_id: str,
@@ -158,9 +173,9 @@ class DatabaseManager:
             escalation: dict,
             language: str):
         if self.client is None:
-            return
+            raise DBWriteError("Supabase client not configured")
         try:
-            self.client.table("documents").update({
+            result = self.client.table("documents").update({
                 "classification": classification,
                 "explanation": explanation,
                 "form_guide": form_guide,
@@ -170,8 +185,11 @@ class DatabaseManager:
                 "language": language,
                 "status": "complete"
             }).eq("id", document_id).execute()
+            if not result.data:
+                raise DBWriteError("documents update affected no row")
         except Exception as e:
             self.logger.error(f"save_results failed for {document_id}: {e}")
+            raise DBWriteError(f"save_results failed: {e}") from e
 
     def update_document_status(
             self, document_id: str,
@@ -277,9 +295,9 @@ class DatabaseManager:
 
     def record_filing(self, user_id: str, document_id: str,
                       filing_type: str = "florida",
-                      jurisdiction: str = "FL") -> bool:
+                      jurisdiction: str = "FL") -> None:
         if self.client is None:
-            return False
+            raise DBWriteError("Supabase client not configured")
         try:
             self.client.table("filings").insert({
                 "user_id": user_id,
@@ -287,10 +305,9 @@ class DatabaseManager:
                 "filing_type": filing_type,
                 "jurisdiction": jurisdiction
             }).execute()
-            return True
         except Exception as e:
             self.logger.error(f"record_filing failed: {e}")
-            return False
+            raise DBWriteError(f"record_filing failed: {e}") from e
 
     def log_usage(
             self, category: str,
@@ -387,7 +404,7 @@ class DatabaseManager:
     def upsert_document_service_fact(
             self, document_id: str, service_date: str,
             service_method: str | None = None,
-            clerk_mailing_date: str | None = None) -> bool:
+            clerk_mailing_date: str | None = None) -> None:
         """Upsert the single document_service_facts row for a document.
 
         Always sets provenance='user_supplied' — this is the only writer of
@@ -395,7 +412,7 @@ class DatabaseManager:
         value.
         """
         if self.client is None:
-            return False
+            raise DBWriteError("Supabase client not configured")
         try:
             row = {
                 "document_id": document_id,
@@ -408,10 +425,9 @@ class DatabaseManager:
                 row["clerk_mailing_date"] = clerk_mailing_date
             self.client.table("document_service_facts") \
                 .upsert(row, on_conflict="document_id").execute()
-            return True
         except Exception as e:
             self.logger.error(f"upsert_document_service_fact failed: {e}")
-            return False
+            raise DBWriteError(f"upsert_document_service_fact failed: {e}") from e
 
     # ── I-2c: claim_facts (one row per session, Option A ruling 2026-08-20) ──
     # User-supplied policy_inception_date, mirroring B5-f3's split of
@@ -447,7 +463,7 @@ class DatabaseManager:
         value.
         """
         if self.client is None:
-            return False
+            raise DBWriteError("Supabase client not configured")
         try:
             row = {
                 "session_id": session_id,
@@ -459,7 +475,7 @@ class DatabaseManager:
             return True
         except Exception as e:
             self.logger.error(f"upsert_claim_fact failed: {e}")
-            return False
+            raise DBWriteError(f"upsert_claim_fact failed: {e}") from e
 
     # ── I-2d: claims (anonymous resumable claim codes) ──────────────────────
     # The code itself is never persisted — only its sha256 hash. Lookups are
@@ -469,17 +485,19 @@ class DatabaseManager:
     def create_claim(self, code_hash: str, session_id: str | None) -> str | None:
         """Create a claim row bound to a session and return its id."""
         if self.client is None:
-            return None
+            raise DBWriteError("Supabase client not configured")
         try:
             result = (self.client.table("claims")
                       .insert({
                           "code_hash": code_hash,
                           "session_id": session_id,
                       }).execute())
-            return result.data[0]["id"] if result.data else None
+            if not result.data:
+                raise DBWriteError("claims insert returned no row")
+            return result.data[0]["id"]
         except Exception as e:
             self.logger.error(f"create_claim failed: {e}")
-            return None
+            raise DBWriteError(f"create_claim failed: {e}") from e
 
     def get_claim_by_code_hash(self, code_hash: str) -> dict | None:
         """Return the claim row matching this code hash, or None."""
@@ -507,6 +525,64 @@ class DatabaseManager:
             ).eq("id", claim_id).execute()
         except Exception as e:
             self.logger.error(f"touch_claim failed for {claim_id}: {e}")
+
+    # ── I-4: claim events + details (2026-08-23) ─────────────────────────
+
+    def add_claim_event(
+            self, claim_id: str, trigger_name: str,
+            occurred_at: str | None = None,
+            source: str = "user",
+            note: str | None = None) -> dict:
+        """Append one event to the claim's durable log. RAISES on failure —
+        the state machine and red-flag detector are only as good as this
+        log, and a silently dropped trigger changes the user's phase."""
+        if self.client is None:
+            raise DBWriteError("Supabase client not configured")
+        try:
+            row = {"claim_id": claim_id, "trigger_name": trigger_name, "source": source}
+            if occurred_at:
+                row["occurred_at"] = occurred_at
+            if note:
+                row["note"] = note
+            result = self.client.table("claim_events").insert(row).execute()
+            if not result.data:
+                raise DBWriteError("claim_events insert returned no row")
+            return result.data[0]
+        except Exception as e:
+            self.logger.error(f"add_claim_event failed for claim {claim_id}: {e}")
+            raise DBWriteError(f"add_claim_event failed: {e}") from e
+
+    def get_claim_events(self, claim_id: str) -> list[dict]:
+        """Claim event log, oldest first (read path — best-effort)."""
+        if self.client is None:
+            return []
+        try:
+            result = (self.client.table("claim_events")
+                      .select("*")
+                      .eq("claim_id", claim_id)
+                      .order("occurred_at")
+                      .execute())
+            return result.data or []
+        except Exception as e:
+            self.logger.error(f"get_claim_events failed for claim {claim_id}: {e}")
+            return []
+
+    def update_claim_details(self, claim_id: str, details: dict) -> None:
+        """Replace the user-supplied details object for a claim. RAISES on
+        failure — artifact generation reads these facts, and a silently
+        stale details blob would put wrong facts in a letter."""
+        if self.client is None:
+            raise DBWriteError("Supabase client not configured")
+        try:
+            result = (self.client.table("claims")
+                      .update({"details": details})
+                      .eq("id", claim_id)
+                      .execute())
+            if not result.data:
+                raise DBWriteError("claims update affected no row")
+        except Exception as e:
+            self.logger.error(f"update_claim_details failed for claim {claim_id}: {e}")
+            raise DBWriteError(f"update_claim_details failed: {e}") from e
 
     def get_trigger_events_for_document(self, document_id: str) -> list[dict]:
         """Return all trigger_events rows for a document, newest first.

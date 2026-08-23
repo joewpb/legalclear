@@ -178,6 +178,7 @@ async def _recompute_deadlines(
     pipeline_result = await run_deadline_pipeline(document_id, text, db)
 
     deadlines: list = []
+    read_error: str | None = None
     try:
         rows = (db.client.table("deadlines")
                 .select(_DEADLINE_SELECT_COLUMNS)
@@ -186,7 +187,21 @@ async def _recompute_deadlines(
                 .execute())
         deadlines = rows.data or []
     except Exception as e:
+        # Sweep 2026-08-23: the old code logged and returned "complete"
+        # with EMPTY deadlines — a silent failure that reads as "you have
+        # no deadlines". Fail loudly instead: the client must see that the
+        # recompute could not be verified.
         logger.error("Failed to fetch recomputed deadlines: %s", e)
+        read_error = "Recomputed deadlines could not be read from the database."
+
+    if read_error is not None:
+        return {
+            "recompute": "error",
+            "error": read_error,
+            "deadlines": [],
+            "escalation_needed": False,
+            "escalation_reasons": [],
+        }
 
     return {
         "recompute": "complete",
@@ -339,14 +354,12 @@ async def set_service_date(document_id: str, body: ServiceDateRequest, session_i
         if clerk_mailing_date:
             update_payload["clerk_mailing_date"] = clerk_mailing_date
 
-        ok = db.upsert_document_service_fact(
+        db.upsert_document_service_fact(
             document_id,
             service_date=service_date,
             service_method=body.service_method,
             clerk_mailing_date=clerk_mailing_date,
         )
-        if not ok:
-            raise HTTPException(status_code=500, detail="Could not save service date")
     except HTTPException:
         raise
     except Exception as e:

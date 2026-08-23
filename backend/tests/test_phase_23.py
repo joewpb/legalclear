@@ -21,6 +21,12 @@ from pathlib import Path
 
 BACKEND = "http://localhost:8001"
 
+# CWD-independent paths (sweep 2026-08-23): this file was only correct when
+# run from the repo root, and running it from backend/ (as CI does) made the
+# filesystem walk in test_no_mode_b silently scan nothing — a check that can
+# pass without checking. Anchor everything to this file's location.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
 
 def test_packet_build():
     r = httpx.post(
@@ -59,7 +65,7 @@ def test_download_gated():
 def test_zip_exists():
     pid = test_packet_build()
     time.sleep(2)
-    d = Path(f"backend/storage/packets/{pid}")
+    d = REPO_ROOT / "backend" / "storage" / "packets" / pid
     assert d.exists()
     for f in [
         "01_cover_sheet.pdf",
@@ -76,7 +82,7 @@ def test_pdfa_metadata():
     pid = test_packet_build()
     time.sleep(2)
     with pikepdf.open(
-        Path(f"backend/storage/packets/{pid}/01_cover_sheet.pdf")
+        REPO_ROOT / "backend" / "storage" / "packets" / pid / "01_cover_sheet.pdf"
     ) as pdf:
         with pdf.open_metadata() as meta:
             assert meta.get("pdfaid:part") == "1"
@@ -191,14 +197,14 @@ def test_tracking():
 
 
 def test_counties():
-    with open("backend/src/data/fl_county_clerk_details.json") as f:
+    with open(REPO_ROOT / "backend/src/data/fl_county_clerk_details.json") as f:
         c = json.load(f)
     assert len(c) == 67
 
 
 def test_bilingual_instructions():
-    en = json.load(open("backend/src/data/instructions_en.json"))
-    es = json.load(open("backend/src/data/instructions_es.json"))
+    en = json.load(open(REPO_ROOT / "backend/src/data/instructions_en.json"))
+    es = json.load(open(REPO_ROOT / "backend/src/data/instructions_es.json"))
     needed = {
         "small_claims",
         "expungement",
@@ -213,7 +219,7 @@ def test_bilingual_instructions():
 
 def test_no_mode_b():
     """CRITICAL: Confirm no Python file in backend/src navigates to myflcourtaccess."""
-    for root, _, files in os.walk("backend/src"):
+    for root, _, files in os.walk(REPO_ROOT / "backend" / "src"):
         for f in files:
             if f.endswith(".py"):
                 content = Path(root, f).read_text().lower()

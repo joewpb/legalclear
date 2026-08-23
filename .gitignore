@@ -88,3 +88,6 @@ scripts/opinion_pipeline/logs/*
 
 # dispatch run archives (local-only)
 runs/_wt_archive/
+
+# Local ops data (corpus backups) — VPS-only, never committed
+backups/
