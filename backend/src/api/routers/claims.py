@@ -25,6 +25,8 @@ src/core/claim_codes.py.
 
 from datetime import date, datetime, timedelta, timezone
 
+import logging
+
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
@@ -44,6 +46,8 @@ from src.core.claim_codes import hash_code, issue_claim_code
 from src.core.claim_regime import resolve_regime
 from src.core.upl import apply_disclaimer
 from src.memory.db import DBWriteError, DatabaseManager
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/claims")
 _db = DatabaseManager()
@@ -253,7 +257,18 @@ async def download_artifact(request: Request, code: str, artifact_id: str):
     if claim.get("date_of_loss"):
         details["date_of_loss"] = claim["date_of_loss"]
 
-    payload, mime, filename = build_artifact(artifact_id, claim, events, deadlines, details)
+    try:
+        payload, mime, filename = build_artifact(artifact_id, claim, events, deadlines, details)
+    except Exception as e:
+        # Fail loudly with the exception class+message (no traceback leak) —
+        # prod returned a bare 500 for the PDF artifacts while the same
+        # render succeeded locally, which is exactly the silent-failure
+        # shape this repo bans (S3 class, 2026-08-24).
+        logger.exception("Artifact generation failed for %s/%s", code, artifact_id)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Artifact generation failed: {type(e).__name__}: {e}",
+        ) from e
     return Response(
         content=payload,
         media_type=mime,
