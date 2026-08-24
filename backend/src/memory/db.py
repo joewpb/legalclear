@@ -587,9 +587,9 @@ class DatabaseManager:
     def get_trigger_events_for_document(self, document_id: str) -> list[dict]:
         """Return all trigger_events rows for a document, newest first.
 
-        Includes user_service_date / user_service_method /
-        service_date_provenance alongside the extracted event_date so callers
-        can tell a user-supplied anchor from an extracted one.
+        Rows are pipeline-owned extracted events only. User-supplied service
+        facts live on document_service_facts (B5-f3) — read them via
+        get_document_service_fact, never from trigger_events.
         """
         if self.client is None:
             return []

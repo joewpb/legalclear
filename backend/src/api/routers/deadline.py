@@ -146,12 +146,12 @@ async def _recompute_deadlines(
     """Recompute deadlines for a document after a service-date supply/edit.
 
     Seam for B5-c1: the PUT /api/deadline/{document_id}/service-date endpoint
-    persists user_service_date/user_service_method itself, then calls this
-    helper with the same service_method (and, once B5-b lands, the posted
-    document's clerk_mailing_date) to get the refreshed deadlines or the
-    escalation payload. Edit uses this same path as initial supply — there is
-    no separate branch, since the endpoint upserts the trigger_events columns
-    before either call.
+    persists the service fact to document_service_facts (B5-f3 — one row per
+    document, never trigger_events, which the pipeline rewrites on every
+    recompute), then calls this helper with the same service_method (and the
+    posted document's clerk_mailing_date) to get the refreshed deadlines or
+    the escalation payload. Edit uses this same path as initial supply — there
+    is no separate branch.
 
     Decision 2: an unknown service method escalates instead of computing.
     Decision 6: posted service without a mailing date escalates instead of
