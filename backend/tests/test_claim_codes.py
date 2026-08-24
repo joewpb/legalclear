@@ -255,7 +255,10 @@ def test_create_claim_persists_opening_facts():
     row = db.get_claim_by_code_hash(code_hash)
     assert row is not None
     assert row["peril"] == "fire"
-    assert row["date_of_loss"] == date(2026, 8, 1)
+    # The db layer must serialize to an ISO string — a date object here
+    # reproduces the prod 503 ("Object of type date is not JSON
+    # serializable", postgrest-py plain json.dumps, 2026-08-24).
+    assert row["date_of_loss"] == "2026-08-01"
     assert row["sub_type"] == "first_party_property"
 
 

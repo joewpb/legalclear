@@ -510,7 +510,10 @@ class DatabaseManager:
                           "code_hash": code_hash,
                           "session_id": session_id,
                           "peril": peril,
-                          "date_of_loss": date_of_loss,
+                          # postgrest-py serializes via plain json.dumps —
+                          # a date object raises "not JSON serializable"
+                          # (prod 503 on create, 2026-08-24). ISO strings.
+                          "date_of_loss": date_of_loss.isoformat() if date_of_loss else None,
                           "sub_type": sub_type,
                       }).execute())
             if not result.data:
