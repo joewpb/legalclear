@@ -125,7 +125,12 @@ async def create_claim(request: Request, body: CreateClaimRequest):
         session_id = body.session_id
 
     try:
-        claim_id = _db.create_claim(code_hash, session_id)
+        claim_id = _db.create_claim(
+            code_hash, session_id,
+            peril=peril,
+            date_of_loss=loss_date,
+            sub_type=sub_type,
+        )
     except DBWriteError as e:
         raise HTTPException(status_code=503, detail="Could not create a claim code.") from e
 

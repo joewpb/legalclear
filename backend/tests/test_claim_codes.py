@@ -234,6 +234,66 @@ def test_get_claim_wrong_but_well_formed_code_same_shape_as_unknown():
         assert result_a == result_b == (404, claims_router_mod._UNKNOWN_CODE_DETAIL)
 
 
+# ── I-4 persistence fix: opening facts land on the claims row ───────────
+
+
+def test_create_claim_persists_opening_facts():
+    """I-4 fix (2026-08-24): peril/date_of_loss/sub_type must be written to
+    the claims row — every consumer (guide deadlines, ICS, artifacts) reads
+    them from the row; a NULL date_of_loss silently emptied a fresh claim's
+    deadlines (prod smoke: guide returned deadlines=[] with regime=post)."""
+    from datetime import date
+
+    db = _make_db()
+    _, code_hash = issue_claim_code()
+    db.create_claim(
+        code_hash, "session-1",
+        peril="fire",
+        date_of_loss=date(2026, 8, 1),
+        sub_type="first_party_property",
+    )
+    row = db.get_claim_by_code_hash(code_hash)
+    assert row is not None
+    assert row["peril"] == "fire"
+    assert row["date_of_loss"] == date(2026, 8, 1)
+    assert row["sub_type"] == "first_party_property"
+
+
+def test_create_claim_endpoint_passes_opening_facts_to_db():
+    """The handler must hand date_of_loss/peril/sub_type to db.create_claim —
+    the original I-4 handler parsed and echoed them but never persisted them."""
+    from src.api.routers import claims as claims_router_mod
+
+    with patch.object(claims_router_mod, "_db") as mock_db:
+        mock_db.create_session = MagicMock(return_value="session-test")
+        mock_db.create_claim = MagicMock(return_value="claim-1")
+        mock_db.add_claim_event = MagicMock(
+            return_value={"trigger_name": "date_of_loss", "occurred_at": "2026-08-01"}
+        )
+
+        async def _run():
+            return await claims_router_mod.create_claim(
+                _fake_request(),
+                claims_router_mod.CreateClaimRequest(
+                    peril="fire", date_of_loss="2026-08-01", sub_type="first_party_property"
+                ),
+            )
+
+        resp = asyncio.run(_run())
+        assert resp["date_of_loss"] == "2026-08-01"
+        assert resp["session_id"] == "session-test"
+
+        from datetime import date as _date
+
+        kwargs = mock_db.create_claim.call_args.kwargs
+        assert kwargs["date_of_loss"] == _date(2026, 8, 1)
+        assert kwargs["peril"] == "fire"
+        assert kwargs["sub_type"] == "first_party_property"
+        mock_db.add_claim_event.assert_called_once_with(
+            "claim-1", "date_of_loss", occurred_at="2026-08-01", source="claim"
+        )
+
+
 # ── migration: G2 link point exists, nullable, ON DELETE SET NULL ───────
 
 

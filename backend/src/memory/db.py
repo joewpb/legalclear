@@ -1,3 +1,6 @@
+from datetime import date
+
+
 class DBWriteError(Exception):
     """Raised by critical write helpers when a write cannot be verified.
 
@@ -482,8 +485,23 @@ class DatabaseManager:
     # always by hash so an unknown code and a known-but-wrong code produce
     # identical "no row" behavior (no existence oracle).
 
-    def create_claim(self, code_hash: str, session_id: str | None) -> str | None:
-        """Create a claim row bound to a session and return its id."""
+    def create_claim(
+        self,
+        code_hash: str,
+        session_id: str | None,
+        peril: str = "fire",
+        date_of_loss: date | None = None,
+        sub_type: str = "first_party_property",
+    ) -> str | None:
+        """Create a claim row bound to a session and return its id.
+
+        I-4 persistence fix (2026-08-24): peril/date_of_loss/sub_type were
+        accepted by the API, echoed in the response, and recorded as the
+        opening claim_event — but never written to the claims row. Every
+        consumer that reads claims.date_of_loss (guide deadlines, the ICS,
+        artifact deadline contexts) saw NULL and skipped, so a fresh claim
+        showed zero deadlines. The row now carries the claim's opening facts.
+        """
         if self.client is None:
             raise DBWriteError("Supabase client not configured")
         try:
@@ -491,6 +509,9 @@ class DatabaseManager:
                       .insert({
                           "code_hash": code_hash,
                           "session_id": session_id,
+                          "peril": peril,
+                          "date_of_loss": date_of_loss,
+                          "sub_type": sub_type,
                       }).execute())
             if not result.data:
                 raise DBWriteError("claims insert returned no row")
