@@ -1,3 +1,10 @@
+# AUDIT 2026-08-24 (single-pass, noble container): this exact list + pip
+# weasyprint (latest, unpinned as prod installs) renders HTML().write_pdf()
+# on ROUND 1 with no additional packages. The gobject/glib/pangoft2 entries
+# are REQUIRED — pangocffi dlopens each soname directly and GLib is split
+# across Debian binary packages (libglib2.0-0 does not contain gobject).
+# If a Railway build ever shows prod missing one of these, the apt phase did
+# not run — check the build log's apt section, do not add more packages.
 [phases.setup]
 # Existing Part A apt deps (Tesseract OCR for ingestion; Cairo/Pango for
 # WeasyPrint) — kept verbatim. Phase 23 appends the dynamic libraries
