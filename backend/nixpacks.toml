@@ -1,21 +1,15 @@
-# AUDIT 2026-08-24 (single-pass, noble container): this exact list + pip
-# weasyprint (latest, unpinned as prod installs) renders HTML().write_pdf()
-# on ROUND 1 with no additional packages. The gobject/glib/pangoft2 entries
-# are REQUIRED — pangocffi dlopens each soname directly and GLib is split
-# across Debian binary packages (libglib2.0-0 does not contain gobject).
-# If a Railway build ever shows prod missing one of these, the apt phase did
-# not run — check the build log's apt section, do not add more packages.
-[phases.setup]
-# Existing Part A apt deps (Tesseract OCR for ingestion; Cairo/Pango for
-# WeasyPrint) — kept verbatim. Phase 23 appends the dynamic libraries
-# Playwright's bundled Chromium binary needs at runtime. Without these
-# the chromium.launch() call in src/services/pdfa_generator.py errors
-# even when `playwright install chromium` succeeds at build time.
+# apt deps: Tesseract OCR (ingestion), WeasyPrint (Pango/Cairo stack),
+# and Playwright Chromium runtime libs (Phase 23, pdfa_generator).
 #
-# Several packages were renamed with a `t64` suffix on Ubuntu 24.04
-# (noble) as part of the Debian-wide 64-bit time_t migration; the
-# legacy names (libasound2, libcups2, libatk1.0-0, libatk-bridge2.0-0)
-# have no installation candidate on noble.
+# 2026-08-24 audit in the Railway nixpacks base (ubuntu-1745885067):
+# - gobject ships INSIDE libglib2.0-0t64 on this base — there is no
+#   libgobject-2.0-* package at all, so the t64 name is mandatory.
+# - libglib2.0-0 and libgobject-2.0-0 do NOT exist in this base; earlier
+#   builds silently no-op'd them (apt installs the resolvable rest and
+#   exits 0). Prod's "cannot load library libgobject-2.0-0" was WeasyPrint
+#   dlopening the bare soname first and failing in a stale-cache image.
+# - libgdk-pixbuf2.0-0 IS the valid name in this base (2.40.2).
+[phases.setup]
 aptPkgs = [
     "tesseract-ocr",
     "tesseract-ocr-eng",
@@ -23,8 +17,7 @@ aptPkgs = [
     "libpango-1.0-0",
     "libpangocairo-1.0-0",
     "libpangoft2-1.0-0",
-    "libglib2.0-0",
-    "libgobject-2.0-0",
+    "libglib2.0-0t64",
     "libgdk-pixbuf2.0-0",
     "libffi-dev",
     "shared-mime-info",
@@ -56,4 +49,15 @@ aptPkgs = [
 # Runs after the Python provider's install phase — venv pip is on PATH
 # by now, so `python` resolves to /opt/venv/bin/python and the bundled
 # Playwright Chromium downloads into /root/.cache/ms-playwright/.
-cmds = ["python -m playwright install chromium"]
+cmds = [
+    "python -m playwright install chromium",
+    # WeasyPrint's ffi dlopens the BARE sonames first (libgobject-2.0-0,
+    # libpango-1.0-0, libharfbuzz-0, ...). A healthy ld cache resolves the
+    # versioned names, but a stale cache (built before apt in the layer
+    # order) leaves every bare name unresolvable — the prod artifact 500.
+    # These symlinks make the bare names resolve through the default
+    # search path regardless of cache state. Verified in the Railway base:
+    # bare-name dlopen fails before, passes after.
+    "ldconfig",
+    "for pair in 'libgobject-2.0.so.0 libgobject-2.0-0' 'libpango-1.0.so.0 libpango-1.0-0' 'libharfbuzz.so.0 libharfbuzz-0' 'libfontconfig.so.1 libfontconfig-1' 'libpangoft2-1.0.so.0 libpangoft2-1.0-0'; do set -- $pair; [ -e /usr/lib/x86_64-linux-gnu/$1 ] && ln -sf $1 /usr/lib/x86_64-linux-gnu/$2 || true; done",
+]
