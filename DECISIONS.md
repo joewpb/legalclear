@@ -337,3 +337,10 @@ columns the schema set says must not exist. Ruling (Joe):
 - Phase J closes when pop-os returns: diff the branch against main for
   anything it has that the merged implementation lacks, then DELETE the
   branch. The branch lives only on pop-os; it was never pushed to origin.
+
+## Decision 19 — Attorney referral PAUSED (2026-08-27)
+
+Joe's order: pause attorney-referral work for the time being — he has no
+attorneys yet and is still working on the project. The known prod 500s on
+/api/attorney-referral/intake and /submit (missing migration 20260813)
+stay deferred. Resume only on Joe's word.

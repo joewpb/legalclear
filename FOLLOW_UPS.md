@@ -320,3 +320,8 @@ Phase J: the merged implementation supersedes the pop-os branch
 feat/defect-category-retrieval (Decision 18). When pop-os returns: diff the
 branch for anything the merged version lacks, then delete it — Phase J
 closes there.
+
+## S1-2b — attorney-referral 500s: PAUSED by Decision 19 (2026-08-27)
+/api/attorney-referral/intake + /submit 500 in prod (migration 20260813
+never applied; tables missing). Joe has no attorneys yet — work paused
+until he resumes it. Do not fix, do not deploy, do not chase.
