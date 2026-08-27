@@ -36,3 +36,11 @@ COPY . .
 
 ENV PATH="/opt/venv/bin:$PATH" \
     VIRTUAL_ENV="/opt/venv"
+
+# Railway appends the dashboard Start Command as CMD args. Under the
+# nixpacks builder that command was shell-expanded (its $PORT resolved to
+# 8080); under this Dockerfile build it reached uvicorn as the literal
+# string "$PORT" and killed the deploy (observed: "Invalid value for
+# '--port': '$PORT' is not a valid integer"). This entrypoint guarantees
+# shell expansion regardless of how Railway passes the command.
+ENTRYPOINT ["/bin/bash", "-c"]
