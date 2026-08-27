@@ -184,7 +184,9 @@ class _ExplodingClient:
 class _RecordingClient:
     """DB client whose query chain records that .table() was reached and
     returns an empty result set. Proves substantive tag sets are NOT
-    short-circuited by the gate."""
+    short-circuited by the gate. Carries the full chain surface
+    (select/overlaps/eq/or_/order/limit) so the retrieval service's
+    tag-overlap and ILIKE queries both traverse cleanly."""
 
     queried = False
 
@@ -196,6 +198,12 @@ class _RecordingClient:
         return self
 
     def overlaps(self, *args, **kwargs):  # noqa: ANN001
+        return self
+
+    def or_(self, *args, **kwargs):  # noqa: ANN001
+        return self
+
+    def order(self, *args, **kwargs):  # noqa: ANN001
         return self
 
     def eq(self, *args, **kwargs):  # noqa: ANN001

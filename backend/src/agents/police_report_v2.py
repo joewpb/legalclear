@@ -366,8 +366,12 @@ class PoliceReportAnalyzerV2:
                     # (supabase-py is blocking); offload it so the network
                     # round-trip doesn't stall the event loop and every
                     # other in-flight SSE client on this worker.
+                    # `parsed` is passed as analysis_result so the
+                    # retrieval service can derive fact terms from the
+                    # LLM's discrepancy/missing-field/charge text and rank
+                    # opinions by relevance (2026-08 relevance fix).
                     opinions = await asyncio.to_thread(
-                        get_relevant_opinions, tags
+                        get_relevant_opinions, tags, 3, parsed
                     )
                     # Generate specific attorney questions per opinion
                     opinions = await asyncio.to_thread(

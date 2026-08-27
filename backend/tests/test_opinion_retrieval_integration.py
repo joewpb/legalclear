@@ -50,9 +50,15 @@ def test_known_tag_combo_returns_ranked_opinions():
         missing = _EXPECTED_FIELDS - set(op.keys())
         assert not missing, f"row missing fields: {missing}"
 
-    # cite_count ordering is descending (PostgREST .order desc).
-    counts = [op.get("cite_count") for op in opinions]
-    assert counts == sorted(counts, reverse=True)
+    # Ranking is relevance-based since the 2026-08 fix (tag-overlap /
+    # matched-terms DESC, cite_count only as the final tiebreak), so strict
+    # cite_count monotonicity is no longer the output contract. The
+    # verified invariants are: non-empty case_name (junk rows dropped) and
+    # complete fields above.
+    for op in opinions:
+        name = op.get("case_name")
+        assert isinstance(name, str) and name.strip(), \
+            "junk row (empty case_name) leaked into results"
 
 
 @skip_no_creds
@@ -79,4 +85,59 @@ def test_substantive_alongside_class_still_retrieves():
         ["dui", "traffic_stop", "fourth_amendment"], limit=3
     )
     assert len(opinions) > 0, "DUI + fourth_amendment must still retrieve"
+
+
+@skip_no_creds
+def test_fact_mode_retrieval_herrera_profile():
+    # 2026-08 relevance fix — live-DB confirmation that passing the parsed
+    # V2 analysis result (fact terms) retrieves opinions and none of them
+    # are junk rows. Relevance ordering itself is unit-tested on synthetic
+    # rows; this test pins the live contract (non-empty, complete fields,
+    # no empty case_name).
+    v2_result = {
+        "miranda_noted": False,
+        "probable_cause_present": None,
+        "charges_explained": [
+            {"charge": "Possession of a Controlled Substance",
+             "plain_english": "a misdemeanor drug possession charge"},
+        ],
+        "discrepancies": [
+            {
+                "severity": "high",
+                "defect_category": "miranda",
+                "description": (
+                    "No Miranda warning documented and no waiver of rights "
+                    "signed; custodial interrogation conducted without an "
+                    "interpreter despite a language barrier."
+                ),
+                "ask_attorney": "", "page_ref": "p.2",
+            },
+            {
+                "severity": "high",
+                "defect_category": "fourth_amendment",
+                "description": (
+                    "Vehicle searched after a Terry stop based on an "
+                    "anonymous tip; consent to search obtained under "
+                    "coercive framing."
+                ),
+                "ask_attorney": "", "page_ref": "p.1",
+            },
+        ],
+        "missing_fields": [],
+    }
+    tags = [
+        "fifth_amendment", "fourth_amendment", "language_access",
+        "misdemeanor", "probable_cause", "sixth_amendment",
+        "unlawful_search",
+    ]
+    opinions = get_relevant_opinions(tags, limit=5, analysis_result=v2_result)
+
+    assert len(opinions) > 0, "fact-mode retrieval returned nothing"
+    assert len(opinions) <= 5
+    for op in opinions:
+        missing = _EXPECTED_FIELDS - set(op.keys())
+        assert not missing, f"row missing fields: {missing}"
+        name = op.get("case_name")
+        assert isinstance(name, str) and name.strip(), \
+            "junk row (empty case_name) leaked into fact-mode results"
 
