@@ -263,13 +263,17 @@ opinion_retrieval.py, test_opinion_mapper.py). Joe's ruling: KEEP, do not merge.
 Predates the audit; needs a fresh review against current main before any merge.
 NOT scoped, NOT dispatched. Recorded here so it stops being an unspoken branch.
 
-**Joe's ruling 2026-08-27 — SUPERSEDED:** the cron implementation (2d9d86c3ca33,
+**Joe's ruling 2026-08-27 — SUPERSEDED; PHASE J CLOSED 2026-08-27:** the cron implementation (2d9d86c3ca33,
 skill legalclear-police-report-caselaw-fix) is more complete and includes the
 Supabase-statement-timeout redesign; it supersedes the branch. Merged to main at
 79fa02f after a green Phase 3 live gate (5/5 criteria). The branch exists ONLY on
 pop-os (never pushed to origin). REMAINING TO CLOSE PHASE J: when pop-os returns,
 diff the branch against the merged implementation for anything it has that the
-merged version lacks, then delete the branch. Phase J closes with that.
+merged version lacks, then delete the branch. DONE: diff showed the branch
+is strictly older (its unique content = the original tag-overlap retrieval;
+merging it would DELETE the URL-filter, case-context, attorney-questions and
+relevance-fix work now on main). Nothing unique of value — branch deleted on
+pop-os (was 3185a47). PHASE J CLOSED.
 
 The logged rule (FOLLOW_UPS): case-law results never present a charge class more
 severe than the report's own charges; operationally, homicide cases are excluded

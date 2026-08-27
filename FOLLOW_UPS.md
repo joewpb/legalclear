@@ -316,10 +316,10 @@ silence). Non-homicide charge classes are NOT filtered — Caldwell (burglary
 felony) stays for a misdemeanor-report user; McWatters (murder narrative)
 goes.
 
-Phase J: the merged implementation supersedes the pop-os branch
-feat/defect-category-retrieval (Decision 18). When pop-os returns: diff the
-branch for anything the merged version lacks, then delete it — Phase J
-closes there.
+Phase J CLOSED 2026-08-27 (Decision 18): pop-os diff showed the branch
+strictly older — nothing unique of value (its content = the original
+tag-overlap retrieval; a merge would have deleted modern work). Branch
+deleted on pop-os (was 3185a47).
 
 ## S1-2b — attorney-referral 500s: PAUSED by Decision 19 (2026-08-27)
 /api/attorney-referral/intake + /submit 500 in prod (migration 20260813
