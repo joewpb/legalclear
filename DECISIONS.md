@@ -316,3 +316,24 @@ columns the schema set says must not exist. Ruling (Joe):
   catches schema drift regardless of ledger state.
 - Consequence of this incident: the remediation dispatch's "PR flow" line is
   overridden — Decision 15 stands (no PR flow; direct push after green CI).
+
+## Decision 18 — Phase J supersession (2026-08-27)
+
+- The cron implementation of the police-report caselaw fix (job 2d9d86c3ca33,
+  skill legalclear-police-report-caselaw-fix) SUPERSEDES the pop-os branch
+  `feat/defect-category-retrieval`: it is more complete and includes the
+  Supabase-statement-timeout redesign. Merged to main at 79fa02f after a green
+  Phase 3 live gate (5/5 criteria, incl. mapper-hash pin).
+- Charge-context exclusion (hard, deterministic, testable): homicide cases are
+  EXCLUDED from case-law results whenever the report carries no homicide
+  charge; exclusion thins but never backfills. Non-homicide charge classes
+  are NOT filtered (Joe's example: Caldwell stays for misdemeanor reports).
+- Anchor queries advance on junk-only / below-threshold results, not just on
+  exceptions; multi-anchor pools are unioned and deduped by cluster_id.
+- Gate discipline: the Phase 3 gate asserts only what is deterministic —
+  mapper source hash, live derive consistency, substantive-tag-set subset,
+  homicide-exclusion on output. LLM output variance is NOT a code regression
+  and must not fail a gate.
+- Phase J closes when pop-os returns: diff the branch against main for
+  anything it has that the merged implementation lacks, then DELETE the
+  branch. The branch lives only on pop-os; it was never pushed to origin.

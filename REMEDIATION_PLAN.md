@@ -254,7 +254,7 @@ on). The module is not yet built.
 
 ---
 
-## PHASE J — Defect-category retrieval (candidate, RECORDED ONLY)
+## PHASE J — Defect-category retrieval (SUPERSEDED 2026-08-27, close pending pop-os)
 
 Branch `feat/defect-category-retrieval` (renamed from `docs/integration-plan-p2-status`
 2026-08-18 — the old name misdescribed it). Content: `defect_category` propagation
@@ -262,8 +262,18 @@ into case-law retrieval with tag-relevance re-ranking (~170 lines; police_report
 opinion_retrieval.py, test_opinion_mapper.py). Joe's ruling: KEEP, do not merge.
 Predates the audit; needs a fresh review against current main before any merge.
 NOT scoped, NOT dispatched. Recorded here so it stops being an unspoken branch.
-Sequenced AFTER Phase F: it needs the migration mechanism for its content corpus
-and deadline rules. Recorded here so it stops being an unspoken assumption.
+
+**Joe's ruling 2026-08-27 — SUPERSEDED:** the cron implementation (2d9d86c3ca33,
+skill legalclear-police-report-caselaw-fix) is more complete and includes the
+Supabase-statement-timeout redesign; it supersedes the branch. Merged to main at
+79fa02f after a green Phase 3 live gate (5/5 criteria). The branch exists ONLY on
+pop-os (never pushed to origin). REMAINING TO CLOSE PHASE J: when pop-os returns,
+diff the branch against the merged implementation for anything it has that the
+merged version lacks, then delete the branch. Phase J closes with that.
+
+The logged rule (FOLLOW_UPS): case-law results never present a charge class more
+severe than the report's own charges; operationally, homicide cases are excluded
+whenever the report has no homicide charge, and thinning results stay thin.
 
 ## Sequencing
 

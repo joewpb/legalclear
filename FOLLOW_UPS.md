@@ -294,3 +294,29 @@ prod post-revocation; Orin manager-surface/.env declares the vars but holds no
 values; no hardcoded JWT-shaped key literals anywhere in the repo trees. Note:
 backend API_KEY and frontend VITE_API_KEY are a SEPARATE credential from the
 Supabase service_role key — never exposed, not rotated.
+
+## S3-6 — police-report case law: generic famous cases (CLOSED 2026-08-27)
+Police Report Analyzer returned the same famous murder/generic cases for
+every report (retrieval searched only abstract tag names, ranked by global
+cite_count). Fixed: fact-term extraction from the LLM's own discrepancy /
+missing-field / charge text + relevance ranking (matched DESC, overlap DESC,
+cite_count DESC) + junk-row filter + single-anchor ILIKE queries with
+advancement on junk-only / below-threshold results (multi-term ORs exceed
+the Supabase statement timeout, 57014). Merged at 79fa02f after a green
+Phase 3 live gate (5/5 criteria). Before: Caraballo 44 / Tracey 53 /
+Lukehart 47. After: Caldwell 52 (Miranda) / Tracey 53 (4A warrant) /
+Nieminski 21 (anonymous-tip — on point).
+
+Logged rule (Joe 2026-08-27): case-law results never present a charge class
+more severe than the report's own charges. Operational form: homicide cases
+are EXCLUDED whenever the report carries no homicide charge — hard,
+deterministic, text-based (_CHARGE_HOMICIDE stems). Where exclusion thins
+results below the limit, they stay thin; no backfill (gaps degrade to
+silence). Non-homicide charge classes are NOT filtered — Caldwell (burglary
+felony) stays for a misdemeanor-report user; McWatters (murder narrative)
+goes.
+
+Phase J: the merged implementation supersedes the pop-os branch
+feat/defect-category-retrieval (Decision 18). When pop-os returns: diff the
+branch for anything the merged version lacks, then delete it — Phase J
+closes there.
