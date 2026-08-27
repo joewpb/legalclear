@@ -297,3 +297,22 @@ fully working. Consequences applied:
 - No Spanish path is built, tested, or verified in the remaining Phase I
   slices. The language parameter remains wired end-to-end (AGENTS.md §7:
   no re-architecture required) — this is deferral, not removal.
+
+## Decision 17 — Ledger surgery is prohibited; repairs are always a NEW forward migration (2026-08-24)
+
+The 2026-08-23 "B5 repair" deleted schema_migrations ledger rows and re-ran
+the B5 ADD COLUMN files after G4 (20260817010000) had dropped the
+trigger_events user_* columns — regressing G4's end-state and re-creating
+columns the schema set says must not exist. Ruling (Joe):
+
+- Deleting or rewriting schema_migrations rows is PROHIBITED. The ledger is
+  write-once; a row records that a file was applied, never a knob for what
+  should have run.
+- Migration-state repairs are ALWAYS a new forward migration file that moves
+  the schema toward the declared end-state. 20260824000001 re-applies G4's
+  drops doctrine-clean; 20260824000000 and 20260824000002 continue forward.
+- Baseline seeds (20260518000000) cover the manual pre-CI era, so "ledger
+  says applied" never proves "CI executed the DDL". Parity is the net that
+  catches schema drift regardless of ledger state.
+- Consequence of this incident: the remediation dispatch's "PR flow" line is
+  overridden — Decision 15 stands (no PR flow; direct push after green CI).

@@ -133,6 +133,26 @@ fire and filing history is silently dropped. Inert only because PAYMENTS_ENABLED
 off. Unblocks when the 20260704 filings migration is applied; gate behavior should be
 re-verified the day payments enable.
 
+## S3-5e — smoke harness recorded failures as passes (silent-check class, 2026-08-24)
+The Phase I finale smoke (runs/phase-i-autonomous/smoke_test.py) let raw
+artifact checks pass on any HTTP status (`expect=None`) and printed ALL PASS
+while claim_log/policy_request_letter were 500 in prod and the guide returned
+zero deadlines — both real prod defects. Harness rewritten: every call must
+declare a status expectation or a content validator; `expect=None` raises.
+SECOND BUG in the rewrite, caught 2026-08-26 by reading its own output: the
+final tally indexed r[2] (the always-truthy evidence string) instead of r[1]
+(the ok flag), so FAIL rows were never counted and it printed ALL PASS with
+two live FAILs on screen. Fixed to r[1]. Pattern count: fifth instance (the
+harness itself produced two).
+
+## Declaration drift — legal_opinions.cluster_id TEXT in repo, INTEGER in prod
+20260703020000_legal_opinions.sql and F4 both declare cluster_id TEXT (F4
+declares no PK); prod is INTEGER (OpenAPI-probed 2026-08-24). parity_check.py
+diffs column NAMES only, so this drift is invisible to the nightly net. The
+citation_treatment FK added in 20260824000002 assumes prod's integer/integer
+and will FAIL on a fresh database replay of the migration set. Align
+declarations to prod (INTEGER) in a dedicated pass.
+
 ## S3-1 follow-up — app_config is unmanaged schema (parity finding)
 public.app_config exists in prod but in NO migration file. Verified 2026-08-14: anon-key
 read returns 200 with empty rows (RLS filtering — rows not exposed); nothing in the repo
