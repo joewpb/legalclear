@@ -57,6 +57,69 @@ def call(method, path, body=None, expect=None, validate=None, label=None):
     return _pass(name, f"status {status}")
 
 
+# ── Test-the-tester (FOLLOW_UPS silent-check instance #5 closure) ──────────
+# A check that can pass silently is not a check — including the harness that
+# enforces that rule. `--selftest` runs a KNOWN-FAIL scenario against a stub
+# transport and asserts the harness reports it as FAIL (and that a
+# no-expectation call raises instead of passing). Exits 0 only when the
+# harness fails loudly as designed; CI exercises it via
+# backend/tests/test_smoke_harness.py.
+def _selftest() -> int:
+    results.clear()
+    import urllib.request as _ur
+
+    class _Stub500:
+        status = 500
+        def read(self):
+            return b'{"detail": "stub 500"}'
+        def __enter__(self):
+            return self
+        def __exit__(self, *a):
+            return False
+
+    _ur.urlopen = lambda req, timeout=60: _Stub500()
+
+    errors = []
+
+    # 1. Known-fail scenario: expectation 200, stub delivers 500.
+    call("GET", "/selftest/known-fail", expect=200, label="selftest known-fail")
+
+    # 2. Known-pass scenario: expectation 500, stub delivers 500.
+    call("GET", "/selftest/known-pass", expect=500, label="selftest known-pass")
+
+    # 3. No expectation at all must raise (instance #4 ban: expect=None).
+    try:
+        call("GET", "/selftest/no-expectation")
+        errors.append("call() with no expectation did NOT raise")
+    except RuntimeError:
+        pass
+
+    fails = [r for r in results if not r[1]]
+    names = [r[0] for r in fails]
+    if "selftest known-fail" not in names:
+        errors.append("known-fail scenario was not recorded as FAIL")
+    elif not any("status 500 != 200" in (r[2] or "") for r in fails):
+        errors.append("known-fail evidence missing the status mismatch")
+    passes = [r for r in results if r[1]]
+    if "selftest known-pass" not in [r[0] for r in passes]:
+        errors.append("known-pass scenario was not recorded as PASS")
+    if len(results) != 2:
+        errors.append(f"expected exactly 2 recorded results, got {len(results)}")
+
+    if errors:
+        print("SELFTEST FAIL — the harness can still pass silently:")
+        for e in errors:
+            print(f"  - {e}")
+        return 1
+    print("SELFTEST PASS — known-fail scenario reported FAIL; no-expectation "
+          "call raised; tally keyed on the ok flag. Harness fails loudly as designed.")
+    return 0
+
+
+if "--selftest" in sys.argv:
+    sys.exit(_selftest())
+
+
 def _is_pdf(b: bytes):
     return True if b[:5] == b"%PDF-" else f"not a PDF: {b[:60]!r}"
 

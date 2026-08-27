@@ -145,6 +145,14 @@ final tally indexed r[2] (the always-truthy evidence string) instead of r[1]
 two live FAILs on screen. Fixed to r[1]. Pattern count: fifth instance (the
 harness itself produced two).
 
+CLOSED 2026-08-27 by test-the-tester (Joe's directive): the canonical harness
+(scripts/smoke_pc_claims.py) now ships a `--selftest` mode — a stub transport
+feeds a KNOWN-FAIL scenario (expect 200 vs delivered 500) plus a
+no-expectation call, and the harness must record the failure and raise
+respectively. Selftest exits 0 only when the harness fails loudly; CI runs it
+via backend/tests/test_smoke_harness.py, so any regression that lets a
+failure pass silently now fails the suite. Instance class closed.
+
 ## Declaration drift — legal_opinions.cluster_id TEXT in repo, INTEGER in prod
 20260703020000_legal_opinions.sql and F4 both declare cluster_id TEXT (F4
 declares no PK); prod is INTEGER (OpenAPI-probed 2026-08-24). parity_check.py
