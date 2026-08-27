@@ -25,6 +25,7 @@ import logging
 import re
 
 from src.core.config import settings
+from src.core.json_utils import parse_json_array
 from src.memory.db import DatabaseManager
 
 logger = logging.getLogger(__name__)
@@ -659,10 +660,13 @@ def generate_attorney_questions(
     situation (from the police report analysis). Returns the opinions list
     with enriched attorney_prompt fields.
 
-    On failure, returns opinions unchanged (with generic prompts).
+    Parsing follows the shared deterministic recovery path (json_utils):
+    markdown fences stripped, and on a JSON parse failure the largest
+    ``[...]`` substring is retried. If the JSON is still unrecoverable, ONE
+    more LLM call is made with a tightened instruction (AGENTS.md: retry once
+    on JSON parse failure before giving up). On final failure, returns
+    opinions unchanged (with generic prompts) — never raises.
     """
-    import json as _json
-
     key = settings.ANTHROPIC_API_KEY
     if not key or not opinions:
         return opinions
@@ -687,61 +691,98 @@ def generate_attorney_questions(
             f"Summary: {op.get('summary_plain','')[:300]}\n\n"
         )
 
-    try:
+    base_prompt = (
+        "A person had their police report analyzed. Their situation:\n"
+        f"{ctx}\n"
+        "These Florida court opinions may relate to their case:\n"
+        f"{opinions_text}\n"
+        "For EACH opinion, provide TWO things:\n"
+        "1. A PLAIN-LANGUAGE EXPLANATION bridging the opinion to "
+        "their situation. Explain what the case means for THEM. "
+        "Use simple language anyone can understand. "
+        "Example: 'This case is about what happens when police search "
+        "without a warrant — the court said evidence found that way "
+        "can be thrown out. In your situation, the officer searched "
+        "your car without asking permission or getting a warrant, "
+        "which means this ruling could apply to you.'\n"
+        "2. A SPECIFIC QUESTION they should ask their attorney. "
+        "Example: 'Ask: In my case, the officer searched my car "
+        "without a warrant or my consent. Under Florida v. Jardines, "
+        "could that evidence be suppressed?'\n"
+        "Return ONLY a JSON array of objects, one per opinion:\n"
+        '[{"explanation":"...","question":"..."}]'
+    )
+
+    def _call(prompt: str) -> tuple[list | None, bool]:
+        """One HTTP call. Returns (questions, retryable).
+
+        retryable is True only when the HTTP call succeeded (200) but the
+        JSON could not be parsed — that is the one case AGENTS.md retries.
+        Transport errors and non-200 responses degrade immediately.
+        """
         import requests as _requests
-        resp = _requests.post(
-            "https://api.anthropic.com/v1/messages",
-            headers={
-                "x-api-key": key,
-                "anthropic-version": "2023-06-01",
-                "Content-Type": "application/json",
-            },
-            json={
-                "model": "claude-haiku-4-5-20251001",
-                "messages": [{
-                    "role": "user",
-                    "content": (
-                        "A person had their police report analyzed. Their situation:\n"
-                        f"{ctx}\n"
-                        "These Florida court opinions may relate to their case:\n"
-                        f"{opinions_text}\n"
-                        "For EACH opinion, provide TWO things:\n"
-                        "1. A PLAIN-LANGUAGE EXPLANATION bridging the opinion to "
-                        "their situation. Explain what the case means for THEM. "
-                        "Use simple language anyone can understand. "
-                        "Example: 'This case is about what happens when police search "
-                        "without a warrant — the court said evidence found that way "
-                        "can be thrown out. In your situation, the officer searched "
-                        "your car without asking permission or getting a warrant, "
-                        "which means this ruling could apply to you.'\n"
-                        "2. A SPECIFIC QUESTION they should ask their attorney. "
-                        "Example: 'Ask: In my case, the officer searched my car "
-                        "without a warrant or my consent. Under Florida v. Jardines, "
-                        "could that evidence be suppressed?'\n"
-                        "Return ONLY a JSON array of objects, one per opinion:\n"
-                        '[{"explanation":"...","question":"..."}]'
-                    ),
-                }],
-                "max_tokens": 600,
-                "temperature": 0.3,
-            },
-            timeout=15,
-        )
-        if resp.status_code == 200:
+
+        try:
+            resp = _requests.post(
+                "https://api.anthropic.com/v1/messages",
+                headers={
+                    "x-api-key": key,
+                    "anthropic-version": "2023-06-01",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": "claude-haiku-4-5-20251001",
+                    "messages": [{
+                        "role": "user",
+                        "content": prompt,
+                    }],
+                    "max_tokens": 600,
+                    "temperature": 0.3,
+                },
+                timeout=15,
+            )
+            if resp.status_code != 200:
+                logger.warning(
+                    "Claude Haiku attorney questions returned HTTP %s",
+                    resp.status_code,
+                )
+                return None, False
             raw = resp.json()["content"][0]["text"].strip()
-            raw = raw.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
-            questions = _json.loads(raw) if isinstance(raw, str) else raw
-            if isinstance(questions, list):
-                for i, item in enumerate(questions):
-                    if i < len(opinions) and isinstance(item, dict):
-                        opinions[i]["attorney_explanation"] = str(item.get("explanation", ""))
-                        opinions[i]["attorney_prompt"] = str(item.get("question", ""))
-                    elif i < len(opinions):
-                        # Backward compat: plain string = question only
-                        opinions[i]["attorney_explanation"] = ""
-                        opinions[i]["attorney_prompt"] = str(item)
-    except Exception:
-        logger.warning("Claude Haiku attorney question generation failed, returning opinions unchanged", exc_info=True)
+        except Exception:
+            logger.warning(
+                "Claude Haiku attorney question generation request failed, "
+                "returning opinions unchanged",
+                exc_info=True,
+            )
+            return None, False
+
+        questions = parse_json_array(raw)
+        if questions is None:
+            logger.warning(
+                "Claude Haiku attorney question JSON unrecoverable "
+                "(%d chars); retrying once with tightened instruction",
+                len(raw),
+            )
+        return questions, questions is None
+
+    questions, retryable = _call(base_prompt)
+    if retryable:
+        questions, _ = _call(
+            base_prompt
+            + "\n\nIMPORTANT: Your previous response was not valid JSON. "
+            "Respond with the JSON array ONLY — no markdown fences, no "
+            "prose, no text before or after the array."
+        )
+
+    if questions:
+        for i, item in enumerate(questions):
+            if i < len(opinions) and isinstance(item, dict):
+                opinions[i]["attorney_explanation"] = str(item.get("explanation", ""))
+                opinions[i]["attorney_prompt"] = str(item.get("question", ""))
+            elif i < len(opinions):
+                # Backward compat: plain string = question only
+                opinions[i]["attorney_explanation"] = ""
+                opinions[i]["attorney_prompt"] = str(item)
 
     return opinions
 

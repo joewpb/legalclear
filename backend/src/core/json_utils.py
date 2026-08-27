@@ -49,16 +49,24 @@ def _parse_with_retry(
     return None
 
 
+def parse_json_array(raw: str) -> list | None:
+    """Parse an LLM response expected to be a JSON array.
+
+    Element types are preserved (dicts, plain strings) — callers decide how
+    to map them. Returns the list on success, ``None`` on any parse failure
+    (never raises).
+    """
+    data = _parse_with_retry(raw, "[", "]")
+    return data if isinstance(data, list) else None
+
+
 def parse_json_list(raw: str) -> list[dict]:
     """Parse an LLM response expected to be a JSON array of objects.
 
     Returns only the dict elements; non-dict entries are dropped. On any
     parse failure returns ``[]`` (never raises).
     """
-    data = _parse_with_retry(raw, "[", "]")
-    if not isinstance(data, list):
-        return []
-    return [d for d in data if isinstance(d, dict)]
+    return [d for d in (parse_json_array(raw) or []) if isinstance(d, dict)]
 
 
 def parse_json_dict(raw: str) -> dict | None:
