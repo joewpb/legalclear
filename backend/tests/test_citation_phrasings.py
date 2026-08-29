@@ -13,16 +13,42 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.core.citation_filter import filter_citations_text  # noqa: E402
+from src.core.citation_filter import (
+    filter_citations_text,
+    register_agent_curated_set,
+)
 
 AGENT = "test-agent"
+
+# Self-contained registration (2026-08-27): this file previously relied on
+# test_citation_filter.py's module-level register_agent_curated_set("test-agent")
+# running first — order-dependent coupling. Targeted runs (this file alone)
+# therefore hit the registry's raise-on-unknown path and failed 12/12 while
+# full-suite runs passed silently. Register here so the tests stand alone.
+from src.agents.eviction_citations import EVICTION_CURATED_CITATIONS
+from src.agents.pc_citations import PC_CURATED_CITATIONS
+from src.agents.small_claims_citations import (
+    SMALL_CLAIMS_CURATED_CITATIONS,
+)
+
+register_agent_curated_set(
+    AGENT,
+    set(SMALL_CLAIMS_CURATED_CITATIONS)
+    | set(EVICTION_CURATED_CITATIONS)
+    | set(PC_CURATED_CITATIONS),
+)
 
 FIXTURE_PATH = Path(__file__).parent / "fixtures" / "citation_phrasings.jsonl"
 
 
 def _load_fixture_rows():
     if not FIXTURE_PATH.exists():
-        return []
+        raise AssertionError(
+            "citation_phrasings fixture missing: "
+            f"{FIXTURE_PATH} — the 46 live-collected phrasings are committed "
+            "and must be present; a missing fixture means a broken checkout "
+            "or a bad merge, never a silent skip."
+        )
     rows = []
     with FIXTURE_PATH.open() as f:
         for line in f:

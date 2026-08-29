@@ -10,7 +10,13 @@ The Spanish-language i18n audit item is deferred by Decision 16: English first; 
 `pc_notice_of_intent` (§ 627.70152) is computed as date_of_loss + 10 business days, but the statute defines it as a minimum gap BEFORE filing suit — the true deadline depends on the (unknown) suit-filing date, not the date of loss. The current computation is a conservative floor and is declared statutory-business under the counting-regime mechanism (Job 2, 2026-08-22), but the anchor is approximate by design. An approximate anchor on a user-facing deadline is the kind of thing that reads as precise to a user — recorded here so it stays visible. Recorded-not-scheduled (Joe, 2026-08-22).
 
 ## Citation filter regex gap — singular "Florida Statute N" passes unfiltered (2026-08-20, found by I-1 live proof)
-`citation_filter.py` `_CITATION_TOKEN_RE` (:114-120) matches `"Fla. Stat. §"`, `"Florida Statutes"` (plural), and bare `"§"` — but NOT singular `"Florida Statute 627.70131"`. The I-1 live emission run showed the model naturally phrases citations that way; those strings pass through the filter with no curated-set check at all. In that run the content happened to be correctly scoped, but the filter's guarantee (Decision 4 — deterministic code guarantees what prompts can't) does not cover this phrasing, so a fabricated singular-form citation would survive. The prompt instructs the `"Fla. Stat. §"` format, which is not a guarantee. Same class: regulatory cites (`Florida Administrative Code Rule 69O-166.031`) are not matched by the filter's statute path either. Fix shape: extend the token regex alternation + tests (fabricated singular-form citation must be stripped). Recorded-not-scheduled; fold into the next citation-guard dispatch on Joe's word.
+`citation_filter.py` `_CITATION_TOKEN_RE` (:114-120) matches `"Fla. Stat. §"`, `"Florida Statutes"` (plural), and bare `"§"` — but NOT singular `"Florida Statute 627.70131"`. The I-1 live emission run showed the model naturally phrases citations that way; those strings pass through the filter with no curated-set check at all. In that run the content happened to be correctly scoped, but the filter's guarantee (Decision 4 — deterministic code guarantees what prompts can't) does not cover this phrasing, so a fabricated singular-form citation would survive. The prompt instructs the `"Fla. Stat. §"` format, which is not a guarantee. Same class: regulatory cites (`Florida Administrative Code Rule 69O-166.031`) are not matched by the filter's statute path either. Fix shape: extend the token regex alternation + tests (fabricated singular-form citation must be stripped). CLOSED at cdebb50 (G1: 46 live-collected phrasings, 12 tests, incl. singular
+"Florida Statute 626.9541" stripped — test_spelled_out_singular_uncurated_stripped).
+2026-08-27 test-integrity finding (fixed): test_citation_phrasings.py depended on
+test_citation_filter.py's module-level registration of 'test-agent' — order-dependent
+coupling. Targeted runs failed 12/12 on the registry's raise-on-unknown path while
+full-suite runs passed; the fixture-missing path also returned early (silent skip).
+Fixed: registration is now in-file and a missing fixture raises loudly. 35/35 green.
 
 ## Checker check-4 debt — 7 frontend disclaimer duplicates (2026-08-20, recorded from the invisible-debt audit)
 Decision 3 makes `apply_disclaimer` canonical; the checker's check 4 still flags 7 frontend pages hardcoding their own disclaimer string: `LandlordTenantFL.tsx:110`, `PoliceReportAnalyzer.tsx:992`, `PropertyCasualtyExplainer.tsx:510`, `SmallClaimsExplainer.tsx:447`, `SmallClaimsFL.tsx:46`, `TrafficFL.tsx:57`, `WillsTrustsExplainer.tsx:615`. This is the standing checker BASELINE (7 violations across 6 checks). Not blockers; the pages must consume the canonical disclaimer (backend-provided) or the checker baseline must be amended by decision. Recorded-not-scheduled.
@@ -21,8 +27,16 @@ Orin's 2026-08-18 harvest staged 9 rule sets. Loaded to `court_rules`: criminal 
 ## Intermittent JSONDecodeError in structured-output parsing (2026-08-20)
 During the seven-surface emission measurement, multiple agent runs died on malformed LLM JSON before the CitationFilter ever saw the text (discovery and wills runs each failed at least once; outputs vary run-to-run). AGENTS.md §5 requires strip-fences + retry-once before raising; the failure mode appears mid-stream and is intermittent, not prompt-deterministic. Needs its own investigation: which agents parse JSON how, whether retry-once is actually wired on every path, and whether a bounded-repair fallback is warranted. Recorded-not-scheduled.
 
-## Upload pipeline has no rate limit (2026-08-20, from the rate-limit enumeration)
-`routes.py:249 /api/upload` + `process_document:299` run classifier, risk_scanner, scanner, explainer, form_guide, and the expungement analyzer — the heaviest LLM surface in the product — with NO limiter. Every other LLM route is 10/min (RL-2). Fix is one decorator; Joe rules whether it rides G2 or lands standalone.
+## Upload pipeline has no rate limit (2026-08-20) — RESOLVED 2026-08-27 (STALE ENTRY, NOT A REGRESSION)
+Landed at 167c5ad the same day the entry was written: `@limiter.limit("10/minute")` on
+`upload_document` (routes.py:253), slowapi exception handler registered, locking tests
+(test_upload_text_key, test_upload_token_estimate) use a real starlette Request — 3/3 green.
+LIVE-VERIFIED 2026-08-27: 12 rapid junk POSTs to prod /upload → 200 x10, then 429 x2 — the
+10/min limit is active in prod. How a closed item re-entered the list: the entry was written
+by the Aug 20 rate-limit enumeration audit (85d19cb) BEFORE the fix landed hours later, and
+the close was never back-annotated — ledger hygiene, not a code regression. (Probe side-note:
+no-file uploads return HTTP 200 with an error payload instead of 422 — separate API-hygiene
+observation, not in scope.)
 
 ## S1-3: upsert-by-email in `attorney_referral.py:upsert_user` still overwrites an
   existing profile found by client-supplied `email` with no verification (e.g. email
@@ -100,8 +114,13 @@ The Aug 8 local-closures seed (20260808000000_seed_local_court_closures.sql — 
 circuits 1–20, 2026-01-02 through 2027-12-27) has NEVER been applied to prod: 0 rows
 with circuit != 0. Sources exist and are intact: the migration, its raw scan output at
 backend/src/data/court_closures_seed.json (99 closures, all 20 circuits, no runtime
-loaders), and docs/court-closures-florida-2026.md. Gap: 99 local-holiday rows missing
-across every circuit. Reopen pending the migration mechanism decision (see S3-1).
+loaders), and docs/court-closures-florida-2026.md. SUPERSEDED 2026-08-27 (STALE ENTRY): prod court_closures holds 108 rows —
+9 statewide (circuit=0) + 99 local (circuits 1-20, all twenty circuits represented),
+verified live via REST. The reopen predates the same-day 2026-08-14 manual REST
+application recorded in the BLOCKER-RESOLVED entry below; that entry (9 -> 108 rows)
+is the accurate state and this reopen should have been struck when it was written.
+Still OPEN (unchanged): the manual application must be re-applied through whatever
+migration mechanism S3-1 settles on — the seed is idempotent (ON CONFLICT DO NOTHING).
 
 ## BLOCKER — RESOLVED 2026-08-14: closure table complete (kept for the record)
 Court closures are an input to deadline computation. The Aug 8 local-closures seed
@@ -325,3 +344,22 @@ deleted on pop-os (was 3185a47).
 /api/attorney-referral/intake + /submit 500 in prod (migration 20260813
 never applied; tables missing). Joe has no attorneys yet — work paused
 until he resumes it. Do not fix, do not deploy, do not chase.
+
+## CORPUS SYNC RECORD — Aug 25 cron 784cf1afc5d1 (recorded 2026-08-27, was missing from repo ledger)
+Pre-authorized by Joe (Aug 24): statutes 24,364 -> 25,020 (656 inserted, 0 failed, 27 legacy
+kept), court_rules 510 -> 785 (traffic 43 + juvenile 207 + svp 25 inserted). Statutes gates
+per the sync skill: re-diff missing=0, byte-fidelity 10/10, live spot-check 3/3 vs
+leg.state.fl.us — all PASS (cron report at ~/.hermes/cron/output/784cf1afc5d1/; delivered to
+Joe via @legalclear_bot). STATUS.md had NOT been regenerated (still showed 24,364/510) — that
+gap is the "grew without a report" symptom. Counts now live-verified 2026-08-27: 25,020 / 785.
+
+## S1-2c REOPENED (2026-08-27) — 275 court_rules rows loaded WITHOUT Decision 12/14 validation
+The 275 inserted rule rows (traffic/juvenile/svp) came from the Orin's Aug 18 STAGED parses
+(~/. Orin ~/legal_data/fl_harvest/data/stage/) — the same parses the Aug 20 entry above ruled
+"deliberately NOT loaded: would replace verified text with unverified text". Insert-only, so
+nothing verified was replaced, but the sync's Phase 3 fidelity gates covered STATUTES only;
+the 275 rule rows were never ratio-checked against official floridabar.org PDFs (Decision 12:
+body detection + ratio sampling; Decision 14: parser agreement proves existence, not text
+fidelity). VALIDATE NOW: pull official PDFs for traffic/juvenile/svp, body-detect all 275
+(empty/heading-only rows named), ratio-sample against source text, replace failures — report
+before any prod write (Joe's live-gate rule).
