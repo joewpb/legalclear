@@ -154,17 +154,40 @@ Still open: the application was manual (REST), not through any migration mechani
 the S3-1 migration-mechanism question remains open and the seed is idempotent, so it
 must be re-applied through whatever mechanism is settled on. The attorney-referral
 tables migration remains BLOCKED on RLS (unchanged).
-## CORRECTNESS BLOCKER — S2-7: deadline anchor uses issuance date, not service date
-Fla. Stat. § 83.60(2) runs the tenant's 5-day answer period from SERVICE OF PROCESS,
-not from the date the summons was issued or signed. The Aug 14 smoke test extracted
-"DATED this 14th day of August, 2026" — an issuance line — and computed Aug 21 from it.
-Service commonly occurs days after issuance; computing an eviction answer deadline from
-the wrong anchor can produce a default judgment. Same tier as the closure blocker —
-pipeline must not serve real users until resolved.
-Scope: (a) does the extractor distinguish issuance date, service date, and hearing date,
-or treat any date as interchangeable? (b) does each deadline rule declare which anchor
-it requires? (c) when the required anchor is absent the pipeline must skip and escalate,
-never substitute a different date.
+## S2-7 — RESOLVED (2026-08-30, ruled by Joe) — deadline anchor now service date, locked
+Original entry (2026-08-14): Fla. Stat. § 83.60(2) runs the tenant's 5-day answer
+period from SERVICE OF PROCESS, not from the date the summons was issued or signed.
+The Aug 14 smoke test extracted "DATED this 14th day of August, 2026" — an issuance
+line — and computed Aug 21 from it. Service commonly occurs days after issuance;
+computing an eviction answer deadline from the wrong anchor can produce a default
+judgment.
+
+RESOLUTION: the entry was written at diagnosis time; the fix landed with the B5
+series in 2826fbd ("deadline rules declare required date anchors; never substitute
+issuance for service") and the entry was never back-annotated. Current state,
+root-verified 2026-08-30:
+- Anchor origin: LLM extractor labels each date by kind (deadline/extract.py:28-29
+  event_type enum; prompt rules at extract.py:80-84 — "DATED ..." lines are
+  'issued', NEVER 'served').
+- Rule declaration: deadline/rules.py:92-93 — § 83.60(2) required_anchors
+  ("served",).
+- Gate: deadline/pipeline.py:231-254 — wrong-kind date with no user-supplied
+  service record → escalation_needed, zero deadlines, explicit reason. Never
+  substitutes issuance. document_service_facts consulted once before the gate
+  (pipeline.py:116, B5-f3).
+- Locking tests: tests/test_anchor_gate.py
+  (test_issuance_date_never_stands_in_for_service:78,
+  test_unknown_event_type_is_not_a_valid_anchor:95,
+  test_service_date_computes_normally:101,
+  test_every_rule_declares_required_anchors:121) +
+  test_deadline_pipeline.py:210
+  (test_user_supplied_personal_service_date_wins_over_extracted_issued_date).
+  22 passed fresh 2026-08-30.
+- List-hygiene class (3rd instance): diagnosis-time entry never closed when the
+  fix landed — see the S-list hygiene gate in DECISIONS.md (Decision 21).
+
+OPEN HALF (B5 UI, separate item): when the gate escalates for a missing service
+date, the user needs the UI to SUPPLY it — scoped as the next build.
 
 ## S2-5 follow-up — filing count silently broken since v1 (found 2026-08-14)
 `count_filings` (db.py:282) and `record_filing` (db.py:301) swallow the

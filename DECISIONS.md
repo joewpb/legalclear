@@ -365,3 +365,14 @@ One implementation, not eleven: every site routes through the shared
 `json_utils.parse_llm_json_ladder` (the same parser family the attorney-questions fix
 introduced). A test locks each site's ladder, including the degraded path emitting its
 marker.
+
+## Decision 20 addendum — checker doctrine (2026-08-30, ruled by Joe)
+
+Any change to what a checker enforces — exemptions, threshold changes, check
+removal — is flagged for ruling BEFORE it lands, not disclosed after. A checker
+exemption is doctrine, not implementation, however good the reasoning.
+
+(Ratifies ca58496 retroactively: the orin_opinions check-5 exemption stands —
+opinion docket citations are case-law metadata validated against the opinions
+table, not the curated statute/rule map. The exemption itself should have been
+presented for ruling before landing; it is now.)
