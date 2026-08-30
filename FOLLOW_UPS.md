@@ -61,12 +61,17 @@ client)."
 Dependency: S1-3b must not be scheduled until S1-5 (PII/DeepSeek) is decided — it
 touches the same intake path.
 
-## S3-5d (new triage, from S2-5 diagnosis)
-`backend/deadline/pipeline.py:209,245` swallow DB insert errors while the endpoint
-returns 200 with `deadlines_written: 0` / no error. Seventh silent-failure site, same
-class as Group B (S3-5). Makes "endpoint never called" indistinguishable from "called
-and failed silently" — which is exactly the ambiguity blocking the S2-5 smoke test.
-Fix before or alongside any deadline-pipeline work.
+## S3-5d (triage, from S2-5 diagnosis) — RESOLVED 2026-08-30 (STALE ENTRY; B5 series fixed it)
+Verified in tree: every DB-write failure path now escalates loudly instead of
+swallowing — _record_trigger_event docstring cites S3-5d and increments
+trigger_events_written ONLY on a landed row, else escalation_needed + "this event is
+NOT recorded"; deadline insert failure -> escalation_needed + "NOT recorded and will
+not trigger a reminder"; closure fetch failure -> closure_fetch_failed -> every fatal
+deadline escalates. The router surfaces escalation_needed/reasons in the response.
+Locked by test_trigger_event_insert_failure_does_not_claim_success,
+test_deadline_insert_failure_does_not_claim_success, and
+test_closure_fetch_failure_escalates_instead_of_silent_compute — 14/14 pipeline tests
+green. Entry was never back-annotated after the B5 fix landed — list hygiene.
 
 ## S2-6 — /api/analyze/* dead or broken
 Deletion deferred to Group E per standing rules ("no deletions during Phase 2").
