@@ -1,11 +1,10 @@
-import json
 import logging
 import traceback
 
 from anthropic import AsyncAnthropic
 
 from src.core.config import settings
-from src.core.json_utils import strip_markdown_fences
+from src.core.json_utils import parse_llm_json_ladder
 
 logger = logging.getLogger(__name__)
 
@@ -88,8 +87,7 @@ Document text:
                     system=[{
                         "type": "text",
                         "text": SYSTEM_PROMPT,
-                        "cache_control": {
-                            "type": "ephemeral"}
+                        "cache_control": {"type": "ephemeral"}
                     }],
                     messages=[{
                         "role": "user",
@@ -101,7 +99,12 @@ Document text:
                     }]
                 )
                 raw = response.content[0].text
-                return json.loads(strip_markdown_fences(raw))
+                parsed, degraded = await parse_llm_json_ladder(
+                    raw, site="classifier", expect="dict"
+                )
+                if degraded:
+                    continue
+                return parsed
             except Exception as e:
                 logger.error(
                     "Anthropic call failed in %s: %s\n%s",

@@ -1,4 +1,3 @@
-import json
 import logging
 import traceback
 
@@ -6,7 +5,7 @@ from anthropic import AsyncAnthropic
 
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
-from src.core.json_utils import strip_markdown_fences
+from src.core.json_utils import ladder_call_async as _ladder_call
 from src.core.url_filter import filter_json_strings
 
 logger = logging.getLogger(__name__)
@@ -100,7 +99,7 @@ help, direct users to the in-app Find Legal Help page.
 Document text:
 {document.get("text", "")[:80000]}"""
 
-        try:
+        async def _call(prompt: str) -> str:
             response = await self.client.messages.create(
                 model=self.guide_model,
                 max_tokens=8192,
@@ -111,11 +110,22 @@ Document text:
                 }],
                 messages=[{
                     "role": "user",
-                    "content": user_prompt
+                    "content": prompt
                 }]
             )
-            raw = response.content[0].text
-            result = json.loads(strip_markdown_fences(raw))
+            return response.content[0].text
+
+        try:
+            result, degraded = await _ladder_call(
+                _call, user_prompt, site="expungement", expect="dict"
+            )
+            if degraded:
+                return {"error": True,
+                        "message": ("No se pudo procesar la solicitud. Intente de nuevo."
+                                    if lang == "es"
+                                    else "The request could not be processed. Please try again."),
+                        "disclaimer": get_disclaimer(
+                            lang, "standard")}
             result = filter_json_strings(result, "expungement")
             result["disclaimer"] = get_disclaimer(
                 lang, "standard")
@@ -159,7 +169,7 @@ next_steps: list of strings
 disclaimer: always include that this is preliminary
 only and not legal advice"""
 
-        try:
+        async def _call(prompt: str) -> str:
             response = await self.client.messages.create(
                 model=self.eligibility_model,
                 max_tokens=1024,
@@ -170,11 +180,27 @@ only and not legal advice"""
                 }],
                 messages=[{
                     "role": "user",
-                    "content": user_prompt
+                    "content": prompt
                 }]
             )
-            raw = response.content[0].text
-            parsed = json.loads(strip_markdown_fences(raw))
+            return response.content[0].text
+
+        try:
+            parsed, degraded = await _ladder_call(
+                _call, user_prompt, site="expungement_eligibility", expect="dict"
+            )
+            if degraded:
+                return {
+                    "likely_eligible": False,
+                    "confidence": "low",
+                    "reasoning": (
+                        "Eligibility could not be determined automatically. "
+                        "Please try again or consult an attorney."
+                    ),
+                    "key_factors": [],
+                    "next_steps": [],
+                    "disclaimer": "Preliminary only — not legal advice.",
+                }
             return filter_json_strings(parsed, "expungement")
         except Exception as e:
             logger.error(

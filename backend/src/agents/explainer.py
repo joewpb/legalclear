@@ -6,12 +6,16 @@ from anthropic import AsyncAnthropic
 
 from src.agents.eviction_citations import EVICTION_CURATED_CITATIONS
 from src.agents.small_claims_citations import SMALL_CLAIMS_CURATED_CITATIONS
+from src.core.citation_filter import StreamingCitationFilter, filter_citations_text
 from src.core.citation_resolver import resolve_citation
 from src.core.config import settings
-from src.core.citation_filter import StreamingCitationFilter, filter_citations_text
 from src.core.disclaimer import get_disclaimer
-from src.core.json_utils import strip_markdown_fences
-from src.core.url_filter import StreamingURLFilter, filter_json_strings, strip_urls_final
+from src.core.json_utils import ladder_call_async as _ladder_call
+from src.core.url_filter import (
+    StreamingURLFilter,
+    filter_json_strings,
+    strip_urls_final,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -129,15 +133,26 @@ class ExplainerAgent:
 
     async def explain(self, text: str, language: str = "en") -> dict:
         """Non-streaming explanation — kept for backward compatibility."""
-        try:
+
+        async def _call(prompt: str) -> str:
             response = await self.client.messages.create(
                 model=self.model,
                 max_tokens=8192,
                 system=SYSTEM_PROMPT,
-                messages=[{"role": "user", "content": text}]
+                messages=[{"role": "user", "content": prompt}]
             )
-            content = response.content[0].text
-            parsed = json.loads(strip_markdown_fences(content))
+            return response.content[0].text
+
+        try:
+            parsed, degraded = await _ladder_call(
+                _call, text, site="explainer", expect="dict"
+            )
+            if degraded:
+                return {
+                    "error": True,
+                    "message": _generic_error_message(language),
+                    "disclaimer": get_disclaimer(language)
+                }
             parsed = filter_json_strings(parsed, "explainer")
             parsed = _filter_citation_json_strings(parsed, "explainer")
             parsed["citations"] = self.filter_citations(parsed.get("citations"))

@@ -18,7 +18,13 @@ from anthropic import AsyncAnthropic
 
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
-from src.core.json_utils import strip_markdown_fences
+from src.core.json_utils import (
+    TIGHTENED_PROMPT_SUFFIX,
+    parse_llm_json_ladder,
+)
+from src.core.json_utils import (
+    ladder_call_async as _ladder_call,
+)
 from src.core.url_filter import StreamingURLFilter, filter_json_strings
 from src.ingestion.pdf_parser import PDFParser
 from src.services.opinion_retrieval import (
@@ -327,9 +333,33 @@ class PoliceReportAnalyzerV2:
                 yield f"data: {tail}\n\n"
 
             # ── Post-stream: compute risk score deterministically ──
-            parsed = None
-            try:
-                parsed = json.loads(strip_markdown_fences(full_text))
+            async def _retry_analysis() -> str:
+                # Decision 20: one tightened re-call to recover the JSON.
+                content = list(user_content)
+                content.append({"type": "text", "text": TIGHTENED_PROMPT_SUFFIX.strip()})
+                response = await self.client.messages.create(
+                    model=self.model,
+                    max_tokens=4096,
+                    system=[
+                        {
+                            "type": "text",
+                            "text": SYSTEM_PROMPT,
+                            "cache_control": {"type": "ephemeral"},
+                        }
+                    ],
+                    messages=[{"role": "user", "content": content}],
+                )
+                return response.content[0].text
+
+            parsed, degraded = await parse_llm_json_ladder(
+                full_text,
+                site="police_report_v2",
+                expect="dict",
+                retry_call=_retry_analysis,
+            )
+            if degraded:
+                parsed = None
+            else:
                 all_findings = (
                     parsed.get("discrepancies", [])
                     + [
@@ -347,10 +377,6 @@ class PoliceReportAnalyzerV2:
                 risk["type"] = "risk_analysis"
                 risk_payload = json.dumps(risk)
                 yield f"data: {risk_payload}\n\n"
-            except (json.JSONDecodeError, KeyError):
-                # If parsing fails, skip risk analysis — the client
-                # will still have the raw streaming response
-                pass
 
             # ── Post-stream: retrieve relevant opinions (Stage 2) ──
             # Sealed in its own try/except: risk_analysis (and the full
@@ -491,7 +517,10 @@ class PoliceReportAnalyzerV2:
             }
         )
 
-        try:
+        async def _call(prompt: str) -> str:
+            msg_content = user_content
+            if prompt:  # retry pass: append the tightened instruction
+                msg_content = list(user_content) + [{"type": "text", "text": prompt}]
             response = await self.client.messages.create(
                 model=self.model,
                 max_tokens=4096,
@@ -502,10 +531,20 @@ class PoliceReportAnalyzerV2:
                         "cache_control": {"type": "ephemeral"},
                     }
                 ],
-                messages=[{"role": "user", "content": user_content}],
+                messages=[{"role": "user", "content": msg_content}],
             )
-            raw = response.content[0].text
-            parsed = json.loads(strip_markdown_fences(raw))
+            return response.content[0].text
+
+        try:
+            parsed, degraded = await _ladder_call(
+                _call, "", site="police_report_v2_analyze", expect="dict"
+            )
+            if degraded:
+                return {
+                    "error": True,
+                    "message": "Analysis could not be completed.",
+                    "disclaimer": get_disclaimer(language),
+                }
             parsed = filter_json_strings(parsed, "police_report_v2")
             parsed["disclaimer"] = get_disclaimer(language)
 

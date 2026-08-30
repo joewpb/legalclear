@@ -4,7 +4,6 @@ Classifies a user's plain-English situation description into one of the
 LegalClear v3 module routes using claude-haiku-4-5-20251001.
 """
 
-import json
 import logging
 import traceback
 
@@ -14,7 +13,7 @@ from pydantic import BaseModel, Field
 
 from src.api.limiter import limiter
 from src.core.config import settings
-from src.core.json_utils import strip_markdown_fences
+from src.core.json_utils import parse_llm_json_ladder
 from src.core.upl import apply_disclaimer
 
 logger = logging.getLogger(__name__)
@@ -147,6 +146,7 @@ async def intake(request: Request, payload: IntakeRequest = Body(...)) -> Intake
     clarifying_question: str | None = None
     classified = False
 
+    llm_unreachable = False
     for attempt in range(2):
         try:
             response = await _client.messages.create(
@@ -171,9 +171,22 @@ async def intake(request: Request, payload: IntakeRequest = Body(...)) -> Intake
                     }
                 ],
             )
+        except Exception:
+            llm_unreachable = True
+            logger.error(
+                "Intake classification attempt %d failed: %s",
+                attempt + 1,
+                traceback.format_exc(),
+            )
+            continue
 
-            raw = response.content[0].text
-            parsed = json.loads(strip_markdown_fences(raw))
+        raw = response.content[0].text
+        try:
+            parsed, degraded = await parse_llm_json_ladder(
+                raw, site="intake", expect="dict"
+            )
+            if degraded:
+                continue
 
             module = _sanitize_module(parsed.get("module", "unknown"))
             sub_type = _sanitize_sub_type(parsed.get("sub_type"))
@@ -205,9 +218,19 @@ async def intake(request: Request, payload: IntakeRequest = Body(...)) -> Intake
             )
 
     if not classified:
-        raise HTTPException(
-            status_code=503,
-            detail="Intake classification is temporarily unavailable. Please try again.",
+        if llm_unreachable:
+            raise HTTPException(
+                status_code=503,
+                detail="Intake classification is temporarily unavailable. Please try again.",
+            )
+        # Decision 20: parse-degraded (model reachable, JSON unrecoverable) —
+        # proceed without the enrichment, never a crashed response. The ladder
+        # has already logged the LLM_PARSE_DEGRADE marker naming this site.
+        module = "unknown"
+        sub_type = None
+        clarifying_question = (
+            "Could you share more about your situation "
+            "so the right information can be found?"
         )
 
     disclaimer = apply_disclaimer({}, lang=payload.language, level="standard")["disclaimer"]

@@ -37,6 +37,20 @@ class _FakeMessages:
     def stream(self, **kwargs):
         return _FakeStream(self._text)
 
+    async def create(self, **kwargs):
+        # Decision 20 retry call — return the same garbage so the ladder
+        # exhausts its one retry and degrades.
+        return _FakeResp(self._text)
+
+
+class _FakeResp:
+    def __init__(self, text: str) -> None:
+        self._text = text
+
+    @property
+    def content(self):
+        return [type("_C", (), {"text": self._text})()]
+
 
 class _FakeClient:
     def __init__(self, text: str) -> None:
@@ -48,15 +62,19 @@ async def _collect(agen):
 
 
 def test_risk_score_parse_failure_logs_error(caplog):
-    """A malformed model completion must log at error, not vanish silently."""
+    """A malformed model completion must log the Decision 20 degrade marker,
+    not vanish silently (and never emit a fake risk payload)."""
     analyzer = DiscoveryMotionAnalyzer.__new__(DiscoveryMotionAnalyzer)
     analyzer.client = _FakeClient("this is not valid json")
     analyzer.model = "claude-sonnet-4-6"
 
-    with caplog.at_level(logging.ERROR, logger="src.agents.discovery_motion"):
+    with caplog.at_level(logging.WARNING, logger="src.core.json_utils"):
         events = asyncio.run(
             _collect(analyzer.analyze_stream(b"fake-bytes", "motion.jpg", "en"))
         )
 
     assert not any('"type": "risk_analysis"' in e for e in events)
-    assert any("risk-score parse failed" in r.message for r in caplog.records)
+    assert any(
+        "LLM_PARSE_DEGRADE" in r.message and "site=discovery_motion" in r.message
+        for r in caplog.records
+    )

@@ -20,13 +20,13 @@ from __future__ import annotations
 
 import csv as _csv
 import io as _io
-import json
 import logging
 import re
 import subprocess
 from dataclasses import dataclass
 
 from src.core.config import settings
+from src.core.json_utils import ladder_call_sync
 
 logger = logging.getLogger(__name__)
 
@@ -166,7 +166,16 @@ def _batch_extract_metadata(opinions: list[dict]) -> list[dict]:
     for i, op in enumerate(opinions[:10]):
         headers_text += f"--- OPINION {i} ---\n{op['plain_text'][:600]}\n\n"
 
-    try:
+    base_prompt = (
+        "For each opinion header (--- OPINION N ---), extract: "
+        "case_name, citation (docket), court, date_filed. "
+        "Return ONLY a JSON array, one object per opinion:\n"
+        '[{"case_name":"...","citation":"...",'
+        '"court":"...","date_filed":"..."}]\n\n'
+        f"{headers_text}"
+    )
+
+    def _post(prompt: str) -> str | None:
         import requests as _requests
         resp = _requests.post(
             "https://api.anthropic.com/v1/messages",
@@ -179,34 +188,31 @@ def _batch_extract_metadata(opinions: list[dict]) -> list[dict]:
                 "model": "claude-haiku-4-5-20251001",
                 "messages": [{
                     "role": "user",
-                    "content": (
-                        "For each opinion header (--- OPINION N ---), extract: "
-                        "case_name, citation (docket), court, date_filed. "
-                        "Return ONLY a JSON array, one object per opinion:\n"
-                        '[{"case_name":"...","citation":"...",'
-                        '"court":"...","date_filed":"..."}]\n\n'
-                        f"{headers_text}"
-                    ),
+                    "content": prompt,
                 }],
                 "max_tokens": 800,
                 "temperature": 0,
             },
             timeout=15,
         )
-        if resp.status_code == 200:
-            raw = resp.json()["content"][0]["text"].strip()
-            raw = raw.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
-            data = json.loads(raw) if isinstance(raw, str) else raw
-            if isinstance(data, list):
-                for i, meta in enumerate(data):
-                    if i < len(opinions) and isinstance(meta, dict):
-                        opinions[i].update({
-                            "case_name": str(meta.get("case_name", "Unknown Case")),
-                            "citation": str(meta.get("citation", "N/A")),
-                            "court": str(meta.get("court", "Florida Court")),
-                            "date_filed": meta.get("date_filed"),
-                        })
-                return opinions
+        if resp.status_code != 200:
+            return None
+        return resp.json()["content"][0]["text"].strip()
+
+    try:
+        data, degraded = ladder_call_sync(
+            _post, base_prompt, site="orin_opinions", expect="list"
+        )
+        if not degraded and isinstance(data, list):
+            for i, meta in enumerate(data):
+                if i < len(opinions) and isinstance(meta, dict):
+                    opinions[i].update({
+                        "case_name": str(meta.get("case_name", "Unknown Case")),
+                        "citation": str(meta.get("citation", "N/A")),
+                        "court": str(meta.get("court", "Florida Court")),
+                        "date_filed": meta.get("date_filed"),
+                    })
+            return opinions
     except Exception:
         logger.warning("Claude Haiku batch metadata extraction failed, falling back to regex", exc_info=True)
 

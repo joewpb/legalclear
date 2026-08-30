@@ -20,7 +20,13 @@ from src.agents.police_report_v2 import compute_risk_score
 from src.core.citation_filter import StreamingCitationFilter
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
-from src.core.json_utils import strip_markdown_fences
+from src.core.json_utils import (
+    TIGHTENED_PROMPT_SUFFIX,
+    parse_llm_json_ladder,
+)
+from src.core.json_utils import (
+    ladder_call_async as _ladder_call,
+)
 from src.core.url_filter import StreamingURLFilter, filter_json_strings
 from src.ingestion.pdf_parser import PDFParser
 
@@ -208,8 +214,23 @@ class DiscoveryMotionAnalyzer:
             )
 
             # ── Post-stream: compute risk score deterministically ──
-            try:
-                parsed = json.loads(strip_markdown_fences(full_text))
+            async def _retry_dm() -> str:
+                # Decision 20: one tightened re-call to recover the JSON.
+                response = await self.client.messages.create(
+                    model=self.model,
+                    max_tokens=4096,
+                    system=[{"type": "text", "text": SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}],
+                    messages=[{"role": "user", "content": list(user_content) + [{"type": "text", "text": TIGHTENED_PROMPT_SUFFIX.strip()}]}],
+                )
+                return response.content[0].text
+
+            parsed, degraded = await parse_llm_json_ladder(
+                full_text, site="discovery_motion", expect="dict",
+                retry_call=_retry_dm,
+            )
+            if degraded:
+                parsed = None
+            else:
                 all_findings: list[dict] = []
                 for d in parsed.get("discrepancies", []):
                     all_findings.append({
@@ -231,11 +252,6 @@ class DiscoveryMotionAnalyzer:
                 risk = compute_risk_score(all_findings)
                 risk["type"] = "risk_analysis"
                 yield f"data: {json.dumps(risk)}\n\n"
-            except (json.JSONDecodeError, KeyError):
-                logger.error(
-                    "DiscoveryMotionAnalyzer risk-score parse failed:\n%s",
-                    traceback.format_exc(),
-                )
 
         except Exception:
             logger.error("DiscoveryMotionAnalyzer stream error:\n%s", traceback.format_exc())
@@ -280,13 +296,23 @@ class DiscoveryMotionAnalyzer:
             ),
         })
 
-        try:
+        async def _call(prompt: str) -> str:
+            msg_content = user_content
+            if prompt:  # retry pass: append the tightened instruction
+                msg_content = list(user_content) + [{"type": "text", "text": prompt}]
             response = await self.client.messages.create(
                 model=self.model, max_tokens=4096,
                 system=[{"type": "text", "text": SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}],
-                messages=[{"role": "user", "content": user_content}],
+                messages=[{"role": "user", "content": msg_content}],
             )
-            parsed = json.loads(strip_markdown_fences(response.content[0].text))
+            return response.content[0].text
+
+        try:
+            parsed, degraded = await _ladder_call(
+                _call, "", site="discovery_motion_analyze", expect="dict"
+            )
+            if degraded:
+                return {"error": True, "message": "Analysis could not be completed.", "disclaimer": get_disclaimer(language)}
             parsed = filter_json_strings(parsed, "discovery_motion")
             parsed["disclaimer"] = get_disclaimer(language)
 

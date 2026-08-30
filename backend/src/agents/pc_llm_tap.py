@@ -29,7 +29,6 @@ never gets a stack trace or a raw provider error.
 from __future__ import annotations
 
 import base64
-import json
 import logging
 import traceback
 
@@ -37,7 +36,7 @@ from anthropic import AsyncAnthropic
 
 from src.core.citation_filter import filter_citations_text
 from src.core.config import settings
-from src.core.json_utils import strip_markdown_fences
+from src.core.json_utils import ladder_call_async as _ladder_call
 from src.core.upl import apply_disclaimer
 from src.core.url_filter import filter_json_strings
 from src.ingestion.pdf_parser import PDFParser
@@ -184,18 +183,28 @@ class PcLlmTap:
         self._pdf_parser = PDFParser()
 
     async def _call(self, system: str, user_text: str, user_image_b64: dict | None = None) -> dict:
-        content: list[dict] = []
-        if user_image_b64 is not None:
-            content.append(user_image_b64)
-        content.append({"type": "text", "text": user_text})
-        response = await self.client.messages.create(
-            model=self.model,
-            max_tokens=2048,
-            system=[{"type": "text", "text": system}],
-            messages=[{"role": "user", "content": content}],
-        )
-        raw = response.content[0].text
-        parsed = json.loads(strip_markdown_fences(raw))
+        async def _invoke(prompt: str) -> str:
+            content: list[dict] = []
+            if user_image_b64 is not None:
+                content.append(user_image_b64)
+            content.append({"type": "text", "text": prompt})
+            response = await self.client.messages.create(
+                model=self.model,
+                max_tokens=2048,
+                system=[{"type": "text", "text": system}],
+                messages=[{"role": "user", "content": content}],
+            )
+            return response.content[0].text
+
+        try:
+            parsed, degraded = await _ladder_call(
+                _invoke, user_text, site="pc_llm_tap", expect="dict"
+            )
+        except Exception:
+            logger.error("pc_llm_tap LLM call failed:\n%s", traceback.format_exc())
+            degraded = True
+        if degraded:
+            return {"error": True, "message": _PROVIDER_ERROR_MESSAGE}
         return _sanitize_parsed(parsed)
 
     async def _file_to_content(self, file_bytes: bytes, filename: str) -> tuple[dict | str | None, str | None]:
@@ -228,18 +237,29 @@ class PcLlmTap:
             content = [entry, {"type": "text", "text": f"Explain this letter. Respond entirely in {lang_label}. Return ONLY JSON."}]
         else:
             content = [{"type": "text", "text": f"{entry}\n\nExplain this letter. Respond entirely in {lang_label}. Return ONLY JSON."}]
-        try:
+
+        async def _invoke(prompt: str) -> str:
+            msg_content = content
+            if prompt:  # retry pass: append the tightened instruction
+                msg_content = content + [{"type": "text", "text": prompt}]
             response = await self.client.messages.create(
                 model=self.model, max_tokens=2048,
                 system=[{"type": "text", "text": _SYSTEM_EXPLAIN_LETTER}],
-                messages=[{"role": "user", "content": content}],
+                messages=[{"role": "user", "content": msg_content}],
             )
-            parsed = json.loads(strip_markdown_fences(response.content[0].text))
-            parsed = _sanitize_parsed(parsed)
-            return apply_disclaimer(parsed, lang=language)
+            return response.content[0].text
+
+        try:
+            parsed, degraded = await _ladder_call(
+                _invoke, "", site="pc_llm_tap_explain_letter", expect="dict"
+            )
         except Exception:
             logger.error("explain_letter tap failed:\n%s", traceback.format_exc())
+            degraded = True
+        if degraded:
             return apply_disclaimer({"error": True, "message": _PROVIDER_ERROR_MESSAGE}, lang=language)
+        parsed = _sanitize_parsed(parsed)
+        return apply_disclaimer(parsed, lang=language)
 
     async def describe_item(self, notes: str, language: str = "en") -> dict:
         lang_label = "Spanish" if language == "es" else "English"
@@ -287,17 +307,27 @@ class PcLlmTap:
             content = [entry, {"type": "text", "text": f"Classify this document. Respond entirely in {lang_label}. Return ONLY JSON."}]
         else:
             content = [{"type": "text", "text": f"{entry}\n\nClassify this document. Respond entirely in {lang_label}. Return ONLY JSON."}]
-        try:
+        async def _invoke(prompt: str) -> str:
+            msg_content = content
+            if prompt:  # retry pass: append the tightened instruction
+                msg_content = content + [{"type": "text", "text": prompt}]
             response = await self.client.messages.create(
                 model=self.model, max_tokens=1024,
                 system=[{"type": "text", "text": _SYSTEM_CLASSIFY_DOCUMENT}],
-                messages=[{"role": "user", "content": content}],
+                messages=[{"role": "user", "content": msg_content}],
             )
-            parsed = json.loads(strip_markdown_fences(response.content[0].text))
-            if parsed.get("document_type") not in DOCUMENT_TYPES:
-                parsed["document_type"] = "other"
-            parsed = _sanitize_parsed(parsed)
-            return apply_disclaimer(parsed, lang=language)
+            return response.content[0].text
+
+        try:
+            parsed, degraded = await _ladder_call(
+                _invoke, "", site="pc_llm_tap_classify_document", expect="dict"
+            )
         except Exception:
             logger.error("classify_document tap failed:\n%s", traceback.format_exc())
+            degraded = True
+        if degraded:
             return apply_disclaimer({"error": True, "message": _PROVIDER_ERROR_MESSAGE}, lang=language)
+        if parsed.get("document_type") not in DOCUMENT_TYPES:
+            parsed["document_type"] = "other"
+        parsed = _sanitize_parsed(parsed)
+        return apply_disclaimer(parsed, lang=language)

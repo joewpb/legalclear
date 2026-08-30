@@ -19,8 +19,14 @@ from src.core.citation_filter import StreamingCitationFilter, filter_citations_t
 from src.core.citation_resolver import resolve_citation
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
-from src.core.json_utils import strip_markdown_fences
-from src.core.url_filter import StreamingURLFilter, filter_json_strings
+from src.core.json_utils import (
+    TIGHTENED_PROMPT_SUFFIX,
+    parse_llm_json_ladder,
+)
+from src.core.json_utils import (
+    ladder_call_async as _ladder_call,
+)
+from src.core.url_filter import StreamingURLFilter
 
 logger = logging.getLogger(__name__)
 
@@ -183,11 +189,31 @@ class SmallClaimsExplainer:
                     full_text += tail
                     yield f"data: {tail}\n\n"
 
-            try:
-                parsed = json.loads(strip_markdown_fences(full_text))
-                filtered_citations = self.filter_citations(parsed.get("citations"))
-            except Exception:
+            async def _retry_sc() -> str:
+                # Decision 20: one tightened re-call to recover the JSON.
+                response = await self.client.messages.create(
+                    model=self.model,
+                    max_tokens=4096,
+                    system=[
+                        {
+                            "type": "text",
+                            "text": SYSTEM_PROMPT,
+                            "cache_control": {"type": "ephemeral"},
+                        }
+                    ],
+                    messages=[{"role": "user", "content": user_prompt + TIGHTENED_PROMPT_SUFFIX}],
+                )
+                return response.content[0].text
+
+            parsed, degraded = await parse_llm_json_ladder(
+                full_text, site="small_claims", expect="dict",
+                retry_call=_retry_sc,
+            )
+            if degraded:
+                parsed = None
                 filtered_citations = []
+            else:
+                filtered_citations = self.filter_citations(parsed.get("citations"))
 
             yield (
                 "event: citations\n"
@@ -224,7 +250,7 @@ class SmallClaimsExplainer:
         """Non-streaming explanation.  Useful for testing and debugging."""
         user_prompt = self._build_user_prompt(entities, language)
 
-        try:
+        async def _call(prompt: str) -> str:
             response = await self.client.messages.create(
                 model=self.model,
                 max_tokens=4096,
@@ -235,10 +261,20 @@ class SmallClaimsExplainer:
                         "cache_control": {"type": "ephemeral"},
                     }
                 ],
-                messages=[{"role": "user", "content": user_prompt}],
+                messages=[{"role": "user", "content": prompt or user_prompt}],
             )
-            raw = response.content[0].text
-            parsed = json.loads(strip_markdown_fences(raw))
+            return response.content[0].text
+
+        try:
+            parsed, degraded = await _ladder_call(
+                _call, user_prompt, site="small_claims_explain", expect="dict"
+            )
+            if degraded:
+                return {
+                    "error": True,
+                    "message": "Explanation could not be generated.",
+                    "disclaimer": get_disclaimer(language),
+                }
             parsed = _filter_citation_json_strings(parsed, "small_claims")
             parsed["citations"] = self.filter_citations(parsed.get("citations"))
             parsed["disclaimer"] = get_disclaimer(language)

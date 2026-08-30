@@ -7,7 +7,7 @@ from anthropic import AsyncAnthropic
 
 from src.core.config import settings
 from src.core.disclaimer import get_disclaimer
-from src.core.json_utils import strip_markdown_fences
+from src.core.json_utils import ladder_call_async as _ladder_call
 from src.core.url_filter import filter_json_strings, strip_urls_final
 
 logger = logging.getLogger(__name__)
@@ -96,7 +96,7 @@ claims document, null otherwise
 Document text:
 {document.get("text", "")[:80000]}"""
 
-        try:
+        async def _call(prompt: str) -> str:
             response = await self.client.messages.create(
                 model=self.model,
                 max_tokens=8192,
@@ -107,11 +107,23 @@ Document text:
                 }],
                 messages=[{
                     "role": "user",
-                    "content": user_prompt
+                    "content": prompt
                 }]
             )
-            raw = response.content[0].text
-            result = json.loads(strip_markdown_fences(raw))
+            return response.content[0].text
+
+        try:
+            result, degraded = await _ladder_call(
+                _call, user_prompt, site="form_guide", expect="dict"
+            )
+            if degraded:
+                return {"error": True,
+                        "message": (
+                            "Ocurrió un error. Por favor intente de nuevo."
+                            if lang == "es"
+                            else "An error occurred. Please try again."),
+                        "disclaimer": get_disclaimer(
+                            lang, "standard")}
             result = filter_json_strings(result, "form_guide")
             result["disclaimer"] = get_disclaimer(
                 lang, "standard")

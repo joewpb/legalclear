@@ -29,7 +29,13 @@ from src.agents.police_report_v2 import compute_risk_score
 from src.core.citation_filter import StreamingCitationFilter, filter_citations_text
 from src.core.claim_regime import resolve_regime
 from src.core.config import settings
-from src.core.json_utils import strip_markdown_fences
+from src.core.json_utils import (
+    TIGHTENED_PROMPT_SUFFIX,
+    parse_llm_json_ladder,
+)
+from src.core.json_utils import (
+    ladder_call_async as _ladder_call,
+)
 from src.core.upl import apply_disclaimer
 from src.core.url_filter import StreamingURLFilter, filter_json_strings
 from src.ingestion.pdf_parser import PDFParser
@@ -540,34 +546,55 @@ class PropertyCasualtyExplainer:
                 yield f"data: {tail}\n\n"
 
             # ── Post-stream: inject computed deadlines if LLM dropped them ──
-            try:
-                parsed = json.loads(strip_markdown_fences(full_text))
-                parsed = filter_json_strings(parsed, "property_casualty")
-                parsed = _filter_citation_json_strings(parsed, "property_casualty")
-                if is_first_party and computed_deadlines:
-                    parsed["key_deadlines"] = computed_deadlines
-                if claim_regime and claim_regime.get("regime") == "unknown":
-                    # Deterministic boundary: regime unknown means no
-                    # deadline content survives, whatever the model emitted.
-                    parsed.pop("key_deadlines", None)
-                if claim_regime:
-                    parsed["claim_regime"] = claim_regime
-                if session_id:
-                    parsed["session_id"] = session_id
-                # ── Compute risk score from watch_out_for ──
-                all_findings = [
-                    {"severity": w.get("severity", "low"), "description": w.get("description", w if isinstance(w, str) else "")}
-                    for w in parsed.get("watch_out_for", [])
-                ]
-                if all_findings:
-                    risk = compute_risk_score(all_findings)
-                    risk["type"] = "risk_analysis"
-                    yield f"data: {json.dumps(risk)}\n\n"
-                # ── Re-emit full payload with disclaimer ──
-                final = apply_disclaimer(parsed, lang=language)
-                yield f"data: {json.dumps(final)}\n\n"
-            except (json.JSONDecodeError, KeyError):
-                pass
+            async def _retry_pc() -> str:
+                # Decision 20: one tightened re-call to recover the JSON.
+                response = await self.client.messages.create(
+                    model=self.model,
+                    max_tokens=4096,
+                    system=[{"type": "text", "text": system_prompt, "cache_control": {"type": "ephemeral"}}],
+                    messages=[{"role": "user", "content": list(user_content) + [{"type": "text", "text": TIGHTENED_PROMPT_SUFFIX.strip()}]}],
+                )
+                return response.content[0].text
+
+            parsed, degraded = await parse_llm_json_ladder(
+                full_text, site="property_casualty", expect="dict",
+                retry_call=_retry_pc,
+            )
+            if degraded:
+                parsed = None
+            else:
+                try:
+                    parsed = filter_json_strings(parsed, "property_casualty")
+                    parsed = _filter_citation_json_strings(parsed, "property_casualty")
+                    if is_first_party and computed_deadlines:
+                        parsed["key_deadlines"] = computed_deadlines
+                    if claim_regime and claim_regime.get("regime") == "unknown":
+                        # Deterministic boundary: regime unknown means no
+                        # deadline content survives, whatever the model emitted.
+                        parsed.pop("key_deadlines", None)
+                    if claim_regime:
+                        parsed["claim_regime"] = claim_regime
+                    if session_id:
+                        parsed["session_id"] = session_id
+                    # ── Compute risk score from watch_out_for ──
+                    all_findings = [
+                        {"severity": w.get("severity", "low"), "description": w.get("description", w if isinstance(w, str) else "")}
+                        for w in parsed.get("watch_out_for", [])
+                    ]
+                    if all_findings:
+                        risk = compute_risk_score(all_findings)
+                        risk["type"] = "risk_analysis"
+                        yield f"data: {json.dumps(risk)}\n\n"
+                    # ── Re-emit full payload with disclaimer ──
+                    final = apply_disclaimer(parsed, lang=language)
+                    yield f"data: {json.dumps(final)}\n\n"
+                except (KeyError, TypeError):
+                    # Enrichment-only failure after a valid parse: the raw
+                    # stream has already been delivered — log and skip.
+                    logger.error(
+                        "PropertyCasualty post-parse enrichment failed:\n%s",
+                        traceback.format_exc(),
+                    )
 
         except Exception:
             logger.error("PropertyCasualtyExplainer stream error:\n%s", traceback.format_exc())
@@ -623,13 +650,23 @@ class PropertyCasualtyExplainer:
         user_text = self._build_user_text(sub_type, entities, lang_label, doc_text, computed_deadlines, claim_regime)
         user_content.append({"type": "text", "text": user_text})
 
-        try:
+        async def _call(prompt: str) -> str:
+            msg_content = user_content
+            if prompt:  # retry pass: append the tightened instruction
+                msg_content = list(user_content) + [{"type": "text", "text": prompt}]
             response = await self.client.messages.create(
                 model=self.model, max_tokens=4096,
                 system=[{"type": "text", "text": system_prompt, "cache_control": {"type": "ephemeral"}}],
-                messages=[{"role": "user", "content": user_content}],
+                messages=[{"role": "user", "content": msg_content}],
             )
-            parsed = json.loads(strip_markdown_fences(response.content[0].text))
+            return response.content[0].text
+
+        try:
+            parsed, degraded = await _ladder_call(
+                _call, "", site="property_casualty_explain", expect="dict"
+            )
+            if degraded:
+                return apply_disclaimer({"error": True, "message": "Explanation could not be generated."}, lang=language)
             parsed = _filter_citation_json_strings(parsed, "property_casualty")
 
             # ── Inject computed deadlines ──
