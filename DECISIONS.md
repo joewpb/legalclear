@@ -344,3 +344,24 @@ Joe's order: pause attorney-referral work for the time being — he has no
 attorneys yet and is still working on the project. The known prod 500s on
 /api/attorney-referral/intake and /submit (missing migration 20260813)
 stay deferred. Resume only on Joe's word.
+
+## Decision 20 — LLM-output parse failures self-heal, they do not hard-fail (2026-08-30)
+
+Policy for every site that parses LLM output as JSON:
+
+1. **Deterministic repair first (free):** the shared json_utils recovery — fence-strip
+   + largest-bracket substring extraction. No LLM call.
+2. **One LLM retry on repair failure:** re-call with a tightened "return ONLY JSON"
+   instruction, exactly once.
+3. **Both fail → degrade gracefully:** the response proceeds WITHOUT that enrichment,
+   with a logged marker naming the site and reason (`LLM_PARSE_DEGRADE site=<name>`).
+   Never silent, never fabricated content, never a crashed response.
+
+This complements, not replaces, the structural rule: DB writes, deadline computation,
+and citation checks still escalate loudly (S3-5d standard). The line is: **model output
+gets resilience, legal data gets rigor.**
+
+One implementation, not eleven: every site routes through the shared
+`json_utils.parse_llm_json_ladder` (the same parser family the attorney-questions fix
+introduced). A test locks each site's ladder, including the degraded path emitting its
+marker.
