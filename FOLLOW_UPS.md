@@ -1,5 +1,16 @@
 # Follow-ups
 
+CONVENTIONS (Decision 21 — enforced by scripts/verify_slist.py, CI job
+verify-slist):
+- Every entry heading: `## <ID> — <STATE> <title>` with STATE ∈ OPEN,
+  OPEN (deliberate), RESOLVED, RECORDED, DEFERRED.
+- A commit that fixes an entry declares `fixes <ID>` in its subject.
+- An OPEN entry whose fix commit lands without closing the entry FAILS CI:
+  close it (RESOLVED + evidence) or mark OPEN (deliberate) with a reason.
+- RECORDED = diagnosis/report kept for the record, not a work item.
+  DEFERRED = paused/phase-deferred on purpose. RESOLVED entries stay in the
+  file for the record; the gate only guards OPEN ones.
+
 ## ES-I18N — RECORDED ES i18n audit — recorded-not-scheduled (2026-08-23, Decision 16)
 The Spanish-language i18n audit item is deferred by Decision 16: English first; Spanish stays out of scope until the English product is complete and live. The language parameter remains wired end-to-end (AGENTS.md §7 — no re-architecture required); this is deferral, not removal. Re-open with Decision 16.
 
@@ -245,7 +256,30 @@ against src/core/disclaimer.py's ("en", "standard"). Main's UPL surface moved un
 Resolving it requires choosing the canonical disclaimer source, which is Phase B4's
 decision (B4 consolidates on apply_disclaimer across all three known parallel
 disclaimer texts). Expect this branch to be rewritten rather than merged once B4 lands.
-## B5-UI — OPEN service date capture (scoped 2026-08-15 from Decision 2; NOT dispatched; re-scoped 2026-08-30 as the S2-7 UI half)
+## B5-UI — RESOLVED (2026-08-30) service date capture (scoped 2026-08-15 from Decision 2; re-scoped 2026-08-30 as the S2-7 UI half)
+
+The ask-the-user half of the B5 pattern. Build root-verified:
+
+- Gap found by inspection: `loadDeadlines` (ResultsPage.jsx) POSTed
+  `/api/deadline/analyze` and DISCARDED the response body — the S2-7 gate's
+  escalation never reached the UI; users saw "No deadlines detected" while a
+  live answer deadline waited on their service date.
+- Fix: analyze escalation wired into the Deadlines tab; EscalationBox renders
+  the deterministic escalation_reasons with conditional framing ("If you were
+  served, enter the date below… if you haven't been served yet, no deadline
+  has started to run… don't guess — check the docket") and points at the
+  capture form. No LLM text.
+- Three-state boundary locked by tests (frontend/src/lib/deadlinesViewState.js
+  + .test.js, 11 assertions): 'no-deadlines' is UNREACHABLE whenever
+  escalation_reasons is non-empty (wrong-date failure wearing friendlier
+  clothes); error state never fabricates; mixed (reasons + rows) renders both.
+- Live gate (scripts/live_gate_b5_ui.py, run against prod 2026-08-30):
+  Leg A escalation — summons fixture with only an issuance date →
+  escalation_needed=True, reasons name 'served' + § 83.60(2), zero rows.
+  Leg B supply — service date 2026-08-17 personal → exactly one deadline
+  due 2026-08-24 (independently computed 5 business days), trace cites
+  § 83.60(2), document_service_facts exactly one row, provenance
+  'user_supplied' (B5-f3). ALL LEGS GREEN.
 G1 does not open until B5 ships. Decision 2 verbatim:
 - Service date stored with provenance `user_supplied`, never extracted. Distinct field,
   distinct audit trail. It must never be recorded as an extracted fact.

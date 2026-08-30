@@ -7,6 +7,7 @@ import {
   BookOpen, MapPin, ExternalLink
 } from 'lucide-react';
 import SeverityBadge from '../components/SeverityBadge';
+import { deadlinesViewState } from '../lib/deadlinesViewState';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
 const API_KEY = import.meta.env.VITE_API_KEY;
@@ -128,6 +129,22 @@ export default function ResultsPage() {
             return;
           }
           throw new Error(`${res.status}`);
+        }
+        // B5 UI: the analyze response body IS the escalation surface. When the
+        // anchor gate fired (e.g. only an issuance date was found), the body
+        // carries escalation_needed + deterministic escalation_reasons — never
+        // discard them, or the user sees "No deadlines detected" while a live
+        // answer deadline waits on their service date.
+        const analyzeBody = await res.json().catch(() => ({}));
+        if (
+          analyzeBody.escalation_needed &&
+          Array.isArray(analyzeBody.escalation_reasons) &&
+          analyzeBody.escalation_reasons.length > 0
+        ) {
+          setDlEscalation({
+            guidance: analyzeBody.guidance || '',
+            escalation_reasons: analyzeBody.escalation_reasons,
+          });
         }
         rows = await fetchDeadlines(document_id, session_id);
       }
@@ -405,15 +422,6 @@ function DeadlinesView({ deadlines, state, error, onRetry, escalation, documentI
       </div>
     );
   }
-  if (state === 'error') {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 gap-4 text-center animate-slide-up">
-        <AlertOctagon className="w-10 h-10 text-red-400" />
-        <p className="text-red-400">Couldn't load deadlines{error ? ` (status ${error})` : ''}.</p>
-        <button onClick={onRetry} className="btn-secondary py-2 px-6">Retry</button>
-      </div>
-    );
-  }
   if (state === 'legacy-no-text') {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-4 text-center animate-slide-up max-w-md mx-auto">
@@ -426,30 +434,69 @@ function DeadlinesView({ deadlines, state, error, onRetry, escalation, documentI
       </div>
     );
   }
+  // B5 UI — three-state boundary, locked by deadlinesViewState.test.js:
+  // error → request failed; escalation → reasons + capture form; no-deadlines
+  // → reachable ONLY when escalation_reasons is empty.
+  const view = deadlinesViewState({ state, escalation, deadlines });
+  if (view.kind === 'error') {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-4 text-center animate-slide-up">
+        <AlertOctagon className="w-10 h-10 text-red-400" />
+        <p className="text-red-400">Couldn't load deadlines{error ? ` (status ${error})` : ''}.</p>
+        <button onClick={onRetry} className="btn-secondary py-2 px-6">Retry</button>
+      </div>
+    );
+  }
+  const hasEscalation = view.kind === 'escalation' || view.kind === 'mixed';
   return (
     <div className="space-y-6 animate-slide-up">
       <div>
         <h2 className="text-2xl font-bold mb-2 font-display">Deadlines</h2>
         <p className="text-gray-400 text-sm">Computed by the deterministic deadline engine under the Florida Rules. Always verify against the cited rule.</p>
       </div>
-      <ServiceDateForm documentId={documentId} sessionId={sessionId} onResult={onServiceDateResult} />
+      {hasEscalation && <EscalationBox escalation={escalation} />}
+      <div id="service-date-form">
+        <ServiceDateForm documentId={documentId} sessionId={sessionId} onResult={onServiceDateResult} />
+      </div>
       {servedSummary && (
         <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-200 text-sm animate-slide-up">
           If you were served on <strong>{servedSummary.submittedDate}</strong>, your response is due <strong>{servedSummary.dueDate}</strong>.
         </div>
       )}
-      {escalation ? (
-        <div className="p-6 rounded-xl border border-yellow-500/30 bg-yellow-500/5 text-yellow-200 animate-slide-up">
-          <div className="flex items-center gap-2 font-bold text-yellow-400 mb-2">
-            <AlertTriangle className="w-5 h-5" /> Escalated — no deadline computed
-          </div>
-          <p className="text-sm leading-relaxed">{escalation.guidance}</p>
-        </div>
-      ) : (!deadlines || deadlines.length === 0) ? (
+      {view.kind === 'no-deadlines' && (
         <div className="text-gray-400 text-center py-12">No deadlines detected in this document.</div>
-      ) : (
-        deadlines.map((d) => <DeadlineCard key={d.id} d={d} />)
       )}
+      {(view.kind === 'rows' || view.kind === 'mixed') &&
+        view.rows.map((d) => <DeadlineCard key={d.id} d={d} />)}
+    </div>
+  );
+}
+
+function EscalationBox({ escalation }) {
+  const reasons = Array.isArray(escalation?.escalation_reasons) ? escalation.escalation_reasons : [];
+  return (
+    <div className="p-6 rounded-xl border border-yellow-500/30 bg-yellow-500/5 text-yellow-200 animate-slide-up">
+      <div className="flex items-center gap-2 font-bold text-yellow-400 mb-2">
+        <AlertTriangle className="w-5 h-5" /> A deadline needs more information
+      </div>
+      <p className="text-sm leading-relaxed mb-3">
+        LegalClear couldn't compute a deadline from this document:
+      </p>
+      <ul className="text-sm space-y-1 mb-3 list-disc list-inside">
+        {reasons.map((r, i) => <li key={i}>{r}</li>)}
+      </ul>
+      <p className="text-sm leading-relaxed mb-1">
+        If you were served, enter the date and how below — your deadline will be computed from your service date, not from the document's dates.
+      </p>
+      <p className="text-sm leading-relaxed mb-1">
+        If you haven't been served yet, no answer deadline has started to run.
+      </p>
+      <p className="text-sm leading-relaxed mb-2">
+        If you're not sure of the date, don't guess — check the court docket or your papers. An estimated date can produce the wrong deadline.
+      </p>
+      <p className="text-xs text-yellow-200/70">
+        Always verify against the cited rule and the court docket.
+      </p>
     </div>
   );
 }
