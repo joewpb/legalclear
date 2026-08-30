@@ -353,13 +353,18 @@ leg.state.fl.us — all PASS (cron report at ~/.hermes/cron/output/784cf1afc5d1/
 Joe via @legalclear_bot). STATUS.md had NOT been regenerated (still showed 24,364/510) — that
 gap is the "grew without a report" symptom. Counts now live-verified 2026-08-27: 25,020 / 785.
 
-## S1-2c REOPENED (2026-08-27) — 275 court_rules rows loaded WITHOUT Decision 12/14 validation
-The 275 inserted rule rows (traffic/juvenile/svp) came from the Orin's Aug 18 STAGED parses
-(~/. Orin ~/legal_data/fl_harvest/data/stage/) — the same parses the Aug 20 entry above ruled
-"deliberately NOT loaded: would replace verified text with unverified text". Insert-only, so
-nothing verified was replaced, but the sync's Phase 3 fidelity gates covered STATUTES only;
-the 275 rule rows were never ratio-checked against official floridabar.org PDFs (Decision 12:
-body detection + ratio sampling; Decision 14: parser agreement proves existence, not text
-fidelity). VALIDATE NOW: pull official PDFs for traffic/juvenile/svp, body-detect all 275
-(empty/heading-only rows named), ratio-sample against source text, replace failures — report
-before any prod write (Joe's live-gate rule).
+## S1-2c VALIDATED + CLOSED (2026-08-30) — 275 rule rows pass Decision 12/14 retro-validation
+The Aug 25 load happened without rule-side validation (process gap — confirmed). Retrospective
+validation against the OFFICIAL floridabar PDFs (downloaded fresh from the rows' own source_urls:
+Traffic 01-01-2026, Juvenile 01-01-2026, SVP 01-01-2024) PASSES:
+- Load fidelity: 275/275 DB rows byte-identical to the Orin stage source — nothing mangled in transit.
+- Body detection: 0 empty rows. 3 rows <120 chars — all GENUINELY short rules (8.715 GAL=112,
+  8.800 applicability=118, 8.850 applicability=110; official text is 126/132/123 chars). No stubs.
+- Ratio sampling (10% per set = 29 rows + the 6 FORM rows): svp 4/4 ratio 1.0, traffic 4/4 ratio 1.0,
+  juvenile 21 rows 0.966-1.0 — every sub-1.0 delta traced to extraction artifacts (pdftotext page
+  footers "January 1, 2026 Florida Rules of Juvenile Procedure" interleaved mid-text, "Page N of 469"
+  markers, TOC-vs-body windows), spot-checks word-for-word identical. 6 rows flagged "missing" are
+  FORMS (FORM 8.901/8.909/8.913/8.951/8.976/8.977) — all verified present in the official PDF.
+  ZERO content failures; NO rows replaced; no prod writes needed.
+- Recorded gap fixed for the future: legalclear-fl-corpus-sync skill now includes rule-side
+  fidelity gates (official-PDF ratio sampling) in Phase 3, so the next sync cannot skip them.
