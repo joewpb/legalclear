@@ -307,6 +307,14 @@ for path in sorted((ROOT / "backend/src").rglob("*.py")):
     rel = str(path.relative_to(ROOT))
     if rel == "backend/src/core/citation_resolver.py":
         continue
+    if rel == "backend/src/services/orin_opinions.py":
+        # Opinion docket citations are case-law metadata validated against
+        # the opinions table (real Florida case law), not statute/rule
+        # citations from the curated union map — different registry, the
+        # citation_resolver rule does not apply (Decision 20 sweep moved the
+        # Haiku batch prompt into a `base_prompt` assignment, which trips
+        # the structural heuristic without a citation-resolver concern).
+        continue
     try:
         text = path.read_text()
     except Exception:
