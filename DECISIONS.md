@@ -376,3 +376,25 @@ exemption is doctrine, not implementation, however good the reasoning.
 opinion docket citations are case-law metadata validated against the opinions
 table, not the curated statute/rule map. The exemption itself should have been
 presented for ruling before landing; it is now.)
+
+## Decision 21 — list-hygiene gate (2026-08-30)
+
+The class: entries written at diagnosis time and never closed when the fix
+landed — three instances (rate-limit entry, closure-rows entry, S2-7), each
+burning a session's planning because the open list is what we plan from.
+
+Mechanical fix, deterministic, no LLM, no prose matching:
+
+1. Every FOLLOW_UPS.md heading carries the grammar
+   `## <ID> — <STATE> ...` with STATE ∈ {OPEN, OPEN (deliberate), RESOLVED,
+   RECORDED, DEFERRED}. A grammar violation is fatal.
+2. A commit declaring `fixes <ID>` for an entry still marked OPEN is fatal:
+   the fix landed, the list was never back-annotated. Close it (RESOLVED +
+   evidence) or mark it OPEN (deliberate) with a reason — the gate forces the
+   decision, it does not make it.
+3. `fixes <ID>` for an unknown ID is a warning (does not fail CI).
+
+Enforcement: scripts/verify_slist.py, run in CI (checks.yml job verify-slist)
+and locally. Unit-locked by tests/test_verify_slist.py (11 tests incl.
+end-to-end flag behavior against throwaway git repos — test-the-tester).
+One-time migration assigned IDs + states to all 40 existing entries.
