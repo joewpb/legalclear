@@ -23,8 +23,8 @@ from __future__ import annotations
 
 import json
 import sys
-import urllib.request
 import urllib.error
+import urllib.request
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -124,7 +124,7 @@ def main() -> int:
               headers=upload_headers, body=FIXTURE_PATH.read_bytes(),
               validate=lambda d: "missing document_id" if not d.get("document_id")
               else ("missing session_id" if not d.get("session_id") else None))
-    ok(f"upload -> document_id + session_id returned (status 200)")
+    ok("upload -> document_id + session_id returned (status 200)")
     doc_id, session_id = up["document_id"], up["session_id"]
 
     analyze = call(

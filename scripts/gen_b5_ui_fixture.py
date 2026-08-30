@@ -21,11 +21,12 @@ lines = [
     "2000 GATEWAY AVE",
     "PORT SAINT LUCIE, FL 34953",
     "",
-    "A lawsuit has been filed against you. You are required to serve a "
-    "written response to the attached complaint within the time allowed by "
-    "law. Failure to respond may result in a default judgment being entered "
-    "against you for the relief demanded in the complaint.",
-    "",
+    (
+        "A lawsuit has been filed against you. You are required to serve a "
+        "written response to the attached complaint within the time allowed by "
+        "law. Failure to respond may result in a default judgment being entered "
+        "against you for the relief demanded in the complaint."
+    ),
     "DATED this 14th day of August, 2026.",
     "",
     "CLERK OF THE COUNTY COURT",
