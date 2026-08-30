@@ -3,13 +3,17 @@
 
 Leg A (escalation leg): upload a summons fixture whose only date is an
 issuance line ("DATED this 14th day of August, 2026") → analyze → the anchor
-gate MUST escalate (escalation_needed, reasons naming 'served' + § 83.60(2)),
-zero deadline rows. This is the ask-the-user half firing.
+gate MUST escalate (escalation_needed, reasons naming the missing 'served'
+anchor for whichever served-anchored rule the classifier routed to — the
+engine must never substitute the issuance date). Zero deadline rows. This is
+the ask-the-user half firing.
 
 Leg B (supply leg): PUT service-date 2026-08-17 / personal → exactly ONE
-deadline, due 2026-08-24 — computed INDEPENDENTLY here (5 business days from
-Aug 17, Mon, skipping the weekend), never by trusting the engine — trace
-cites § 83.60(2), and document_service_facts holds exactly one row with
+deadline whose due date is computed INDEPENDENTLY here from the SUPPLIED
+service date under the rule Leg A cited (5 business days for § 83.60(2);
+20 calendar days for 1.140(a)) — never by trusting the engine — and MUST
+NOT equal the issuance-anchored date (the S2-7 anti-substitution assertion).
+Trace cites the rule; document_service_facts holds exactly one row with
 provenance 'user_supplied' (B5-f3 single-row invariant).
 
 S3-5E discipline: every call declares a status expectation AND a content
@@ -59,6 +63,36 @@ def _add_business_days(start: date, n: int) -> date:
         if d.weekday() < 5:  # Mon-Fri
             added += 1
     return d
+
+
+def _add_calendar_days(start: date, n: int) -> date:
+    return start + timedelta(days=n)
+
+
+# The two served-anchored rules the LLM classifier/extractor can route this
+# fixture to (both are correct escalations; the rule choice is model-driven):
+#   civil_summons → Fla. R. Civ. P. 1.140(a): 20 CALENDAR days after service
+#   83.60(2)      → Fla. Stat. § 83.60(2):       5 BUSINESS days after service
+SERVED_RULES = {
+    "1.140(a)": {"days": 20, "counting": "calendar", "label": "Answer to Civil Summons"},
+    "83.60(2)": {"days": 5, "counting": "business", "label": "Answer to Residential Eviction Complaint"},
+}
+
+SERVICE_DATE = date(2026, 8, 17)
+ISSUANCE_DATE = date(2026, 8, 14)
+
+for _rule in SERVED_RULES.values():
+    _counting = _rule["counting"]
+    _rule["expected_due"] = (
+        _add_business_days(SERVICE_DATE, _rule["days"])
+        if _counting == "business"
+        else _add_calendar_days(SERVICE_DATE, _rule["days"])
+    ).isoformat()
+    _rule["issuance_anchored_due"] = (
+        _add_business_days(ISSUANCE_DATE, _rule["days"])
+        if _counting == "business"
+        else _add_calendar_days(ISSUANCE_DATE, _rule["days"])
+    ).isoformat()
 
 
 def _env() -> dict[str, str]:
@@ -134,9 +168,16 @@ def main() -> int:
     )
     reasons = analyze.get("escalation_reasons") or []
     joined = " ".join(reasons).lower()
-    if "served" not in joined or "83.60(2)" not in joined:
-        raise GateFail(f"analyze reasons must name 'served' and § 83.60(2); got: {reasons}")
-    ok("analyze -> escalation_needed=True with deterministic reasons naming 'served' + 83.60(2)")
+    cited = [cite for cite in SERVED_RULES if cite.lower() in joined]
+    if "served" not in joined:
+        raise GateFail(f"escalation reasons must name the missing 'served' anchor; got: {reasons}")
+    if not cited:
+        raise GateFail(
+            f"escalation must cite a served-anchored rule ({', '.join(SERVED_RULES)}); got: {reasons}"
+        )
+    esc_rule = cited[0]
+    ok(f"analyze -> escalation_needed=True, reasons name the missing 'served' "
+       f"anchor for {esc_rule} (never substituted, never silent)")
 
     rows = call(
         "GET", f"{PROD}/api/deadline/{doc_id}/deadlines?session_id={session_id}",
@@ -148,8 +189,15 @@ def main() -> int:
     ok("deadlines -> zero rows while escalated (nothing fabricated)")
 
     # ── Leg B: supply service date → exactly one correct deadline ──────────
-    expected_due = _add_business_days(date(2026, 8, 17), 5).isoformat()  # 2026-08-24
-    put_body = json.dumps({"service_date": "2026-08-17", "service_method": "personal"}).encode()
+    # The expected due date follows the rule that escalated in Leg A — both
+    # expectations are computed INDEPENDENTLY here from the SUPPLIED service
+    # date, never by trusting the engine, and never from the issuance date.
+    expected_due = SERVED_RULES[esc_rule]["expected_due"]
+    issuance_anchored = SERVED_RULES[esc_rule]["issuance_anchored_due"]
+    put_body = json.dumps({
+        "service_date": SERVICE_DATE.isoformat(),
+        "service_method": "personal",
+    }).encode()
     supplied = call(
         "PUT", f"{PROD}/api/deadline/{doc_id}/service-date?session_id={session_id}",
         expect_status=200, headers={"x-api-key": api_key, "Content-Type": "application/json"},
@@ -161,7 +209,13 @@ def main() -> int:
         raise GateFail(f"expected exactly 1 deadline after supply; got {len(got)}: {json.dumps(got)[:300]}")
     dl = got[0]
     if dl.get("due_date") != expected_due:
-        raise GateFail(f"due_date {dl.get('due_date')!r} != independently computed {expected_due!r}")
+        raise GateFail(f"due_date {dl.get('due_date')!r} != independently computed {expected_due!r} "
+                       f"for {esc_rule} from service date {SERVICE_DATE}")
+    if dl.get("due_date") == issuance_anchored:
+        raise GateFail(
+            f"S2-7 VIOLATION: due_date {dl.get('due_date')!r} equals the issuance-anchored date "
+            f"{issuance_anchored!r} — the wrong anchor was used"
+        )
     trace = dl.get("computation_trace") or ""
     if isinstance(trace, str):
         try:
@@ -169,10 +223,11 @@ def main() -> int:
         except json.JSONDecodeError:
             pass
     trace_text = json.dumps(trace).lower()
-    if "83.60(2)" not in trace_text:
-        raise GateFail(f"computation_trace does not cite 83.60(2): {trace_text[:300]}")
-    ok(f"supply -> exactly 1 deadline due {expected_due} "
-       f"(independently computed 5 business days from 2026-08-17), trace cites 83.60(2)")
+    if esc_rule.lower() not in trace_text:
+        raise GateFail(f"computation_trace does not cite {esc_rule}: {trace_text[:300]}")
+    ok(f"supply -> exactly 1 deadline due {expected_due} (independently computed from "
+       f"service {SERVICE_DATE} under {esc_rule}), trace cites {esc_rule}, "
+       f"issuance-anchored {issuance_anchored} NOT used")
 
     # ── B5-f3: one provenance row, user_supplied ───────────────────────────
     sb_headers = {
@@ -191,9 +246,10 @@ def main() -> int:
     fact = facts[0]
     if fact.get("provenance") != "user_supplied":
         raise GateFail(f"provenance must be 'user_supplied'; got {fact.get('provenance')!r}")
-    if fact.get("service_date") != "2026-08-17":
-        raise GateFail(f"service_date must be 2026-08-17; got {fact.get('service_date')!r}")
-    ok("document_service_facts -> exactly 1 row, provenance='user_supplied', date=2026-08-17 (B5-f3)")
+    if fact.get("service_date") != SERVICE_DATE.isoformat():
+        raise GateFail(f"service_date must be {SERVICE_DATE}; got {fact.get('service_date')!r}")
+    ok(f"document_service_facts -> exactly 1 row, provenance='user_supplied', "
+       f"date={SERVICE_DATE} (B5-f3)")
 
     print(f"\nB5 UI LIVE GATE — ALL LEGS GREEN (document {doc_id})\n")
     print("\n".join(evidence))
