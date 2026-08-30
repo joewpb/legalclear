@@ -24,8 +24,24 @@ Decision 3 makes `apply_disclaimer` canonical; the checker's check 4 still flags
 ## Orin staged rule sets — loaded decision, unloaded remainder (2026-08-20)
 Orin's 2026-08-18 harvest staged 9 rule sets. Loaded to `court_rules`: criminal 3.x (156), small_claims 7.x (25), general_practice 2.x (57 incl. 2.514), civil_procedure 1.280–1.400 (14). Staged but deliberately NOT loaded: traffic (43), juvenile (207), svp_commitment (25), and fuller appellate (55) + probate (123) parses. Reasoning: the substantive sets already in prod are verified against official PDFs (Decision 14 best-side merge applied), and loading Orin's other parses would replace verified text with unverified text; the FORM rows were routed to `court_forms` instead (22 inserted, 8 skipped). Staged files remain on Orin at `~/legal_data/fl_harvest/data/stage/`. Revisit only if traffic/juvenile/svp modules ever exist.
 
-## Intermittent JSONDecodeError in structured-output parsing (2026-08-20)
-During the seven-surface emission measurement, multiple agent runs died on malformed LLM JSON before the CitationFilter ever saw the text (discovery and wills runs each failed at least once; outputs vary run-to-run). AGENTS.md §5 requires strip-fences + retry-once before raising; the failure mode appears mid-stream and is intermittent, not prompt-deterministic. Needs its own investigation: which agents parse JSON how, whether retry-once is actually wired on every path, and whether a bounded-repair fallback is warranted. Recorded-not-scheduled.
+## Intermittent JSONDecodeError in structured-output parsing — AUDITED 2026-08-30
+Investigation done (which agents parse JSON how, retry-once wired, repair fallback):
+COMPLIANT (retry/recovery wired): intake.py (retry loop + tightened prompt),
+classifier.py (2 attempts + _default), deadline/extract.py (2 attempts + schema
+validate + escalate), scanner.py (parse_json_list/_dict = deterministic substring
+recovery), opinion_retrieval attorney questions (parse_json_array + one retry,
+fixed 2651869).
+NO-RETRY, graceful degrade (strip-fences only; intermittent failure = degraded
+response, no crash): police_report_v2 (risk skipped), property_casualty (payload
+skip/error event), discovery_motion (risk skipped), criminal_procedure (opinions
+skipped), small_claims (citations []), expungement, risk_scanner, form_guide,
+explainer (error dict), pc_llm_tap, orin_opinions (regex fallback, also hand-rolled
+fence-strip — same pattern the Haiku function had).
+COUNT: 11 sites across 11 files missing retry-once. FIX SHAPE (deterministic, ZERO
+extra LLM cost): swap `json.loads(strip_markdown_fences(x))` for
+json_utils.parse_json_list/parse_json_dict/parse_json_array — the shared
+_parse_with_retry does fence-strip + largest-substring recovery, satisfying
+AGENTS.md §5 retry-once without another model call. Sweep pending Joe's go.
 
 ## Upload pipeline has no rate limit (2026-08-20) — RESOLVED 2026-08-27 (STALE ENTRY, NOT A REGRESSION)
 Landed at 167c5ad the same day the entry was written: `@limiter.limit("10/minute")` on
