@@ -398,3 +398,13 @@ Enforcement: scripts/verify_slist.py, run in CI (checks.yml job verify-slist)
 and locally. Unit-locked by tests/test_verify_slist.py (11 tests incl.
 end-to-end flag behavior against throwaway git repos — test-the-tester).
 One-time migration assigned IDs + states to all 40 existing entries.
+
+## Decision 21 addendum — deferral-crossing convention (2026-08-30, ruled by Joe)
+
+A dispatched branch that deletes (or otherwise lands) code covered by a
+standing deferral — e.g. Group E "no deletions during Phase 2" — must
+declare the crossing in the commit subject: `crosses <Group> deferral`.
+The ruling then happens while the branch is reviewable, not disclosed after
+the fact. (Retroactively ratifies e9ec00b's S2-6 deletion: end state correct
+and verified — 404 both paths, 0 consumers — but the crossing should have
+been named.)

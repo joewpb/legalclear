@@ -100,9 +100,26 @@ test_deadline_insert_failure_does_not_claim_success, and
 test_closure_fetch_failure_escalates_instead_of_silent_compute — 14/14 pipeline tests
 green. Entry was never back-annotated after the B5 fix landed — list hygiene.
 
-## S2-6 — OPEN /api/analyze/* dead or broken
-Deletion deferred to Group E per standing rules ("no deletions during Phase 2").
-Do not act until Joe explicitly schedules Group E.
+## S2-6 — RESOLVED (2026-08-30) /api/analyze/* dead — deletion already landed in e9ec00b
+
+Original entry (2026-08-14): /api/analyze/{id} and /api/analyze/stream/{id}
+were registered-but-broken (500 on every call — `await` on a sync fn;
+nonexistent `evaluate`), 0 consumers. Deletion deferred to Group E per
+standing rules ("no deletions during Phase 2").
+
+RESOLUTION (stale-class, root-verified 2026-08-30):
+- e9ec00b (2026-08-17, "merge: fix/g1-analyze-dead") deleted the router —
+  the Group-E deferral was crossed by the G1 branch without being named.
+  Ratified retroactively: the end state is the desired one and is verified.
+- Live prod probes 2026-08-30 (OPTIONS/GET, no side effects): both paths
+  404. All other analyze-named endpoints alive (405-on-GET = POST-only):
+  /api/deadline/analyze (B5 gate exercised it the same day),
+  /api/police-report/analyze + /analyze/batch, /api/discovery/analyze.
+- 0 consumers of the dead paths anywhere in the tree (frontend grep empty;
+  only audit/docs references remain). Only artifact: untracked stale .pyc.
+- Doctrine added (DECISIONS.md, 2026-08-30): a dispatched branch that
+  deletes code under a standing deferral declares `crosses <Group> deferral`
+  in the commit subject, so the ruling happens before it lands.
 
 ## CRON-CONFIG — RECORDED Cron config decision (recorded 2026-08-14)
 Amend the reminder cron SQL to read the `app_config` table rather than setting
