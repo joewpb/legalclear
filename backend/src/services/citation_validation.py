@@ -192,7 +192,7 @@ def _corpus_sections(client, nums: list[str]) -> dict[str, dict]:
     try:
         result = (
             client.table("statutes")
-            .select("chapter,section,title")
+            .select("chapter,section,title,text")
             .in_("section", sorted(set(nums)))
             .execute()
         )
@@ -208,6 +208,71 @@ def _corpus_sections(client, nums: list[str]) -> dict[str, dict]:
         if isinstance(section, str) and section:
             found[section] = row
     return found
+
+
+def _claim_context(text: str, start: int, end: int) -> str:
+    """The ~320-char window around a citation span — the 'claim' the
+    analysis makes with it. Feeds the C2 adjudication prompt."""
+    window_start = max(0, start - 160)
+    window_end = min(len(text), end + 160)
+    return text[window_start:window_end].strip()
+
+
+def scrub_exact_citation(
+    analysis: dict, cite_text: str, note: str,
+) -> tuple[dict, int]:
+    """Deterministically remove every exact (case-insensitive) occurrence
+    of ``cite_text`` from the scanned analysis fields, append ``note`` to
+    citation_notes, and return (modified_copy, removal_count).
+
+    Never touches ``charges_explained[].charge`` — document facts. The C2
+    adjudication layer calls this for WRONG_SCOPE / CONTRADICTS verdicts:
+    the LLM picks the canned action, deterministic code applies it.
+    """
+    if not cite_text:
+        return analysis, 0
+    out = copy.deepcopy(analysis)
+    pattern = re.compile(re.escape(cite_text), re.IGNORECASE)
+    removed = 0
+
+    def _strip(path: list) -> None:
+        nonlocal removed
+        container: dict | list = out
+        for key in path[:-1]:
+            if isinstance(container, dict):
+                if key not in container:
+                    return
+            elif isinstance(container, list):
+                if not (isinstance(key, int) and key < len(container)):
+                    return
+            else:
+                return
+            container = container[key]
+        if not isinstance(container, dict) or path[-1] not in container:
+            return
+        text = container[path[-1]] or ""
+        cleaned, n = pattern.subn("", text)
+        cleaned = re.sub(r"[ \t]{2,}", " ", cleaned).strip()
+        container[path[-1]] = cleaned
+        removed += n
+
+    for field, subfields in _SCAN_FIELDS:
+        if not subfields:
+            if field in out:
+                _strip([field])
+            continue
+        for i, item in enumerate(out.get(field) or []):
+            if not isinstance(item, dict):
+                continue
+            for sub in subfields:
+                if sub in item:
+                    _strip([field, i, sub])
+
+    if removed:
+        notes = list(out.get("citation_notes") or [])
+        notes.append(note)
+        out["citation_notes"] = notes
+    return out, removed
 
 
 def validate_analysis_citations(
@@ -232,6 +297,7 @@ def validate_analysis_citations(
     pending_nums: list[str] = []
     pending_spans: dict[str, list[tuple[str, tuple[int, int]]]] = {}
     pending_texts: dict[str, str] = {}
+    pending_contexts: dict[str, str] = {}
 
     def _record(info: dict, status: str, **extra) -> dict:
         entry = {
@@ -270,6 +336,7 @@ def validate_analysis_citations(
             pending_nums.append(key)
             pending_spans.setdefault(key, []).append((path, (start, end)))
             pending_texts.setdefault(key, info["text"])
+            pending_contexts.setdefault(key, _claim_context(text, start, end))
 
     # top-level string fields
     for field, subfields in _SCAN_FIELDS:
@@ -295,7 +362,13 @@ def validate_analysis_citations(
             "num": key,
         }
         if row is not None:
-            _record(info, "verified", title=row.get("title"))
+            _record(
+                info,
+                "verified",
+                title=row.get("title"),
+                statute_text=row.get("text"),
+                context=pending_contexts.get(key),
+            )
             continue
         for path, span in spans:
             edits.append((path, span))
