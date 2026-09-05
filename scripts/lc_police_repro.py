@@ -60,8 +60,8 @@ def main(pdf_path: str) -> int:
         return 2
 
     _load_env()
-    from src.agents.police_report_v2 import strip_markdown_fences  # noqa: E402
-    from src.services.opinion_retrieval import (  # noqa: E402
+    from src.core.json_utils import strip_markdown_fences
+    from src.services.opinion_retrieval import (
         _derive_fact_terms,
         derive_situation_tags,
     )
@@ -77,10 +77,15 @@ def main(pdf_path: str) -> int:
 
     raw_chunks: list[str] = []
     opinions_event: dict | None = None
+    current_event: str | None = None
+    analysis_from_event: dict | None = None
     for raw_line in resp.iter_lines(decode_unicode=True):
         if not raw_line:
             continue
         line = raw_line.strip()
+        if line.startswith("event:"):
+            current_event = line[len("event:"):].strip()
+            continue
         if not line.startswith("data:"):
             continue
         payload = line[len("data:"):].strip()
@@ -92,20 +97,30 @@ def main(pdf_path: str) -> int:
             raw_chunks.append(payload)
             continue
         etype = obj.get("type") if isinstance(obj, dict) else None
+        if current_event == "analysis_json":
+            # Phase A protocol: the analysis JSON arrives as ONE typed
+            # frame — take it directly.
+            analysis_from_event = obj
         if etype == "relevant_opinions":
             opinions_event = obj
-        elif etype in ("risk_analysis", "case_context") or isinstance(obj, dict) and obj.get("error"):
+        elif etype in ("risk_analysis", "case_context", "progress") or (
+            isinstance(obj, dict) and obj.get("error")
+        ):
             pass
         else:
-            # Fragment of the analysis JSON (has no "type" key).
+            # Fragment of the analysis JSON (legacy protocol — has no
+            # "type" key).
             raw_chunks.append(payload)
 
-    full_text = "".join(raw_chunks)
-    parsed = None
-    try:
-        parsed = json.loads(strip_markdown_fences(full_text))
-    except json.JSONDecodeError:
-        pass
+    if analysis_from_event is not None:
+        parsed = analysis_from_event
+    else:
+        # Legacy fragment stream: concatenate and parse.
+        full_text = "".join(raw_chunks)
+        try:
+            parsed = json.loads(strip_markdown_fences(full_text))
+        except json.JSONDecodeError:
+            parsed = None
 
     if parsed:
         _bar("LOCAL DERIVATION (same deterministic functions as the server)")
