@@ -27,6 +27,7 @@ from src.core.json_utils import (
 )
 from src.core.url_filter import filter_json_strings
 from src.ingestion.pdf_parser import PDFParser
+from src.services.citation_validation import validate_analysis_citations
 from src.services.opinion_retrieval import (
     derive_situation_tags,
     generate_attorney_questions,
@@ -375,6 +376,26 @@ class PoliceReportAnalyzerV2:
             # Analysis JSON as ONE complete frame (no per-token fragments).
             parsed = filter_json_strings(parsed, "police_report_v2")
             parsed["disclaimer"] = get_disclaimer(language)
+
+            # Phase C1: deterministic citation validation (zero LLM) runs
+            # BEFORE the analysis reaches the user — court-only chapter
+            # citations (Ch. 90 Evidence Code, rules of court, bar rules)
+            # and citations the statutes corpus cannot verify are scrubbed
+            # from the LLM's claims, with plain-English notes. Charge
+            # citations (document facts) are never touched. Never breaks
+            # the response: on failure the analysis passes through
+            # untouched with an empty log.
+            try:
+                parsed, citations_checked = validate_analysis_citations(parsed)
+                parsed["citations_checked"] = citations_checked
+            except Exception:
+                logger.error(
+                    "citation validation failed; emitting unvalidated "
+                    "analysis:\n%s",
+                    traceback.format_exc(),
+                )
+                parsed["citations_checked"] = []
+
             yield f"event: analysis_json\ndata: {json.dumps(parsed)}\n\n"
 
             all_findings = (
