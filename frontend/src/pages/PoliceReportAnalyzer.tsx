@@ -58,6 +58,16 @@ interface ChargeExplained {
   plain_english: string;
 }
 
+interface CitationCheckEntry {
+  status: string;
+  citation?: string;
+  section?: string;
+  chapter?: string;
+  title?: string;
+  adjudication?: string;
+  adjudication_explanation?: string;
+}
+
 interface AnalysisResponse {
   incident_summary: string;
   parties: string[];
@@ -73,6 +83,8 @@ interface AnalysisResponse {
   relevant_opinions?: RelevantOpinion[];
   situation_tags_used?: string[];
   case_context?: CaseContext;
+  citations_checked?: CitationCheckEntry[];
+  citation_notes?: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -922,6 +934,110 @@ export default function PoliceReportAnalyzer() {
                       </p>
                     </div>
                   ))}
+                </>
+              )}
+
+            {/* Citation checks — deterministic verification, educational
+                framing (AGENTS.md 2b): every statute citation was checked
+                against the Florida Statutes before it reached the user. */}
+            {response.citations_checked &&
+              response.citations_checked.length > 0 && (
+                <>
+                  <h2 style={css.sectionTitle}>Citations Checked</h2>
+                  <div
+                    style={{
+                      border: "1px solid var(--border, #E5E5E0)",
+                      borderRadius: "var(--radius, 4px)",
+                      padding: 14,
+                      marginBottom: 10,
+                      background: "#FAFAFA",
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontSize: 12,
+                        color: "var(--muted)",
+                        margin: "0 0 10px",
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      Every statute citation in this analysis was checked
+                      against the Florida Statutes before you saw it.
+                      Citations that could not be verified were removed.
+                    </p>
+                    {response.citations_checked.map((c, i) => {
+                      const scrubbed = c.status.startsWith("scrubbed_");
+                      const verified = c.status === "verified";
+                      return (
+                        <div
+                          key={i}
+                          style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            alignItems: "center",
+                            gap: 8,
+                            fontSize: 13,
+                            marginBottom: 6,
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          <span
+                            style={{
+                              color: scrubbed
+                                ? "var(--danger, #B91C1C)"
+                                : verified
+                                  ? "#1B873B"
+                                  : "var(--muted)",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {scrubbed ? "✗ removed" : verified ? "✓" : "ℹ"}
+                          </span>
+                          <span>{c.citation}</span>
+                          {verified && c.adjudication === "SUPPORTED" && (
+                            <span
+                              style={{ color: "#1B873B", fontSize: 12 }}
+                            >
+                              — supported by the statute text
+                            </span>
+                          )}
+                          {verified && c.adjudication === "unavailable" && (
+                            <span
+                              style={{
+                                color: "var(--muted)",
+                                fontSize: 12,
+                              }}
+                            >
+                              — checked against the Florida Statutes
+                            </span>
+                          )}
+                          {c.status === "from_report" && (
+                            <span
+                              style={{
+                                color: "var(--muted)",
+                                fontSize: 12,
+                              }}
+                            >
+                              — cited from your report
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {(response.citation_notes || []).map((note, i) => (
+                      <p
+                        key={i}
+                        style={{
+                          margin: "6px 0 0",
+                          fontSize: 12,
+                          lineHeight: 1.5,
+                          color: "var(--muted)",
+                        }}
+                      >
+                        {note}
+                      </p>
+                    ))}
+                  </div>
                 </>
               )}
 

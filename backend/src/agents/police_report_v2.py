@@ -27,6 +27,7 @@ from src.core.json_utils import (
 )
 from src.core.url_filter import filter_json_strings
 from src.ingestion.pdf_parser import PDFParser
+from src.services.citation_adjudication import adjudicate_verified_citations
 from src.services.citation_validation import validate_analysis_citations
 from src.services.opinion_retrieval import (
     derive_situation_tags,
@@ -395,6 +396,27 @@ class PoliceReportAnalyzerV2:
                     traceback.format_exc(),
                 )
                 parsed["citations_checked"] = []
+
+            # Phase C2: per-citation Haiku adjudication (SUPPORTED /
+            # WRONG_SCOPE / CONTRADICTS) on the verified citations only.
+            # The deterministic C1 floor always wins — the LLM selects
+            # which canned action fires, deterministic code applies it.
+            # Offloaded to a thread (blocking requests). Never breaks the
+            # response.
+            if parsed.get("citations_checked"):
+                try:
+                    parsed, adjudicated = await asyncio.to_thread(
+                        adjudicate_verified_citations,
+                        parsed,
+                        parsed["citations_checked"],
+                    )
+                    parsed["citations_checked"] = adjudicated
+                except Exception:
+                    logger.error(
+                        "citation adjudication failed; emitting validated "
+                        "but unadjudicated analysis:\n%s",
+                        traceback.format_exc(),
+                    )
 
             yield f"event: analysis_json\ndata: {json.dumps(parsed)}\n\n"
 
