@@ -211,6 +211,23 @@ def test_unsupported_file_type_emits_typed_error(monkeypatch):
     assert "Unsupported file type" in data["message"]
 
 
+def test_analysis_json_includes_citations_checked(monkeypatch):
+    """Phase C1 hook: the emitted analysis carries the citations_checked
+    log — empty when the statutes DB is unavailable, never absent."""
+    from src.services import citation_validation as cv
+
+    monkeypatch.setattr(cv.db, "client", None)
+    payload = _analysis_json()
+    analyzer = _make_analyzer([payload], monkeypatch)
+
+    body = "".join(_run(analyzer.analyze_stream(b"pdf-bytes", "report.pdf", "en")))
+    frames = _parse_frames(body)
+    events = [e for e, _ in frames]
+    aj = dict(frames[events.index("analysis_json")][1])
+    assert "citations_checked" in aj
+    assert aj["citations_checked"] == []
+
+
 def test_empty_pdf_emits_typed_error(monkeypatch):
     analyzer = _make_analyzer([], monkeypatch, raw_text="   ")
     body = "".join(_run(analyzer.analyze_stream(b"x", "report.pdf", "en")))
