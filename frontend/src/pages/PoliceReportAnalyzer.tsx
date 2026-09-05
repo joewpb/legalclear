@@ -546,6 +546,7 @@ export default function PoliceReportAnalyzer() {
 
       let receivedAnalysis = false;
       let errorReceived = false;
+      let receivedProgress = false;
       for await (const { event, data: chunk } of readSSE(reader)) {
         if (event === "error") {
           errorReceived = true;
@@ -560,6 +561,7 @@ export default function PoliceReportAnalyzer() {
           break;
         }
         if (event === "progress") {
+          receivedProgress = true;
           continue; // heartbeat — the fixed "Analyzing report" state stays
         }
         if (event === "disclaimer") {
@@ -601,7 +603,14 @@ export default function PoliceReportAnalyzer() {
       }
 
       if (!receivedAnalysis && !errorReceived) {
-        setError("No response received. Please try again.");
+        // The stream ended without a terminal frame. When heartbeats
+        // arrived first, the analysis was underway and got interrupted
+        // (e.g. the connection dropped mid-analysis) — say so honestly.
+        setError(
+          receivedProgress
+            ? "The analysis was interrupted before it completed. Please try again."
+            : "No response received. Please try again.",
+        );
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred.");

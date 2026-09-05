@@ -46,6 +46,16 @@ def _sse(event: str, payload: dict) -> str:
     """
     return f"event: {event}\ndata: {json.dumps(payload)}\n\n"
 
+
+# Phase A heartbeat cadence. The buffered protocol goes wire-silent for the
+# ENTIRE Claude call — edge proxies kill idle SSE connections on real
+# reports (prod incident 2026-09-05: user got 'No response received' while
+# the backend completed 200 OK). Heartbeats fire on steady token flow every
+# _HEARTBEAT_CHARS, and on token stalls every _HEARTBEAT_SECONDS. Payloads
+# carry only stage + a character count — never analysis content.
+_HEARTBEAT_SECONDS = 10
+_HEARTBEAT_CHARS = 2000
+
 # ---------------------------------------------------------------------------
 # System prompt
 # ---------------------------------------------------------------------------
@@ -345,6 +355,7 @@ class PoliceReportAnalyzerV2:
             # relevant_opinions / case_context / progress / error).
             yield _sse("progress", {"type": "progress", "stage": "analyzing"})
             full_text = ""
+            last_heartbeat_at = 0
             async with self.client.messages.stream(
                 model=self.model,
                 max_tokens=4096,
@@ -357,8 +368,41 @@ class PoliceReportAnalyzerV2:
                 ],
                 messages=[{"role": "user", "content": user_content}],
             ) as stream:
-                async for chunk in stream.text_stream:
+                # Heartbeats during the buffered call: char-count cadence
+                # on steady token flow, timer cadence on stalls (see
+                # _HEARTBEAT_* above). Never leaks content — only counts.
+                # The stall path uses asyncio.wait WITHOUT cancelling the
+                # in-flight __anext__ task: cancelling it would kill the
+                # underlying LLM stream generator.
+                iterator = stream.text_stream.__aiter__()
+                while True:
+                    next_chunk = asyncio.ensure_future(iterator.__anext__())
+                    done, _pending = await asyncio.wait(
+                        {next_chunk}, timeout=_HEARTBEAT_SECONDS,
+                    )
+                    if not done:
+                        yield _sse("progress", {
+                            "type": "progress",
+                            "stage": "analyzing",
+                            "chars": len(full_text),
+                        })
+                        try:
+                            chunk = await next_chunk
+                        except StopAsyncIteration:
+                            break
+                    else:
+                        try:
+                            chunk = next_chunk.result()
+                        except StopAsyncIteration:
+                            break
                     full_text += chunk
+                    if len(full_text) - last_heartbeat_at >= _HEARTBEAT_CHARS:
+                        last_heartbeat_at = len(full_text)
+                        yield _sse("progress", {
+                            "type": "progress",
+                            "stage": "analyzing",
+                            "chars": len(full_text),
+                        })
 
             # ── Post-stream: compute risk score deterministically ──
             async def _retry_analysis() -> str:

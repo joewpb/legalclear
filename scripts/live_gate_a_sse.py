@@ -112,10 +112,13 @@ def main() -> int:
         n = len(by_event.get(want, []))
         checks.append((f"exactly one {want}", n == 1, f"{n} frame(s)"))
 
-    # 4. No per-token fragments: a fragment stream is ~100 frames.
+    # 4. No per-token fragments: a fragment stream is ~100 frames; the
+    # protocol adds typed heartbeats on long analyses (char/timer cadence),
+    # so the bound allows a handful of progress frames beyond the six
+    # core events.
     checks.append((
-        "no per-token fragments (frames <= 8)",
-        len(frames) <= 8,
+        "no per-token fragments (frames <= 12)",
+        len(frames) <= 12,
         f"{len(frames)} frames",
     ))
 

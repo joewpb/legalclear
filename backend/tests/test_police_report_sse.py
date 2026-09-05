@@ -212,6 +212,92 @@ def test_unsupported_file_type_emits_typed_error(monkeypatch):
     assert "Unsupported file type" in data["message"]
 
 
+def _long_analysis_json() -> str:
+    """Valid analysis JSON whose text exceeds the heartbeat char cadence."""
+    payload = json.loads(_analysis_json())
+    payload["discrepancies"][0]["description"] = (
+        "coercive consent framing " * 300
+    )
+    return json.dumps(payload)
+
+
+def test_long_stream_emits_char_heartbeats_without_content(monkeypatch):
+    """Steady token flow > 2000 chars must keep the wire busy with typed
+    progress heartbeats that leak ZERO content (only counts)."""
+    payload = _long_analysis_json()
+    half = len(payload) // 2
+    analyzer = _make_analyzer([payload[:half], payload[half:]], monkeypatch)
+
+    body = "".join(_run(analyzer.analyze_stream(b"pdf-bytes", "report.pdf", "en")))
+    frames = _parse_frames(body)
+    events = [e for e, _ in frames]
+
+    heartbeats = [
+        d for e, d in frames
+        if e == "progress" and d.get("stage") == "analyzing"
+    ]
+    assert len(heartbeats) >= 2  # start + at least one char-cadence beat
+    for hb in heartbeats:
+        assert set(hb.keys()) <= {"type", "stage", "chars"}
+        if "chars" in hb:
+            assert isinstance(hb["chars"], int)
+
+    # The analysis JSON still arrives complete and intact.
+    aj = dict(frames[events.index("analysis_json")][1])
+    assert aj["incident_summary"] == "Traffic stop with consent search."
+    assert len(aj["discrepancies"][0]["description"]) > 2000
+    assert "error" not in events
+
+
+class _SlowStream(_FakeStream):
+    """Fake stream that stalls between chunks (simulates a slow LLM)."""
+
+    def __init__(self, chunks, delay):
+        super().__init__(chunks)
+        self._delay = delay
+
+    @property
+    def text_stream(self):
+        async def _gen():
+            for c in self._chunks:
+                await asyncio.sleep(self._delay)
+                yield c
+        return _gen()
+
+
+class _SlowMessages(_FakeMessages):
+    def __init__(self, chunks, delay):
+        super().__init__(chunks)
+        self._delay = delay
+
+    def stream(self, **kwargs):
+        return _SlowStream(self._chunks, self._delay)
+
+
+def test_stall_emits_timer_heartbeat_and_completes(monkeypatch):
+    """A token stall longer than the heartbeat window must emit a typed
+    heartbeat WITHOUT cancelling the stream — the analysis still lands."""
+    monkeypatch.setattr(
+        "src.agents.police_report_v2._HEARTBEAT_SECONDS", 0.2,
+    )
+    payload = _analysis_json()
+    analyzer = _make_analyzer([], monkeypatch)
+    analyzer.client = type("SlowClient", (), {
+        "messages": _SlowMessages([payload], delay=0.5),
+    })()
+
+    body = "".join(_run(analyzer.analyze_stream(b"x", "report.pdf", "en")))
+    frames = _parse_frames(body)
+    events = [e for e, _ in frames]
+    assert "analysis_json" in events  # the generator survives the stall
+    stall_hbs = [
+        d for e, d in frames
+        if e == "progress" and d.get("stage") == "analyzing" and "chars" in d
+    ]
+    assert stall_hbs  # at least one timer heartbeat fired
+    assert stall_hbs[0]["chars"] == 0  # nothing accumulated before it
+
+
 def test_analysis_json_includes_citations_checked(monkeypatch):
     """Phase C1 hook: the emitted analysis carries the citations_checked
     log — empty when the statutes DB is unavailable, never absent."""
