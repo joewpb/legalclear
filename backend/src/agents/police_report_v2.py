@@ -25,7 +25,7 @@ from src.core.json_utils import (
 from src.core.json_utils import (
     ladder_call_async as _ladder_call,
 )
-from src.core.url_filter import StreamingURLFilter, filter_json_strings
+from src.core.url_filter import filter_json_strings
 from src.ingestion.pdf_parser import PDFParser
 from src.services.opinion_retrieval import (
     derive_situation_tags,
@@ -34,6 +34,15 @@ from src.services.opinion_retrieval import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _sse(event: str, payload: dict) -> str:
+    """Frame one complete typed SSE event (event: line + one data: line).
+
+    Phase A protocol: every frame carries an explicit event name and a
+    single complete JSON data payload. No per-token fragments.
+    """
+    return f"event: {event}\ndata: {json.dumps(payload)}\n\n"
 
 # ---------------------------------------------------------------------------
 # System prompt
@@ -261,26 +270,25 @@ class PoliceReportAnalyzerV2:
                 extraction = await self._pdf_parser.extract_from_bytes_async(file_bytes)
             except Exception:
                 logger.error("PDF extraction failed:\n%s", traceback.format_exc())
-                error_payload = json.dumps(
-                    {
-                        "error": True,
-                        "message": "Could not extract text from this PDF.",
-                        "disclaimer": get_disclaimer(language),
-                    }
-                )
-                yield f"data: {error_payload}\n\n"
+                yield _sse("error", {
+                    "type": "error",
+                    "error": True,
+                    "message": "Could not extract text from this PDF.",
+                    "disclaimer": get_disclaimer(language),
+                })
                 return
 
             raw_text = extraction.get("raw_text", "")
             if not raw_text.strip():
-                error_payload = json.dumps(
-                    {
-                        "error": True,
-                        "message": "No readable text found in this PDF. Try uploading an image of the report instead.",
-                        "disclaimer": get_disclaimer(language),
-                    }
-                )
-                yield f"data: {error_payload}\n\n"
+                yield _sse("error", {
+                    "type": "error",
+                    "error": True,
+                    "message": (
+                        "No readable text found in this PDF. "
+                        "Try uploading an image of the report instead."
+                    ),
+                    "disclaimer": get_disclaimer(language),
+                })
                 return
 
             user_content.append(
@@ -297,20 +305,22 @@ class PoliceReportAnalyzerV2:
             )
 
         else:
-            error_payload = json.dumps(
-                {
-                    "error": True,
-                    "message": "Unsupported file type. Please upload a PDF or image file.",
-                    "disclaimer": get_disclaimer(language),
-                }
-            )
-            yield f"data: {error_payload}\n\n"
+            yield _sse("error", {
+                "type": "error",
+                "error": True,
+                "message": "Unsupported file type. Please upload a PDF or image file.",
+                "disclaimer": get_disclaimer(language),
+            })
             return
 
         # ── Call Claude ─────────────────────────────────────────────────
         try:
+            # Phase A: buffer the full LLM text locally. Nothing is emitted
+            # per token anymore — every frame below is a complete typed
+            # payload (analysis_json as ONE frame, plus risk_analysis /
+            # relevant_opinions / case_context / progress / error).
+            yield _sse("progress", {"type": "progress", "stage": "analyzing"})
             full_text = ""
-            url_filter = StreamingURLFilter("police_report_v2")
             async with self.client.messages.stream(
                 model=self.model,
                 max_tokens=4096,
@@ -325,12 +335,6 @@ class PoliceReportAnalyzerV2:
             ) as stream:
                 async for chunk in stream.text_stream:
                     full_text += chunk
-                    safe = url_filter.feed(chunk)
-                    if safe:
-                        yield f"data: {safe}\n\n"
-            tail = url_filter.flush()
-            if tail:
-                yield f"data: {tail}\n\n"
 
             # ── Post-stream: compute risk score deterministically ──
             async def _retry_analysis() -> str:
@@ -358,98 +362,109 @@ class PoliceReportAnalyzerV2:
                 retry_call=_retry_analysis,
             )
             if degraded:
-                parsed = None
-            else:
-                all_findings = (
-                    parsed.get("discrepancies", [])
-                    + [
-                        {
-                            "severity": mf.get("severity", "low"),
-                            "description": (
-                                f"Missing field: {mf.get('field_name', 'unknown')} — "
-                                f"{mf.get('why_important', '')}"
-                            ),
-                        }
-                        for mf in parsed.get("missing_fields", [])
-                    ]
-                )
-                risk = compute_risk_score(all_findings)
-                risk["type"] = "risk_analysis"
-                risk_payload = json.dumps(risk)
-                yield f"data: {risk_payload}\n\n"
+                # Decision 20: the ladder gave up. Emit a typed error frame
+                # instead of ending the stream silently with no analysis.
+                yield _sse("error", {
+                    "type": "error",
+                    "error": True,
+                    "message": "Analysis could not be completed. Please try again.",
+                    "disclaimer": get_disclaimer(language),
+                })
+                return
+
+            # Analysis JSON as ONE complete frame (no per-token fragments).
+            parsed = filter_json_strings(parsed, "police_report_v2")
+            parsed["disclaimer"] = get_disclaimer(language)
+            yield f"event: analysis_json\ndata: {json.dumps(parsed)}\n\n"
+
+            all_findings = (
+                parsed.get("discrepancies", [])
+                + [
+                    {
+                        "severity": mf.get("severity", "low"),
+                        "description": (
+                            f"Missing field: {mf.get('field_name', 'unknown')} — "
+                            f"{mf.get('why_important', '')}"
+                        ),
+                    }
+                    for mf in parsed.get("missing_fields", [])
+                ]
+            )
+            risk = compute_risk_score(all_findings)
+            risk["type"] = "risk_analysis"
+            yield _sse("risk_analysis", risk)
 
             # ── Post-stream: retrieve relevant opinions (Stage 2) ──
             # Sealed in its own try/except: risk_analysis (and the full
             # analysis JSON) have already been sent above, so a failure
             # here must NEVER bubble to the outer `except Exception`,
             # which would emit a misleading error event after a
-            # successful analysis. Log + skip instead. Guard on `parsed`
-            # so we don't run (and raise NameError) when JSON failed.
-            if parsed:
-                try:
-                    tags = derive_situation_tags(parsed)
-                    # get_relevant_opinions() does synchronous Supabase I/O
-                    # (supabase-py is blocking); offload it so the network
-                    # round-trip doesn't stall the event loop and every
-                    # other in-flight SSE client on this worker.
-                    # `parsed` is passed as analysis_result so the
-                    # retrieval service can derive fact terms from the
-                    # LLM's discrepancy/missing-field/charge text and rank
-                    # opinions by relevance (2026-08 relevance fix).
-                    opinions = await asyncio.to_thread(
-                        get_relevant_opinions, tags, 3, parsed
-                    )
-                    # Generate specific attorney questions per opinion
-                    opinions = await asyncio.to_thread(
-                        generate_attorney_questions, parsed, opinions,
-                    )
-                    opinions_payload = json.dumps({
-                        "type": "relevant_opinions",
-                        "situation_tags_used": tags,
-                        "opinions": opinions,
-                    })
-                    yield f"data: {opinions_payload}\n\n"
-                except Exception:
-                    logger.error(
-                        "relevant_opinions emission failed:\n%s",
-                        traceback.format_exc(),
-                    )
+            # successful analysis. Log + skip instead. `parsed` is
+            # guaranteed non-None here — a degraded parse returned early.
+            yield _sse("progress", {
+                "type": "progress",
+                "stage": "retrieving_case_law",
+            })
+            try:
+                tags = derive_situation_tags(parsed)
+                # get_relevant_opinions() does synchronous Supabase I/O
+                # (supabase-py is blocking); offload it so the network
+                # round-trip doesn't stall the event loop and every
+                # other in-flight SSE client on this worker.
+                # `parsed` is passed as analysis_result so the
+                # retrieval service can derive fact terms from the
+                # LLM's discrepancy/missing-field/charge text and rank
+                # opinions by relevance (2026-08 relevance fix).
+                opinions = await asyncio.to_thread(
+                    get_relevant_opinions, tags, 3, parsed
+                )
+                # Generate specific attorney questions per opinion
+                opinions = await asyncio.to_thread(
+                    generate_attorney_questions, parsed, opinions,
+                )
+                yield _sse("relevant_opinions", {
+                    "type": "relevant_opinions",
+                    "situation_tags_used": tags,
+                    "opinions": opinions,
+                })
+            except Exception:
+                logger.error(
+                    "relevant_opinions emission failed:\n%s",
+                    traceback.format_exc(),
+                )
 
-                # ── Post-stream: extract case_context (Phase 9) ──
-                # Lazy import: scanner imports compute_risk_score from this
-                # module, so a top-level import here creates a cycle that
-                # breaks app import (src.api.routes). Defer to call site.
-                from src.agents.scanner import extract_case_context
+            # ── Post-stream: extract case_context (Phase 9) ──
+            # Lazy import: scanner imports compute_risk_score from this
+            # module, so a top-level import here creates a cycle that
+            # breaks app import (src.api.routes). Defer to call site.
+            from src.agents.scanner import extract_case_context
 
-                try:
-                    ctx = await extract_case_context([{
-                        "filename": filename,
-                        "text": raw_text if raw_text else "",
-                    }])
-                    ctx_payload = json.dumps({
-                        "type": "case_context",
-                        "case_context": ctx,
-                    })
-                    yield f"data: {ctx_payload}\n\n"
-                except Exception:
-                    logger.error(
-                        "case_context extraction failed:\n%s",
-                        traceback.format_exc(),
-                    )
+            try:
+                ctx = await extract_case_context([{
+                    "filename": filename,
+                    "text": raw_text if raw_text else "",
+                }])
+                yield _sse("case_context", {
+                    "type": "case_context",
+                    "case_context": ctx,
+                })
+            except Exception:
+                logger.error(
+                    "case_context extraction failed:\n%s",
+                    traceback.format_exc(),
+                )
 
         except Exception:
             logger.error(
                 "PoliceReportAnalyzerV2 stream error:\n%s",
                 traceback.format_exc(),
             )
-            error_payload = json.dumps(
-                {
-                    "error": True,
-                    "message": "Analysis could not be completed.",
-                    "disclaimer": get_disclaimer(language),
-                }
-            )
-            yield f"data: {error_payload}\n\n"
+            yield _sse("error", {
+                "type": "error",
+                "error": True,
+                "message": "Analysis could not be completed.",
+                "disclaimer": get_disclaimer(language),
+            })
 
     # ── non-streaming (testing / debug) ─────────────────────────────────
 

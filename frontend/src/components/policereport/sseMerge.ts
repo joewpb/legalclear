@@ -9,11 +9,15 @@
 // the (last) typed event.
 //
 // Emission contract mirrored from PoliceReportAnalyzerV2.analyze_stream
-// (backend/src/agents/police_report_v2.py):
-//   1. raw analysis-JSON chunks  (no `type`)
-//   2. risk_analysis event       (`type: "risk_analysis"`)
-//   3. relevant_opinions event   (`type: "relevant_opinions"`)  ← emitted last
-//   no terminal `done` event.
+// (backend/src/agents/police_report_v2.py) — Phase A protocol:
+//   1. progress events           (`event: progress`, stage heartbeat)
+//   2. analysis_json event       (`event: analysis_json`, ONE complete payload)
+//   3. risk_analysis event       (`event: risk_analysis`)
+//   4. relevant_opinions event   (`event: relevant_opinions`)
+//   5. case_context event        (`event: case_context`)
+//   6. error events              (`event: error`, typed payloads)
+//   Every frame is complete JSON. No per-token fragments, no terminal
+//   `done` event, no bare `message` frames.
 //
 // Generic over the concrete state shape `S` so the component can plug in its
 // own AnalysisResponse without an index-signature clash; the merge only ever

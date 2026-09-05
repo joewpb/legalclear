@@ -461,7 +461,6 @@ export default function PoliceReportAnalyzer() {
   const [response, setResponse] = useState<Partial<AnalysisResponse>>({});
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [rawChunks, setRawChunks] = useState("");
   const [expandedCharges, setExpandedCharges] = useState<Set<number>>(new Set());
   const [chatOpen, setChatOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -496,7 +495,6 @@ export default function PoliceReportAnalyzer() {
   const removeFile = useCallback(() => {
     setFile(null);
     setResponse({});
-    setRawChunks("");
     setError(null);
   }, []);
 
@@ -505,7 +503,6 @@ export default function PoliceReportAnalyzer() {
     if (!file) return;
     setStreaming(true);
     setError(null);
-    setRawChunks("");
     setResponse({});
 
     const base = (import.meta as any).env?.VITE_API_URL || "http://localhost:8001";
@@ -524,8 +521,24 @@ export default function PoliceReportAnalyzer() {
       const reader = res.body?.getReader();
       if (!reader) throw new Error("No response body");
 
-      let full = "";
+      let receivedAnalysis = false;
+      let errorReceived = false;
       for await (const { event, data: chunk } of readSSE(reader)) {
+        if (event === "error") {
+          errorReceived = true;
+          try {
+            const parsed = JSON.parse(chunk) as { message?: string };
+            setError(
+              parsed.message || "Analysis could not be completed. Please try again.",
+            );
+          } catch {
+            setError("Analysis could not be completed. Please try again.");
+          }
+          break;
+        }
+        if (event === "progress") {
+          continue; // heartbeat — the fixed "Analyzing report" state stays
+        }
         if (event === "disclaimer") {
           try {
             const parsed = JSON.parse(chunk);
@@ -535,60 +548,37 @@ export default function PoliceReportAnalyzer() {
           }
           continue;
         }
-        if (event !== "message") {
-          console.debug(`[SSE] ignoring unknown event type: ${event}`);
-          continue;
-        }
 
-        // Try parsing the individual chunk first — risk_analysis
-        // events arrive as complete single-line JSON after the
-        // streaming analysis JSON finishes.
+        // Every remaining frame is a complete typed payload (Phase A
+        // protocol). Unknown events are logged and ignored, never rendered.
         try {
           const solo = JSON.parse(chunk);
-          if (solo.type === "risk_analysis") {
+          if (event === "analysis_json") {
+            receivedAnalysis = true;
+            setResponse((prev) =>
+              applySseEvent(prev, { type: "analysis_json", data: solo }),
+            );
+          } else if (event === "risk_analysis" && solo.type === "risk_analysis") {
             setResponse((prev) => applySseEvent(prev, solo));
-            continue; // don't add to full, it's not part of the analysis JSON
-          }
-          if (solo.type === "relevant_opinions") {
+          } else if (
+            event === "relevant_opinions" &&
+            solo.type === "relevant_opinions"
+          ) {
             setResponse((prev) =>
               applySseEvent(prev, solo as RelevantOpinionsEvent),
             );
-            continue; // typed event — don't accumulate into the analysis JSON
-          }
-          if (solo.type === "case_context") {
+          } else if (event === "case_context" && solo.type === "case_context") {
             setResponse((prev) => applySseEvent(prev, solo));
-            continue; // typed event — don't accumulate into analysis JSON
+          } else {
+            console.debug(`[SSE] ignoring unknown event type: ${event}`);
           }
         } catch {
-          /* not a complete JSON chunk — will be accumulated */
-        }
-
-        full += chunk;
-        setRawChunks(full);
-        try {
-          const parsed = JSON.parse(full) as AnalysisResponse;
-          setResponse(parsed);
-        } catch {
-          /* partial JSON — keep accumulating */
+          console.debug(`[SSE] unparseable payload on event: ${event}`);
         }
       }
 
-      // Final parse attempt for the analysis JSON — merge to preserve any
-      // typed SSE events (risk_analysis, relevant_opinions) that arrived
-      // during streaming and are NOT part of the analysis JSON itself.
-      // relevant_opinions is emitted LAST, so this merge runs after it was
-      // just set; the reducer's carry-overs keep it alive.
-      try {
-        const parsed = JSON.parse(full) as AnalysisResponse;
-        setResponse((prev) =>
-          applySseEvent(prev, { type: "analysis_json", data: parsed }),
-        );
-      } catch {
-        if (!full.trim()) {
-          setError("No response received. Please try again.");
-        } else {
-          // Partial streaming may have populated enough to show results
-        }
+      if (!receivedAnalysis && !errorReceived) {
+        setError("No response received. Please try again.");
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred.");
@@ -694,12 +684,6 @@ export default function PoliceReportAnalyzer() {
           <p style={{ color: "var(--muted)", fontSize: 14, fontStyle: "italic" }}>
             Analyzing report
             <span style={css.loadingPulse} />
-          </p>
-        )}
-
-        {streaming && rawChunks && !response.incident_summary && (
-          <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 8 }}>
-            {rawChunks.slice(0, 200)}…
           </p>
         )}
 
