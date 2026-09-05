@@ -73,6 +73,7 @@ interface AnalysisResponse {
   parties: string[];
   charges_explained: ChargeExplained[];
   miranda_noted: boolean | null;
+  miranda_validity_concern?: boolean;
   probable_cause_present: boolean | null;
   probable_cause_summary: string | null;
   discrepancies: Finding[];
@@ -415,6 +416,16 @@ const css = {
     color: "var(--muted, #6B6B66)",
   } as React.CSSProperties,
 
+  badgeWarn: {
+    display: "inline-block",
+    padding: "2px 10px",
+    borderRadius: "var(--radius, 4px)",
+    fontSize: 13,
+    fontWeight: 500,
+    background: "#FFF8E1",
+    color: "#B26A00",
+  } as React.CSSProperties,
+
   /* ── Party chips ── */
   chipRow: {
     display: "flex",
@@ -744,11 +755,23 @@ export default function PoliceReportAnalyzer() {
                 </>
               )}
 
-            {/* Miranda rights */}
+            {/* Miranda rights — Phase E: when the analysis itself found a
+                high/medium Miranda or language-access defect, the green
+                check is replaced by a warning variant. miranda_noted=True
+                is factual; the ✓ presentation was misleading pro se users
+                when the findings below question the waiver's validity. */}
             <h2 style={css.sectionTitle}>Miranda Rights</h2>
-            {response.miranda_noted === true && (
-              <span style={css.badgeTrue}>✓ Noted as read</span>
-            )}
+            {response.miranda_noted === true &&
+              response.miranda_validity_concern === true && (
+                <span style={css.badgeWarn}>
+                  ⚠ Noted as read — but the findings below question the
+                  waiver's validity
+                </span>
+              )}
+            {response.miranda_noted === true &&
+              response.miranda_validity_concern !== true && (
+                <span style={css.badgeTrue}>✓ Noted as read</span>
+              )}
             {response.miranda_noted === false && (
               <span style={css.badgeFalse}>✗ Not noted</span>
             )}
@@ -775,9 +798,13 @@ export default function PoliceReportAnalyzer() {
               <span style={css.badgeUnknown}>Cannot determine from report</span>
             )}
 
-            {/* ── Risk Analysis Card ── */}
+            {/* ── Risk Analysis — its own headed block (Phase E); no
+                longer visually jammed into the probable-cause section ── */}
             {response.risk_analysis && (
-              <RiskScoreCard risk={response.risk_analysis} />
+              <>
+                <h2 style={css.sectionTitle}>Risk Summary</h2>
+                <RiskScoreCard risk={response.risk_analysis} />
+              </>
             )}
 
             {/* Discrepancies — cards with severity badges */}

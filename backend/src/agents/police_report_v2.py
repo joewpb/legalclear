@@ -118,6 +118,28 @@ SUPPORTED_IMAGE_TYPES = {
 # ---------------------------------------------------------------------------
 
 
+def miranda_validity_concern(parsed: dict) -> bool:
+    """Deterministic waiver-validity concern flag (Phase E, zero LLM).
+
+    The green 'Noted as read' badge is misleading when the analysis
+    itself found a high/medium Miranda or language-access defect — the
+    waiver's validity is exactly what those findings question. Computed
+    from the LLM's own structured findings, so it is deterministic given
+    the analysis JSON.
+    """
+    if parsed.get("miranda_noted") is not True:
+        return False
+    for d in parsed.get("discrepancies") or []:
+        if not isinstance(d, dict):
+            continue
+        if (
+            d.get("defect_category") in ("miranda", "language_access")
+            and d.get("severity") in ("high", "medium")
+        ):
+            return True
+    return False
+
+
 def compute_risk_score(findings: list[dict]) -> dict:
     """Compute a numeric risk score from LLM-classified findings.
 
@@ -418,8 +440,10 @@ class PoliceReportAnalyzerV2:
                         traceback.format_exc(),
                     )
 
-            yield f"event: analysis_json\ndata: {json.dumps(parsed)}\n\n"
-
+            # Phase E: deterministic waiver-validity flag computed from the
+            # LLM's own findings (no LLM) — set BEFORE the analysis JSON
+            # reaches the frontend so the Miranda badge can render its
+            # warning variant.
             all_findings = (
                 parsed.get("discrepancies", [])
                 + [
@@ -433,6 +457,12 @@ class PoliceReportAnalyzerV2:
                     for mf in parsed.get("missing_fields", [])
                 ]
             )
+            parsed["miranda_validity_concern"] = miranda_validity_concern(
+                parsed,
+            )
+
+            yield f"event: analysis_json\ndata: {json.dumps(parsed)}\n\n"
+
             risk = compute_risk_score(all_findings)
             risk["type"] = "risk_analysis"
             yield _sse("risk_analysis", risk)
