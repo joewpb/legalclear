@@ -181,6 +181,7 @@ def test_success_path_emits_only_complete_typed_frames(monkeypatch):
     aj = dict(frames[events.index("analysis_json")][1])
     assert aj["incident_summary"] == "Traffic stop with consent search."
     assert aj["miranda_noted"] is True
+    assert aj["miranda_validity_concern"] is False  # Phase E flag present
     assert aj["discrepancies"][0]["defect_category"] == "fourth_amendment"
     # Deterministic disclaimer override (matches analyze()).
     assert aj["disclaimer"] == get_disclaimer("en")
