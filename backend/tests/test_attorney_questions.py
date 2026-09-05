@@ -44,7 +44,7 @@ def _opinions(n=3):
 def _analysis():
     return {
         "discrepancies": [
-            {"finding": "Miranda violation", "ask_attorney": "whether statement is suppressible"}
+            {"description": "Miranda violation", "ask_attorney": "whether statement is suppressible"}
         ],
         "charges_explained": [{"charge": "Burglary"}],
     }

@@ -60,7 +60,7 @@ def main(pdf_path: str) -> int:
         return 2
 
     _load_env()
-    from src.agents.police_report_v2 import strip_markdown_fences  # noqa: E402
+    from src.core.json_utils import strip_markdown_fences  # noqa: E402
     from src.services.opinion_retrieval import (  # noqa: E402
         _derive_fact_terms,
         derive_situation_tags,

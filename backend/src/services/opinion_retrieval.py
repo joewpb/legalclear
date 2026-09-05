@@ -9,9 +9,9 @@ Three responsibilities:
      from the LLM's discrepancy / missing-field / charge text (curated
      legal-phrase vocabulary + signal-gated bigrams). No LLM call.
   3. get_relevant_opinions(tags, analysis_result): fetch opinions from
-     Supabase via DatabaseManager. Relevance-ranked: matched search terms
-     first, tag overlap second, cite_count last. Junk rows (empty
-     case_name) are dropped.
+     Supabase via DatabaseManager. Relevance-ranked: fact-term matches
+     first (two-tier — see below), tag overlap next, cite_count last.
+     Junk rows (empty case_name or empty citation) are dropped.
 
 Database access goes through DatabaseManager (decision D) — the app's
 existing abstraction, which degrades gracefully (client is None) when
@@ -324,6 +324,29 @@ def _has_case_name(row: dict) -> bool:
     return bool(isinstance(name, str) and name.strip())
 
 
+# Citation values that are technically non-empty but carry no verifiable
+# cite — the same class as the empty-citation rows and dropped the same way.
+_CITATION_PLACEHOLDERS: frozenset[str] = frozenset(
+    {"n/a", "na", "null", "none", "unknown", "tbd", "pending", "not cited"}
+)
+
+
+def _has_citation(row: dict) -> bool:
+    """True when the row carries a real, non-placeholder citation.
+
+    A case the UI cannot point to by citation is unverifiable and must
+    never surface. Kills the Tracey class deterministically: the 2026-08-30
+    prod run put Shawn Alvin Tracey v. State (CSLI warrant case, EMPTY
+    citation field) in the top-3 with a fabricated attorney-question
+    interpreter bridge. Placeholder values ('N/A', 'null', ...) are the
+    same class and are rejected too.
+    """
+    citation = row.get("citation")
+    if not (isinstance(citation, str) and citation.strip()):
+        return False
+    return citation.strip().casefold() not in _CITATION_PLACEHOLDERS
+
+
 # ── Charge-context exclusion (Joe ruling 2026-08-27) ────────────────────────
 # Logged rule: case-law results never present a charge class more severe than
 # the report's own charges. Operational form (hard, deterministic, testable):
@@ -417,7 +440,7 @@ def _run_fact_anchor_queries(fact_terms: list[str]) -> list[dict]:
             continue
         usable: list[dict] = []
         for row in result.data or []:
-            if not _has_case_name(row):
+            if not _has_case_name(row) or not _has_citation(row):
                 continue
             cid = row.get("cluster_id")
             if cid is not None:
@@ -492,6 +515,12 @@ def get_relevant_opinions(
     fact_mode = bool(fact_terms)
     search_terms = _merge_search_terms(fact_terms, tag_terms)
     substantive_terms = _substantive_search_terms(query_tags, fact_terms)
+    # Two-tier ranking (Phase B): fact terms are the primary relevance
+    # signal, tag-name terms the fallback. A row that matches NO fact term
+    # but matches >=2 tag terms only surfaces when NO row in the pool
+    # matched any fact term (the fallback tier).
+    fact_terms_set = {t.casefold() for t in fact_terms}
+    tag_only_terms = {t for t in substantive_terms if t not in fact_terms_set}
     if fact_mode:
         # Fact mode: single-anchor ILIKE queries, tried in priority order
         # inside the fallback block (rare-term ORs exceed the Supabase
@@ -523,13 +552,21 @@ def get_relevant_opinions(
             .execute()
         )
         for row in result.data or []:
-            if not _has_case_name(row):
-                continue  # junk: header-text rows with empty case_name
+            if not _has_case_name(row) or not _has_citation(row):
+                continue  # junk: no case name / no verifiable citation
             opinion_tags = set(row.get("situation_tags") or [])
             row["_overlap"] = len(opinion_tags & query_tags)
-            row["_matched"] = _count_matched_terms(
-                row.get("summary_plain"), substantive_terms,
-            )
+            if fact_mode:
+                row["_fact_matched"] = _count_matched_terms(
+                    row.get("summary_plain"), fact_terms_set,
+                )
+                row["_tag_matched"] = _count_matched_terms(
+                    row.get("summary_plain"), tag_only_terms,
+                )
+            else:
+                row["_matched"] = _count_matched_terms(
+                    row.get("summary_plain"), substantive_terms,
+                )
             rows.append(row)
         tagged_ids = {r.get("cluster_id") for r in rows if r.get("cluster_id")}
 
@@ -562,20 +599,31 @@ def get_relevant_opinions(
                     )
                     ilike_rows = ilike_result.data or []
                 for row in ilike_rows:
-                    if not _has_case_name(row):
-                        continue  # junk: header-text rows with empty case_name
+                    if not _has_case_name(row) or not _has_citation(row):
+                        continue  # junk: no case name / no citation
                     cid = row.get("cluster_id")
                     if cid is not None and cid in tagged_ids:
                         continue  # dedup — already have this one via tags
-                    matched = _count_matched_terms(
-                        row.get("summary_plain"), substantive_terms,
-                    )
-                    if fact_mode and matched < 1:
-                        # Rows that matched only charge-class terms (e.g.
-                        # bare 'misdemeanor') carry no relevance signal.
-                        continue
-                    row["_overlap"] = 0
-                    row["_matched"] = matched
+                    if fact_mode:
+                        fact_matched = _count_matched_terms(
+                            row.get("summary_plain"), fact_terms_set,
+                        )
+                        tag_matched = _count_matched_terms(
+                            row.get("summary_plain"), tag_only_terms,
+                        )
+                        if fact_matched < 1 and tag_matched < 2:
+                            # No relevance signal at all (charge-class-only
+                            # or pure noise) — never surface.
+                            continue
+                        row["_overlap"] = 0
+                        row["_fact_matched"] = fact_matched
+                        row["_tag_matched"] = tag_matched
+                    else:
+                        matched = _count_matched_terms(
+                            row.get("summary_plain"), substantive_terms,
+                        )
+                        row["_overlap"] = 0
+                        row["_matched"] = matched
                     rows.append(row)
             except Exception:
                 logger.warning(
@@ -584,12 +632,21 @@ def get_relevant_opinions(
                 )
 
         if fact_mode:
-            # Facts are the primary relevance signal: distinct matched terms
-            # first (>=2-match rows preferred), tag overlap as the precision
-            # tiebreak, cite_count last.
+            # Two-tier admission (Phase B): rows matching >=1 fact term are
+            # the ONLY tier whenever any exist. The tag-only tier (>=2 tag
+            # terms) is the fallback for pools with zero fact matches.
+            if any(r.get("_fact_matched", 0) >= 1 for r in rows):
+                rows = [r for r in rows if r.get("_fact_matched", 0) >= 1]
+            else:
+                rows = [r for r in rows if r.get("_tag_matched", 0) >= 2]
+                logger.info(
+                    "fact-mode fallback: zero fact-term matches in pool; "
+                    "using tag-only tier (>=2 tag terms)",
+                )
             rows.sort(
                 key=lambda r: (
-                    r.get("_matched", 0),
+                    r.get("_fact_matched", 0),
+                    r.get("_tag_matched", 0),
                     r.get("_overlap", 0),
                     r.get("cite_count") or 0,
                 ),
@@ -618,6 +675,8 @@ def get_relevant_opinions(
         for row in top:
             row.pop("_overlap", None)
             row.pop("_matched", None)
+            row.pop("_fact_matched", None)
+            row.pop("_tag_matched", None)
             row.pop("situation_tags", None)
             row.pop("cluster_id", None)
 
@@ -632,6 +691,8 @@ def get_relevant_opinions(
                 for opinion in orin_results:
                     opinion.pop("_source", None)
                     opinion.pop("_opinion_id", None)
+                # Unverifiable Orin rows (no citation) never surface.
+                orin_results = [o for o in orin_results if _has_citation(o)]
                 # The exclusion ladder applies to Orin rows too (best effort:
                 # rows without charge text pass through unclassified).
                 orin_results = _filter_by_charge_context(
@@ -677,7 +738,10 @@ def generate_attorney_questions(
 
     ctx = "User situation:\n"
     for d in discrepancies[:5]:
-        ctx += f"  - Finding: {d.get('finding','')}. Ask attorney about: {d.get('ask_attorney','')}\n"
+        ctx += (
+            f"  - Finding: {d.get('description','')}. "
+            f"Ask attorney about: {d.get('ask_attorney','')}\n"
+        )
     for c in charges[:3]:
         ctx += f"  - Charge: {c.get('charge','')}\n"
 
@@ -709,6 +773,15 @@ def generate_attorney_questions(
         "Example: 'Ask: In my case, the officer searched my car "
         "without a warrant or my consent. Under Florida v. Jardines, "
         "could that evidence be suppressed?'\n"
+        "GROUNDING RULE (hard): the explanation and the question must be "
+        "based ONLY on what the opinion's summary says the case actually "
+        "decided. Never invent a connection: do not claim the case involved "
+        "an interpreter, a cell-site warrant, a particular weapon, or any "
+        "other fact its summary does not state. If the summary shows no "
+        "connection to the user's situation, explain the general legal "
+        "principle the case stands for and ask whether that principle "
+        "applies to their facts. Never assert the case applies to the "
+        "user's facts unless the summary supports it.\n"
         "Return ONLY a JSON array of objects, one per opinion:\n"
         '[{"explanation":"...","question":"..."}]'
     )
@@ -736,7 +809,10 @@ def generate_attorney_questions(
                         "role": "user",
                         "content": prompt,
                     }],
-                    "max_tokens": 600,
+                    # 600 was enough for the pre-grounding prompt; the
+                    # grounding rule lengthened it, and truncated JSON
+                    # arrays are the observed unrecoverable-parse class.
+                    "max_tokens": 900,
                     "temperature": 0.3,
                 },
                 timeout=15,
