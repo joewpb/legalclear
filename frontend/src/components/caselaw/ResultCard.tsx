@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { CaseResult, CitationTreatment } from "./types";
 
 function ageInYears(dateStr: string): number | null {
@@ -8,6 +9,8 @@ function ageInYears(dateStr: string): number | null {
   let years = now.getFullYear() - d.getFullYear();
   const m = now.getMonth() - d.getMonth();
   if (m < 0 || (m === 0 && now.getDate() < d.getDate())) years--;
+  // Corrupt dates (e.g. year 0014) compute absurd ages — treat as unknown.
+  if (years < 0 || years > 120) return null;
   return years;
 }
 
@@ -34,7 +37,8 @@ function treatmentIndicator(
     emoji: "🔴",
     bg: "#FEF2F2",
     border: "#B91C1C",
-    text: `${label}${suffix}: ${primary.text}`,
+    text:
+      `Later court treatment: ${label}${suffix} — ${primary.text}`,
   };
 }
 
@@ -42,7 +46,17 @@ function lawIndicator(
   age: number | null,
   citeCount: number,
 ): { emoji: string; bg: string; border: string; text: React.ReactNode } {
-  const isOld = age !== null && age > 15;
+  if (age === null) {
+    return {
+      emoji: "ℹ️",
+      bg: "#F5F7FC",
+      border: "#4B5563",
+      text:
+        `Decision date not available — this case has been cited ${citeCount} ` +
+        `${citeCount === 1 ? "time" : "times"}. Verify before relying on it.`,
+    };
+  }
+  const isOld = age > 15;
   const isHighCite = citeCount >= 50;
 
   // 2×2 matrix: age × citation count
@@ -89,12 +103,26 @@ function lawIndicator(
   };
 }
 
+// Long raw summaries (the corpus stores decision text) render as an excerpt
+// with an on-site expander — no external links on result cards.
+const EXCERPT_CHARS = 400;
+
+function summaryExcerpt(text: string): { head: string; rest: string | null } {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (clean.length <= EXCERPT_CHARS) return { head: clean, rest: null };
+  return { head: clean.slice(0, EXCERPT_CHARS), rest: clean.slice(EXCERPT_CHARS) };
+}
+
 export default function ResultCard({ r }: { r: CaseResult }) {
-  const age = ageInYears(r.date_filed);
+  const [expanded, setExpanded] = useState(false);
+  const age = ageInYears(r.date_filed || "");
   const treatments = r.citation_treatment;
   const indicator = treatments && treatments.length > 0
     ? treatmentIndicator(treatments)
     : lawIndicator(age, r.cite_count ?? 0);
+
+  const summary = r.plain_english_summary;
+  const excerpt = summary ? summaryExcerpt(summary) : null;
 
   return (
     <article
@@ -126,17 +154,15 @@ export default function ResultCard({ r }: { r: CaseResult }) {
           >
             {r.case_name}
           </h3>
-          {r.citation && (
-            <p
-              style={{
-                color: "var(--muted)",
-                fontSize: 12,
-                margin: 0,
-              }}
-            >
-              {r.citation}
-            </p>
-          )}
+          <p
+            style={{
+              color: "var(--muted)",
+              fontSize: 12,
+              margin: 0,
+            }}
+          >
+            {r.citation}
+          </p>
         </div>
         <div
           style={{
@@ -148,7 +174,7 @@ export default function ResultCard({ r }: { r: CaseResult }) {
           }}
         >
           <div>{r.court}</div>
-          {r.date_filed && <div>{r.date_filed}</div>}
+          <div>{r.date_filed || "Date not available"}</div>
           <div style={{ marginTop: 2 }}>
             Cited {r.cite_count ?? 0}{" "}
             {(r.cite_count ?? 0) === 1 ? "time" : "times"}
@@ -156,14 +182,37 @@ export default function ResultCard({ r }: { r: CaseResult }) {
         </div>
       </header>
 
-      {r.plain_english_summary ? (
-        <p style={{ margin: 0, lineHeight: 1.5, fontSize: 14 }}>
-          {r.plain_english_summary}
-        </p>
+      {excerpt ? (
+        <>
+          <p style={{ margin: 0, lineHeight: 1.5, fontSize: 14 }}>
+            {expanded ? summary : `${excerpt.head}…`}
+          </p>
+          {excerpt.rest && (
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="btn-outline"
+              style={{
+                justifySelf: "start",
+                textDecoration: "none",
+                padding: "6px 12px",
+                fontSize: 12,
+                marginTop: 0,
+                border: "1px solid var(--border-strong)",
+                borderRadius: 4,
+                color: "var(--fg)",
+                fontFamily: "var(--font-sans)",
+                fontWeight: 500,
+                cursor: "pointer",
+                background: "transparent",
+              }}
+            >
+              {expanded ? "Show less" : "Read more of this decision"}
+            </button>
+          )}
+        </>
       ) : (
         <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>
-          We don't have a plain-language summary for this one yet — open the
-          full opinion to read it.
+          No summary text is available for this decision yet.
         </p>
       )}
 
@@ -183,30 +232,6 @@ export default function ResultCard({ r }: { r: CaseResult }) {
         <span style={{ fontSize: 14 }}>{indicator.emoji}</span>
         <span style={{ color: "var(--fg)" }}>{indicator.text}</span>
       </div>
-
-      {r.courtlistener_url && (
-        <a
-          href={r.courtlistener_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn-outline"
-          style={{
-            justifySelf: "start",
-            textDecoration: "none",
-            padding: "8px 16px",
-            fontSize: 12,
-            marginTop: 4,
-            border: "1px solid var(--border-strong)",
-            borderRadius: 4,
-            color: "var(--fg)",
-            fontFamily: "var(--font-sans)",
-            fontWeight: 500,
-            cursor: "pointer",
-          }}
-        >
-          Read full opinion →
-        </a>
-      )}
     </article>
   );
 }

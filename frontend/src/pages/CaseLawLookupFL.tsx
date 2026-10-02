@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import SearchBar from "../components/caselaw/SearchBar";
 import ResultsList from "../components/caselaw/ResultsList";
-import type { CaseSearchResponse } from "../components/caselaw/types";
+import CourtFilter from "../components/caselaw/CourtFilter";
+import type { CaseSearchResponse, CourtFilterValue } from "../components/caselaw/types";
 import { EXAMPLE_SEARCHES, LEGAL_AID_LINKS } from "../components/caselaw/types";
 import { DISCLAIMER_TEXT } from "../components/DisclaimerNote";
 
@@ -12,6 +13,7 @@ export default function CaseLawLookupFL() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [response, setResponse] = useState<CaseSearchResponse | null>(null);
+  const [courtFilter, setCourtFilter] = useState<CourtFilterValue>("all");
 
   async function runSearch(q: string) {
     setSubmitting(true);
@@ -20,7 +22,7 @@ export default function CaseLawLookupFL() {
       const r = await fetch(`${API_URL}/api/case-law/search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: q, court_filter: "all" }),
+        body: JSON.stringify({ query: q, court_filter: courtFilter }),
       });
       if (r.status === 502) {
         throw new Error(
@@ -47,8 +49,9 @@ export default function CaseLawLookupFL() {
         <p style={{ maxWidth: "var(--max-prose)", lineHeight: 1.6 }}>
           Describe your legal issue in plain English — we'll search Florida
           court decisions for cases that may be relevant to your situation.
-          Our database covers over 425,000 opinions from Florida courts,
-          each with a plain-language summary.
+          Our database covers over 425,000 opinions from Florida courts.
+          Each result shows the case name, court, date, and citation, with
+          an excerpt from the decision.
         </p>
         <p style={{ marginTop: 8 }}>
           <Link to="/" style={{ color: "var(--muted)", fontSize: 12 }}>
@@ -153,6 +156,7 @@ export default function CaseLawLookupFL() {
             onSearch={runSearch}
             submitting={submitting}
           />
+          <CourtFilter value={courtFilter} onChange={setCourtFilter} />
         </section>
 
         {/* ---- RESULTS AREA ---- */}
@@ -259,8 +263,8 @@ export default function CaseLawLookupFL() {
                 before relying on them. Courts can overturn, limit, or
                 supersede earlier decisions — so read the newest cases on
                 your topic first, and confirm a case is still good law
-                before you use it. Each result below includes a free way to
-                verify.
+                before you use it. Each result below includes citation
+                information and a good-law indicator to help you check.
               </span>
             </div>
           )}
@@ -368,12 +372,12 @@ export default function CaseLawLookupFL() {
                   }}
                 >
                   <li>
-                    Read the plain-English summary first — it tells you what
-                    the case decided.
+                    Read the excerpt first — it's the opening of the
+                    court's own decision.
                   </li>
                   <li>
-                    If the case seems relevant, read the full opinion
-                    (linked on each result card).
+                    If the case seems relevant, read more of the decision
+                    right on the result card.
                   </li>
                   <li>
                     When citing a case in court, you need the full citation
