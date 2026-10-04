@@ -98,6 +98,7 @@ from src.api.routers.chat import router as chat_router
 from src.api.routers.criminal import router as criminal_router
 from src.api.routers.deadline import router as deadline_router
 from src.api.routers.discovery import router as discovery_router
+from src.api.routers.syg import router as syg_router
 from src.api.routers.expungement import router as expungement_router
 from src.api.routers.forms import router as forms_router
 from src.api.routers.intake import router as intake_router
@@ -127,6 +128,7 @@ app.include_router(landlord_router)
 app.include_router(traffic_router)
 app.include_router(police_report_router)
 app.include_router(case_law_router)
+app.include_router(syg_router)
 app.include_router(packet_router)
 app.include_router(forms_router)
 app.include_router(law_router)
