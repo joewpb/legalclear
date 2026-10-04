@@ -65,8 +65,8 @@ def test_extract_clean_single_call():
 
 def test_extract_garbage_then_recover_two_calls():
     call = FakeCall([
-        "Sure! Here is your analysis of the document. It was about "
-        "self-defense and duty to retreat.",
+        ("Sure! Here is your analysis of the document. It was about "
+         "self-defense and duty to retreat."),
         json.dumps({
             "terms": ["self-defense", "disparity of force"],
             "facts": [],
@@ -163,13 +163,22 @@ def test_empty_text_safe():
 
 
 def test_empty_analysis_cases_fall_back_to_matched():
-    def echoing_call(prompt: str) -> str:
-        return json.dumps({
+    calls = {"n": 0}
+
+    def stateful_call(prompt: str) -> str:
+        calls["n"] += 1
+        if calls["n"] == 1:  # extraction call
+            return json.dumps({
+                "terms": ["self-defense"],
+                "facts": ["Two attackers"],
+                "charges": [],
+            })
+        return json.dumps({  # synthesis call — explicit empty cases
             "title": "T", "summary": "S",
             "elements": [], "cases": [], "attorney_questions": [],
         })
 
-    out = ss.analyze_syg(DOC_A, search_fn=fake_search, llm_call=echoing_call)
+    out = ss.analyze_syg(DOC_A, search_fn=fake_search, llm_call=stateful_call)
     assert out["cases"]  # matched cases exist
     assert out["analysis"]["cases"]  # fallback populated, not vanished
     cited = {c["case_name"] for c in out["analysis"]["cases"]}
