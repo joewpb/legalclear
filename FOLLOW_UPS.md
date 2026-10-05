@@ -11,6 +11,9 @@ verify-slist):
   DEFERRED = paused/phase-deferred on purpose. RESOLVED entries stay in the
   file for the record; the gate only guards OPEN ones.
 
+## CL-FULL — OPEN case-law full-corpus retrieval rebuild (2026-10-02, Sep 29 blind test + Oct 2 Phase 0 baseline)
+Prod search defects: the search page OR-ILIKEs one contiguous substring across the text columns with no usable trgm index — no-match terms hit the PostgREST statement timeout (57014, ~11s) and return empty; shipped chips are space-joined keyword lists that can never match; case-name search dead; junk rows (empty case_name/summary_plain) served; ~19% of dated rows corrupted (0010–0018 dropped-2 pattern + 0999 placeholders); 420,427 rows NULL date_filed; 425,112 rows NULL citation; 366,119 rows empty summary_plain; totals nondeterministic (timeout races); untreated rows ship the literal string "None" for citation_treatment; result cards carry external CourtListener links. Plan: 7-phase full-corpus rebuild (~/.hermes/plans/2026-09-29-legalclear-full-corpus-case-law.md). Backend rewrite lands on fix/p3-case-law-search; Orin bulk-CSV extraction → Supabase backfill (case_name/date/citation/summary); trgm DDL (summary_plain + case_name) pending Joe's SQL-editor run; frontend card fixes on a follow-up branch.
+
 ## ES-I18N — RECORDED ES i18n audit — recorded-not-scheduled (2026-08-23, Decision 16)
 The Spanish-language i18n audit item is deferred by Decision 16: English first; Spanish stays out of scope until the English product is complete and live. The language parameter remains wired end-to-end (AGENTS.md §7 — no re-architecture required); this is deferral, not removal. Re-open with Decision 16.
 
