@@ -216,6 +216,28 @@ DISCLAIMER = (
     "situation with a Florida attorney. Free help: /find-legal-help."
 )
 
+# Deterministic gate — SYG analysis runs ONLY when the report plausibly
+# involves self-defense. Zero LLM cost for non-SYG reports.
+_SYG_TEXT_SIGNALS = (
+    "self defense", "self-defense", "stand your ground", "defended",
+    "defending", "attacked", "attacker", "intruder", "intrusion",
+    "home invasion", "break-in", "break in", "broke in", "forcible entry",
+    "disparity of force", "multiple attackers", "duty to retreat",
+    "justifiable use of force", "castle doctrine",
+)
+_SYG_TAG_SIGNALS = ("self_defense", "stand_your_ground", "castle_doctrine")
+
+
+def syg_relevant(text: str, tags: list[str] | None = None) -> bool:
+    """Cheap deterministic relevance gate. No LLM involvement."""
+    lowered = (text or "").lower()
+    if any(s in lowered for s in _SYG_TEXT_SIGNALS):
+        return True
+    for t in tags or []:
+        if any(s in t.lower() for s in _SYG_TAG_SIGNALS):
+            return True
+    return False
+
 
 def analyze_syg(
     text: str,

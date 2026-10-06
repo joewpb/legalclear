@@ -162,6 +162,21 @@ def test_empty_text_safe():
     assert "No document provided" in out["analysis"]["title"]
 
 
+def test_syg_relevant_gate():
+    # self-defense signals in text → run
+    assert ss.syg_relevant("He attacked me and I defended myself") is True
+    assert ss.syg_relevant("someone broke in at 3am") is True
+    assert ss.syg_relevant("I relied on stand your ground") is True
+    # unrelated report → skip (zero LLM cost)
+    assert ss.syg_relevant("Officer issued a speeding citation") is False
+    assert ss.syg_relevant("") is False
+    # situation tags carry the signal when text does not
+    assert ss.syg_relevant(
+        "incident at residence", tags=["self_defense", "curtilage"],
+    ) is True
+    assert ss.syg_relevant("incident at residence", tags=["search_warrant"]) is False
+
+
 def test_empty_analysis_cases_fall_back_to_matched():
     calls = {"n": 0}
 

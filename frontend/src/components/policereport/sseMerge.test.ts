@@ -124,4 +124,35 @@ describe("applySseEvent — ADVERSARIAL order-independence (the original bug)", 
 
     expect(state.situation_tags_used).toEqual(["probable_cause"]);
   });
+
+  it("syg_analysis event stores the payload without the type discriminator", () => {
+    let state: PoliceReportState = {};
+    state = applySseEvent(state, {
+      type: "syg_analysis",
+      terms: ["self-defense"],
+      analysis: { title: "Stand Your Ground" },
+      disclaimer: "not legal advice",
+    });
+
+    expect(state.syg_analysis).toEqual({
+      terms: ["self-defense"],
+      analysis: { title: "Stand Your Ground" },
+      disclaimer: "not legal advice",
+    });
+    // the event's own `type` must not leak into the stored payload
+    expect((state.syg_analysis as Record<string, unknown>).type).toBeUndefined();
+  });
+
+  it("syg_analysis survives a later analysis_json that omits it", () => {
+    let state: PoliceReportState = {};
+    state = applySseEvent(state, {
+      type: "syg_analysis",
+      terms: ["castle doctrine"],
+      analysis: { title: "T" },
+      disclaimer: "d",
+    });
+    state = applySseEvent(state, { type: "analysis_json", data: ANALYSIS_JSON });
+
+    expect(state.syg_analysis).toMatchObject({ terms: ["castle doctrine"] });
+  });
 });

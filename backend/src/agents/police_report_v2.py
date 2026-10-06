@@ -550,6 +550,39 @@ class PoliceReportAnalyzerV2:
                     traceback.format_exc(),
                 )
 
+            # ── Post-stream: Stand Your Ground analysis (Phase 6) ──
+            # Gated by a deterministic relevance check — reports that do
+            # not plausibly involve self-defense skip this entirely (zero
+            # extra LLM cost). Sealed like the others: a failure here must
+            # never kill the stream after successful analysis events.
+            from src.api.routers.case_law import (
+                _search_opinions_corpus,
+                _tokenize,
+            )
+            from src.services.syg_synthesis import analyze_syg, syg_relevant
+
+            if syg_relevant(raw_text or "", locals().get("tags")):
+                yield _sse("progress", {
+                    "type": "progress",
+                    "stage": "stand_your_ground_analysis",
+                })
+                try:
+                    syg = await asyncio.to_thread(
+                        analyze_syg,
+                        text=(raw_text or ""),
+                        search_fn=_search_opinions_corpus,
+                        tokenizer=_tokenize,
+                    )
+                    yield _sse("syg_analysis", {
+                        "type": "syg_analysis",
+                        **syg,
+                    })
+                except Exception:
+                    logger.error(
+                        "syg_analysis emission failed:\n%s",
+                        traceback.format_exc(),
+                    )
+
             # ── Post-stream: extract case_context (Phase 9) ──
             # Lazy import: scanner imports compute_risk_score from this
             # module, so a top-level import here creates a cycle that
