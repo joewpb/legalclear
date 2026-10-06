@@ -23,15 +23,16 @@
 // own AnalysisResponse without an index-signature clash; the merge only ever
 // reads/writes the three typed-event fields plus a shallow spread.
 
-import type { RelevantOpinion } from "./types";
+import type { RelevantOpinion, SygAnalysis } from "./types";
 
-/** State shape the reducer requires (the three carry-over fields, optional). */
+/** State shape the reducer requires (the carry-over fields, optional). */
 export interface PoliceReportState {
   [k: string]: unknown;
   risk_analysis?: unknown;
   relevant_opinions?: RelevantOpinion[];
   situation_tags_used?: string[];
   case_context?: unknown;
+  syg_analysis?: SygAnalysis;
 }
 
 export type PoliceReportSseEvent =
@@ -48,6 +49,8 @@ export type PoliceReportSseEvent =
       type: "case_context";
       case_context: unknown;
     }
+  // Typed event: Stand Your Ground analysis (Phase 6, gated).
+  | { type: "syg_analysis"; [k: string]: unknown }
   // The accumulated analysis JSON, parsed (partial during stream, final after).
   // `object` (not Record<string, unknown>) so callers can pass a precise
   // interface like AnalysisResponse that lacks a string index signature.
@@ -75,6 +78,11 @@ export function applySseEvent<S>(prev: S, event: PoliceReportSseEvent): S {
     case "case_context":
       return { ...prev, case_context: event.case_context } as S;
 
+    case "syg_analysis": {
+      const { type: _t, ...payload } = event;
+      return { ...prev, syg_analysis: payload as unknown } as S;
+    }
+
     case "analysis_json": {
       const p = prev as Record<string, unknown>;
       const d = event.data as Record<string, unknown>;
@@ -87,6 +95,7 @@ export function applySseEvent<S>(prev: S, event: PoliceReportSseEvent): S {
         relevant_opinions: p.relevant_opinions ?? d.relevant_opinions,
         situation_tags_used: p.situation_tags_used ?? d.situation_tags_used,
         case_context: p.case_context ?? d.case_context,
+        syg_analysis: p.syg_analysis ?? d.syg_analysis,
       } as S;
     }
   }

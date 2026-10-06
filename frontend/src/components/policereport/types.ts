@@ -164,3 +164,29 @@ export interface RelevantOpinion {
   attorney_explanation?: string;
   attorney_prompt: string;
 }
+
+// ── Stand Your Ground analysis (Phase 6) ─────────────────────────────────────
+// Emitted as a typed `syg_analysis` SSE event when the report plausibly
+// involves self-defense. Shape mirrors src/services/syg_synthesis.py.
+export interface SygCaseRef {
+  case_name: string;
+  citation: string;
+  court?: string;
+  date_filed?: string | null;
+  why_it_matters?: string;
+}
+
+export interface SygAnalysis {
+  terms: string[];
+  charges_mentioned?: string[];
+  cases: SygCaseRef[];
+  analysis: {
+    title: string;
+    summary: string;
+    elements: string[];
+    cases: Array<SygCaseRef & { why_it_matters?: string }>;
+    attorney_questions: string[];
+    degraded?: boolean;
+  };
+  disclaimer: string;
+}

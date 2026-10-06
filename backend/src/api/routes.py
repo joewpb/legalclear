@@ -76,7 +76,7 @@ db = DatabaseManager()
 # J5: load owned rule citations into the CitationFilter registry at startup.
 # Guarded internally — on DB failure the registry stays statute-curated and
 # rule citations degrade to stripped (never loosened).
-from src.core.citation_filter import load_rule_citations_from_db  # noqa: E402
+from src.core.citation_filter import load_rule_citations_from_db
 
 load_rule_citations_from_db(db)
 stripe_client = StripeClient()
@@ -95,6 +95,7 @@ FORM_CATEGORIES = [
 from src.api.routers.attorney_referral import router as attorney_referral_router
 from src.api.routers.case_law import router as case_law_router
 from src.api.routers.chat import router as chat_router
+from src.api.routers.claims import router as claims_router
 from src.api.routers.criminal import router as criminal_router
 from src.api.routers.deadline import router as deadline_router
 from src.api.routers.discovery import router as discovery_router
@@ -104,14 +105,14 @@ from src.api.routers.intake import router as intake_router
 from src.api.routers.landlord import router as landlord_router
 from src.api.routers.law import router as law_router
 from src.api.routers.packet import router as packet_router
+from src.api.routers.pc_llm_tap import router as pc_llm_tap_router
 from src.api.routers.police_report import router as police_report_router
 from src.api.routers.property_casualty import (
     router as property_casualty_router,
 )
-from src.api.routers.claims import router as claims_router
-from src.api.routers.pc_llm_tap import router as pc_llm_tap_router
 from src.api.routers.reminders import router as reminders_router
 from src.api.routers.small_claims import router as small_claims_router
+from src.api.routers.syg import router as syg_router
 from src.api.routers.traffic import router as traffic_router
 from src.api.routers.wills_trusts import router as wills_trusts_router
 
@@ -127,6 +128,7 @@ app.include_router(landlord_router)
 app.include_router(traffic_router)
 app.include_router(police_report_router)
 app.include_router(case_law_router)
+app.include_router(syg_router)
 app.include_router(packet_router)
 app.include_router(forms_router)
 app.include_router(law_router)

@@ -13,7 +13,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import ChatDrawer, { ChatButton } from "../components/ChatDrawer";
 import OpinionCard from "../components/policereport/OpinionCard";
 import { applySseEvent } from "../components/policereport/sseMerge";
-import type { CaseContext, RelevantOpinion } from "../components/policereport/types";
+import type { CaseContext, RelevantOpinion, SygAnalysis } from "../components/policereport/types";
 import CaseContextBanner from "../components/policereport/CaseContextBanner";
 import { readSSE } from "../lib/sse";
 import { DISCLAIMER_TEXT } from "../components/DisclaimerNote";
@@ -84,6 +84,7 @@ interface AnalysisResponse {
   relevant_opinions?: RelevantOpinion[];
   situation_tags_used?: string[];
   case_context?: CaseContext;
+  syg_analysis?: SygAnalysis;
   citations_checked?: CitationCheckEntry[];
   citation_notes?: string[];
 }
@@ -1115,6 +1116,61 @@ export default function PoliceReportAnalyzer() {
 
               return null;
             })()}
+
+            {/* Stand Your Ground analysis (Phase 6) — appears only when the
+                report plausibly involves self-defense. Educational framing:
+                what the law says, what matched cases decided, questions to
+                ask counsel. Never a directive. */}
+            {response.syg_analysis && (
+              <>
+                <h2 style={css.sectionTitle}>
+                  {response.syg_analysis.analysis.title}
+                </h2>
+                <p style={css.bodyText}>
+                  {response.syg_analysis.analysis.summary}
+                </p>
+                {response.syg_analysis.analysis.elements.length > 0 && (
+                  <ul style={css.bodyText}>
+                    {response.syg_analysis.analysis.elements.map(
+                      (el, i) => (
+                        <li key={i}>{el}</li>
+                      ),
+                    )}
+                  </ul>
+                )}
+                {response.syg_analysis.analysis.cases.length > 0 && (
+                  <>
+                    <h3 style={css.sectionTitle}>
+                      Cases This Analysis Draws From
+                    </h3>
+                    {response.syg_analysis.analysis.cases.map((c, i) => (
+                      <p key={i} style={css.bodyText}>
+                        <strong>{c.case_name}</strong>
+                        {c.citation && c.citation !== "Not available"
+                          ? ` — ${c.citation}`
+                          : ""}
+                        {c.why_it_matters ? `. ${c.why_it_matters}` : ""}
+                      </p>
+                    ))}
+                  </>
+                )}
+                {response.syg_analysis.analysis.attorney_questions.length >
+                  0 && (
+                  <>
+                    <h3 style={css.sectionTitle}>
+                      Questions to Ask a Florida Attorney
+                    </h3>
+                    <ul style={css.bodyText}>
+                      {response.syg_analysis.analysis.attorney_questions.map(
+                        (q, i) => (
+                          <li key={i}>{q}</li>
+                        ),
+                      )}
+                    </ul>
+                  </>
+                )}
+              </>
+            )}
 
             {/* What happens next */}
             <h2 style={css.sectionTitle}>What Typically Happens Next</h2>
